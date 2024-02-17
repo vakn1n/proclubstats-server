@@ -1,9 +1,9 @@
-import express from "express";
-import dotenv from "dotenv";
-import cors from "cors";
-import morgan from "morgan";
-
 import { json } from "body-parser";
+import cors from "cors";
+import dotenv from "dotenv";
+import express from "express";
+import morgan from "morgan";
+import { connectToDatabase } from "./database";
 
 const app = express();
 
@@ -14,6 +14,8 @@ dotenv.config(); // set env variables
 
 const port = process.env.PORT || 3000;
 
-app.listen(port, () => {
-  console.log(`Server running on port ${port}, bitch`);
+connectToDatabase().then(() => {
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
 });
