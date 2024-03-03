@@ -11,7 +11,7 @@ interface ILeagueAdmin {
   role: Role;
 }
 
-interface ILeague extends Document {
+export interface ILeague extends Document {
   name: string;
   teams: mongoose.Types.ObjectId[];
   currentTitleHolder: mongoose.Types.ObjectId | null;

@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-interface IPlayerStats {
+export interface IPlayerStats {
   gamesPlayed: number;
   goalsScored: number;
   assistsProvided: number;
@@ -8,10 +8,11 @@ interface IPlayerStats {
   playerOfTheMatch: number;
 }
 
-interface IPlayer extends Document {
+export interface IPlayer extends Document {
   teamId: mongoose.Types.ObjectId;
   name: string;
   age: number;
+  imgUrl: String;
   stats: IPlayerStats;
   playablePositions: String[];
   favoritePosition: string;
@@ -24,6 +25,7 @@ const playerSchema: Schema = new Schema(
     age: { type: Number, required: true },
     playablePositions: [{ type: String, required: true }],
     favoritePosition: { type: String, required: true },
+    imgUrl: { type: String },
     stats: {
       gamesPlayed: { type: Number, default: 0 },
       goalsScored: { type: Number, default: 0 },

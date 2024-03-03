@@ -1,6 +1,6 @@
 import mongoose, { Schema } from "mongoose";
 
-interface IFixture extends Document {
+export interface IFixture extends Document {
   homeTeamId: mongoose.Types.ObjectId;
   awayTeamId: mongoose.Types.ObjectId;
   round: number;
