@@ -17,10 +17,12 @@ export default class FixtureController {
   }
 
   async createFixture(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const fixtureData = req.body;
     try {
-      const fixture = await this.fixtureService.createFixture(fixtureData);
-      res.json(fixture);
+      const { leagueId, ...fixtureData } = req.body;
+
+      const fixture = await this.fixtureService.addFixtureToLeague(leagueId, fixtureData);
+
+      res.status(201).json(fixture);
     } catch (error: any) {
       next(error);
     }

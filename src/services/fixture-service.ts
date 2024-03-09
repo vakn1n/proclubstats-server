@@ -1,37 +1,49 @@
-import { IFixture } from "../models/fixture";
+import NotFoundError from "../errors/not-found-error";
+import Fixture, { IFixture } from "../models/fixture";
+import LeagueService from "./league-service";
 
 class FixtureService {
   private static instance: FixtureService;
+  private leagueService: LeagueService;
 
   private constructor() {
-    // Private constructor to prevent instantiation
+    this.leagueService = LeagueService.getInstance();
   }
 
   static getInstance(): FixtureService {
-    if (!FixtureService.instance) {
-      FixtureService.instance = new FixtureService();
+    if (!this.instance) {
+      this.instance = new FixtureService();
     }
-    return FixtureService.instance;
+    return this.instance;
   }
 
-  async createFixture(data: any): Promise<IFixture> {
-    // Implementation...
+  async addFixtureToLeague(leagueId: string, fixtureData: any) {
+    const fixture = new Fixture({ leagueId, ...fixtureData });
+    await fixture.save();
+
+    await this.leagueService.addFixtureToLeague(leagueId, fixture._id);
+
+    return fixture;
   }
 
-  async updateFixture(id: string, data: any): Promise<IFixture | null> {
-    // Implementation...
+  async deleteFixture(id: string): Promise<IFixture> {
+    const fixture = await Fixture.findByIdAndDelete(id);
+    if (!fixture) {
+      throw new NotFoundError(`Fixture with id ${id} not found`);
+    }
+    return fixture;
   }
 
-  async deleteFixture(id: string): Promise<IFixture | null> {
-    // Implementation...
-  }
-
-  async getFixtureById(id: string): Promise<IFixture | null> {
-    // Implementation...
+  async getFixtureById(id: string): Promise<IFixture> {
+    const fixture = await Fixture.findById(id);
+    if (!fixture) {
+      throw new NotFoundError(`fixture with id ${id} not found`);
+    }
+    return fixture;
   }
 
   async getAllFixtures(): Promise<IFixture[]> {
-    // Implementation...
+    return await Fixture.find();
   }
 }
 

@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 
 export interface ITeamStats {
-  name: String;
+  name: string;
   stats: {
     wins: Number;
     losses: Number;
@@ -13,7 +13,7 @@ export interface ITeamStats {
 }
 
 export interface ITeam extends Document {
-  name: string;
+  name: String;
   logoUrl: String;
   players: mongoose.Types.ObjectId[];
   captain: mongoose.Types.ObjectId;

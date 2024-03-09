@@ -4,12 +4,9 @@ import dotenv from "dotenv";
 import express from "express";
 import morgan from "morgan";
 import { connectToDatabase } from "./database";
-import {
-  playerRoutes,
-  fixtrueRoutes,
-  leagueRoutes,
-  teamRoutes,
-} from "./routes";
+import { playerRoutes, fixtureRoutes, leagueRoutes, teamRoutes } from "./routes";
+import errorHandlerMiddleware from "./middlewares/error-handler";
+import loggerMiddleware from "./middlewares/logger";
 
 const app = express();
 
@@ -18,10 +15,13 @@ app.use(json()); // format
 app.use(morgan("dev")); // logger
 dotenv.config(); // set env variables
 
-app.use("/players", playerRoutes);
-app.use("/fixtures", fixtrueRoutes);
+app.use("/player", playerRoutes);
+app.use("/fixture", fixtureRoutes);
 app.use("/league", leagueRoutes);
 app.use("/team", teamRoutes);
+
+app.use(loggerMiddleware);
+app.use(errorHandlerMiddleware);
 
 const port = process.env.PORT || 3000;
 
