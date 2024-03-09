@@ -1,3 +1,4 @@
+import NotFoundError from "../errors/not-found-error";
 import Team, { ITeam } from "../models/team";
 
 class TeamService {
@@ -13,23 +14,21 @@ class TeamService {
   }
 
   async createTeam(data: any): Promise<ITeam> {
-    // Implementation...
+    const newTeam = await Team.create(data);
+    return newTeam;
   }
 
-  async updateTeam(id: string, data: any): Promise<ITeam | null> {
-    // Implementation...
-  }
-
-  async removeTeamLeague(id: string): Promise<ITeam | null> {
-    // Implementation...
-  }
-
-  async getTeamById(id: string): Promise<ITeam | null> {
-    // Implementation...
+  async getTeamById(id: string): Promise<ITeam> {
+    const team = await Team.findById(id);
+    if (!team) {
+      throw new NotFoundError(`Team with if of: ${id} not found`);
+    }
+    return team;
   }
 
   async getAllTeams(): Promise<ITeam[]> {
-    // Implementation...
+    const teams = await Team.find({});
+    return teams;
   }
 }
 

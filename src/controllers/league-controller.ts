@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import LeagueService from "../services/league-service";
+import logger from "../logger";
 
 class LeagueController {
   private leagueService: LeagueService;
@@ -10,16 +11,18 @@ class LeagueController {
   }
 
   static getInstance(): LeagueController {
-    if (!this.instance) {
-      this.instance = new LeagueController();
+    if (!LeagueController.instance) {
+      LeagueController.instance = new LeagueController();
     }
-    return this.instance;
+    return LeagueController.instance;
   }
 
   async addLeague(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { leagueData } = req.body;
+    const { name } = req.body;
     try {
-      // Implement league creation
+      // TODO: validate data
+      const league = await this.leagueService.addLeague(name);
+      res.json(league);
     } catch (error: any) {
       res.status(400).json({ error: error.message });
     }
@@ -52,7 +55,7 @@ class LeagueController {
     }
   }
 
-  async getTopcScorers(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getTopScorers(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const topScorers = await this.leagueService.getTopScorers();
       res.json(topScorers);

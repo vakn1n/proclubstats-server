@@ -4,10 +4,8 @@ import TeamController from "../controllers/team-controller";
 const router = Router();
 const teamController = TeamController.getInstance();
 
-router.post("/", teamController.addTeamToLeague);
-router.put("/:id", teamController.update);
-router.delete("/:id", teamController.removeTeamFromLeague);
-router.get("/:id", teamController.getTeamById);
-router.get("/", teamController.getAllTeams);
+router.post("/", teamController.createTeam.bind(teamController));
+router.get("/:id", teamController.getTeamById.bind(teamController));
+router.get("/", teamController.getAllTeams.bind(teamController));
 
 export default router;

@@ -16,27 +16,12 @@ class TeamController {
     return this.instance;
   }
 
-  async addTeamToLeague(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      // await this.teamService.addTeamToLeague(teamId, leagueId)
-    } catch (error: any) {
-      next(error);
-    }
-  }
+  async createTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { teamData } = req.body;
 
-  async update(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Implement team update
-    } catch (error: any) {
-      next(error);
-    }
-  }
-
-  async removeTeamFromLeague(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { id } = req.params;
-    try {
-      await this.teamService.removeTeamLeague(id);
-      res.sendStatus(200);
+      const team = await this.teamService.createTeam(teamData);
+      res.json(team);
     } catch (error: any) {
       next(error);
     }

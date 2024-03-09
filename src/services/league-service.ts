@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 import League, { ILeague } from "../models/league";
 import { IPlayer } from "../models/player";
 import NotFoundError from "../errors/not-found-error";
+import logger from "../logger";
 
 class LeagueService {
   private static instance: LeagueService;
@@ -9,14 +10,21 @@ class LeagueService {
   private constructor() {}
 
   static getInstance(): LeagueService {
-    if (!this.instance) {
-      this.instance = new LeagueService();
+    if (!LeagueService.instance) {
+      LeagueService.instance = new LeagueService();
     }
-    return this.instance;
+    return LeagueService.instance;
   }
 
-  async createLeague(data: any): Promise<ILeague> {
-    const league = new League(data);
+  async addLeague(name: string): Promise<ILeague> {
+    const isLeagueExists = !!(await League.exists({ name }));
+    if (isLeagueExists) {
+      throw new Error(`League ${name} already exists`);
+    }
+
+    logger.info(`Adding league with name ${name}`);
+
+    const league = new League({ name });
     await league.save();
     return league;
   }
