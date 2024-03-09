@@ -1,3 +1,4 @@
+import NotFoundError from "../errors/not-found-error";
 import Player, { IPlayer } from "../models/player";
 
 export default class PlayerService {
@@ -11,6 +12,14 @@ export default class PlayerService {
   }
 
   async addPlayer(data: any): Promise<IPlayer> {
+    //TODO: create type for the data object
+
+    if (!data.playablePositions) {
+      data.playablePositions = [data.favoritePosition];
+    }
+
+    // TODO: check if there is already such player in that team
+
     const player = new Player(data);
     await player.save();
     return player;
@@ -19,7 +28,7 @@ export default class PlayerService {
   async getPlayerById(id: string): Promise<IPlayer> {
     const player = await Player.findById(id);
     if (!player) {
-      throw new Error(`cant find player with id ${id}`); //TODO: create specific error
+      throw new NotFoundError(`cant find player with id ${id}`);
     }
     return player;
   }

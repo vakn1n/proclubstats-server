@@ -17,10 +17,10 @@ class TeamController {
   }
 
   async createTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { teamData } = req.body;
+    const { name, logoUrl, leagueId } = req.body;
 
     try {
-      const team = await this.teamService.createTeam(teamData);
+      const team = await this.teamService.createTeam(name, leagueId, logoUrl);
       res.json(team);
     } catch (error: any) {
       next(error);

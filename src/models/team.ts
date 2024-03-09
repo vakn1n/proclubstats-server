@@ -14,6 +14,7 @@ export interface ITeamStats {
 
 export interface ITeam extends Document {
   name: String;
+  leagueId: String;
   logoUrl: String;
   players: mongoose.Types.ObjectId[];
   captain: mongoose.Types.ObjectId;
@@ -25,6 +26,7 @@ const teamSchema: Schema = new Schema(
     name: { type: String, required: true },
     players: [{ type: mongoose.Types.ObjectId, ref: "Player" }],
     captain: { type: mongoose.Types.ObjectId, ref: "Player" },
+    leagueId: { type: mongoose.Types.ObjectId, ref: "League" },
     logoUrl: { type: String },
     stats: {
       wins: { type: Number, default: 0 },

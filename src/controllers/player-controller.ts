@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import PlayerService from "../services/player-service";
+import logger from "../logger";
 
 class PlayerController {
   private static instance: PlayerController;
@@ -17,10 +18,8 @@ class PlayerController {
   }
 
   async addPlayer(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const playerData = req.body;
     try {
-      const { playerData } = req.body;
-
-      // TODO: validate data
       const player = await this.playerService.addPlayer(playerData);
       res.status(201).json(player);
     } catch (error: any) {
@@ -31,7 +30,7 @@ class PlayerController {
   async getPlayerById(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
 
-    console.log(`getting player with id ${id}`); //TODO: switch to logger
+    logger.info(`getting player with id ${id}`);
 
     try {
       const player = await this.playerService.getPlayerById(id);

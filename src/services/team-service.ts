@@ -13,15 +13,15 @@ class TeamService {
     return TeamService.instance;
   }
 
-  async createTeam(data: any): Promise<ITeam> {
-    const newTeam = await Team.create(data);
+  async createTeam(name: string, leagueId: string, logoUrl: string): Promise<ITeam> {
+    const newTeam = await Team.create({ name, leagueId, logoUrl });
     return newTeam;
   }
 
   async getTeamById(id: string): Promise<ITeam> {
     const team = await Team.findById(id);
     if (!team) {
-      throw new NotFoundError(`Team with if of: ${id} not found`);
+      throw new NotFoundError(`Team with id of: ${id} not found`);
     }
     return team;
   }
