@@ -1,4 +1,4 @@
-import mongoose, { Schema, mongo } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 enum Role {
   OWNER = "OWNER",
@@ -12,6 +12,7 @@ interface ILeagueAdmin {
 }
 
 export interface ILeague extends Document {
+  id: string;
   name: string;
   teams: mongoose.Types.ObjectId[];
   currentTitleHolder: mongoose.Types.ObjectId | null;
@@ -19,7 +20,7 @@ export interface ILeague extends Document {
   fixtures: mongoose.Types.ObjectId[];
 }
 
-const leagueSchema: Schema = new Schema(
+const leagueSchema: Schema = new Schema<ILeague>(
   {
     name: { type: String, required: true },
     teams: [{ type: mongoose.Types.ObjectId, ref: "Team" }],
