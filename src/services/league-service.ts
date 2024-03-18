@@ -22,6 +22,8 @@ interface LeagueTableRow {
 }
 
 const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
+const TOP_SCORERS_CACHE_KEY = "topScorers";
+const TOP_ASSISTS_CACHE_KEY = "topAssists";
 
 class LeagueService {
   private static instance: LeagueService;
@@ -88,13 +90,14 @@ class LeagueService {
   }
 
   private async setLeagueTableInCache(leagueId: string, leagueTable: LeagueTableRow[]): Promise<void> {
-    await this.cacheService.set(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`, leagueTable);
+    await this.cacheService.set(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`, JSON.stringify(leagueTable));
   }
 
   private async getLeagueTableFromCache(leagueId: string): Promise<LeagueTableRow[] | null> {
     const leagueTable = await this.cacheService.get(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`);
     if (!leagueTable) return null;
-    return leagueTable as LeagueTableRow[];
+
+    return JSON.parse(leagueTable) as LeagueTableRow[];
   }
 
   async updateLeagueTable(leagueId: string) {
@@ -160,31 +163,65 @@ class LeagueService {
       return b.goalsScored - a.goalsScored; // Higher goals scored first
     });
   }
+  private async getTopScorersFromCache(leagueId: string): Promise<IPlayer[] | null> {
+    const cachedData = await this.cacheService.get(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`);
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    }
+    return null;
+  }
+
+  private async setTopScorersInCache(leagueId: string, players: IPlayer[]): Promise<void> {
+    await this.cacheService.set(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`, JSON.stringify(players));
+  }
+
   async getTopScorers(leagueId: string, limit: number = 10): Promise<IPlayer[]> {
-    const topScorers = await Team.aggregate<IPlayer>([
-      { $match: { leagueId } },
-      { $unwind: "$players" },
-      { $lookup: { from: "players", localField: "players", foreignField: "_id", as: "player" } },
-      { $unwind: "$player" },
-      { $sort: { "player.stats.goals": -1 } },
-      { $limit: limit },
-      { $replaceRoot: { newRoot: "$player" } }, // Replace the root with the player object
-    ]);
+    let topScorers = await this.getTopScorersFromCache(leagueId);
+    if (!topScorers) {
+      topScorers = await this.calculateTopScorers(leagueId, limit);
+      await this.setTopScorersInCache(leagueId, topScorers);
+    }
 
     return topScorers;
   }
 
-  async getTopAssists(leagueId: string, limit: number = 10): Promise<IPlayer[]> {
-    const topAssists = await Team.aggregate<IPlayer>([
-      { $match: { leagueId } },
+  private async calculateTopScorers(leagueId: string, limit: number): Promise<IPlayer[]> {
+    return await Team.aggregate<IPlayer>([
+      { $match: { leagueId: leagueId } },
+      { $lookup: { from: "players", localField: "players", foreignField: "_id", as: "players" } },
       { $unwind: "$players" },
-      { $lookup: { from: "players", localField: "players", foreignField: "_id", as: "player" } },
-      { $unwind: "$player" },
-      { $sort: { "player.stats.assists": -1 } },
+      {
+        $group: {
+          _id: "$players._id",
+          name: { $first: "$players.name" },
+          goalsScored: { $sum: "$players.goalsScored" },
+        },
+      },
+      { $sort: { goalsScored: -1 } },
       { $limit: limit },
     ]);
+  }
+
+  async getTopAssists(leagueId: string, limit: number = 10): Promise<IPlayer[]> {
+    let topAssists = await this.getTopScorersFromCache(leagueId);
+    if (!topAssists) {
+      // Perform the aggregation if the data is not in the cache
+      topAssists = await this.calculateTopAssists(leagueId, limit);
+      await this.setTopScorersInCache(leagueId, topAssists);
+    }
 
     return topAssists;
+  }
+
+  private async calculateTopAssists(leagueId: string, limit: number = 10): Promise<IPlayer[]> {
+    return await Team.aggregate<IPlayer>([
+      { $match: { leagueId: leagueId } },
+      { $lookup: { from: "players", localField: "players", foreignField: "_id", as: "players" } },
+      { $unwind: "$players" },
+      { $group: { _id: "$players._id", name: { $first: "$players.name" }, assists: { $sum: "$players.assists" } } },
+      { $sort: { assists: -1 } },
+      { $limit: limit },
+    ]);
   }
 }
 
