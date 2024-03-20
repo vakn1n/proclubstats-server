@@ -1,28 +1,33 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface IPlayerStats {
-  gamesPlayed: number;
-  goalsScored: number;
-  assistsProvided: number;
+  games: number;
+  goals: number;
+  assists: number;
   cleanSheets: number;
   playerOfTheMatch: number;
 }
 
 export interface IPlayer extends Document {
-  teamId: mongoose.Types.ObjectId;
-  firstName: String;
-  lastName: String;
-  shirtName: String;
+  id: string;
+  team: mongoose.Types.ObjectId;
+  phoneNumber: Number;
+  email: string;
+  firstName: string;
+  lastName: string;
+  shirtName: string;
   age: number;
-  imgUrl: String;
+  imgUrl: string;
   stats: IPlayerStats;
-  playablePositions: String[];
-  favoritePosition: String;
+  playablePositions: string[];
+  favoritePosition: string;
 }
 
 const playerSchema: Schema = new Schema(
   {
-    teamId: { type: mongoose.Types.ObjectId, required: true },
+    team: { type: mongoose.Types.ObjectId, required: true },
+    email: { type: String },
+    phoneNumber: { type: Number },
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     shirtName: { type: String },
@@ -31,9 +36,9 @@ const playerSchema: Schema = new Schema(
     favoritePosition: { type: String, required: true },
     imgUrl: { type: String },
     stats: {
-      gamesPlayed: { type: Number, default: 0 },
-      goalsScored: { type: Number, default: 0 },
-      assistsProvided: { type: Number, default: 0 },
+      games: { type: Number, default: 0 },
+      goals: { type: Number, default: 0 },
+      assists: { type: Number, default: 0 },
       cleanSheets: { type: Number, default: 0 },
       playerOfTheMatch: { type: Number, default: 0 },
     },

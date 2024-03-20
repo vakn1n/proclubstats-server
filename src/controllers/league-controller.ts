@@ -24,7 +24,7 @@ class LeagueController {
       const league = await this.leagueService.addLeague(name);
       res.json(league);
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      next(error);
     }
   }
 
@@ -32,7 +32,7 @@ class LeagueController {
     try {
       // Implement league deletion
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      next(error);
     }
   }
 
@@ -42,7 +42,7 @@ class LeagueController {
       const league = await this.leagueService.getLeagueById(id);
       res.json(league);
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      next(error);
     }
   }
 
@@ -51,7 +51,17 @@ class LeagueController {
       const fixtures = await this.leagueService.getAllLeagues();
       res.json(fixtures);
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      next(error);
+    }
+  }
+
+  async getLeagueTable(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.params;
+    try {
+      const leagueTable = await this.leagueService.getLeagueTable(id);
+      res.json(leagueTable);
+    } catch (error: any) {
+      next(error);
     }
   }
 
@@ -59,16 +69,16 @@ class LeagueController {
     try {
       const topScorers = await this.leagueService.getTopScorers();
       res.json(topScorers);
-    } catch (e) {
-      next(e);
+    } catch (error) {
+      next(error);
     }
   }
   async getTopAssists(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const topAssists = await this.leagueService.getTopAssists();
       res.json(topAssists);
-    } catch (e) {
-      next(e);
+    } catch (error) {
+      next(error);
     }
   }
 }

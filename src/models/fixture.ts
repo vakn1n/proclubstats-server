@@ -1,6 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 
 export interface IFixture extends Document {
+  id: string;
   leagueId: mongoose.Types.ObjectId;
   homeTeamId: mongoose.Types.ObjectId;
   awayTeamId: mongoose.Types.ObjectId;

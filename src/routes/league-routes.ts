@@ -10,5 +10,6 @@ router.get("/:id", leagueController.getLeagueById.bind(leagueController));
 router.get("/", leagueController.getAllLeagues.bind(leagueController));
 router.get("/topScorers", leagueController.getTopScorers.bind(leagueController));
 router.get("/topAssists", leagueController.getTopAssists.bind(leagueController));
+router.get("/table", leagueController.getLeagueTable.bind(leagueController));
 
 export default router;

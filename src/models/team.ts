@@ -1,32 +1,30 @@
 import mongoose, { Schema } from "mongoose";
 
 export interface ITeamStats {
-  name: string;
-  stats: {
-    wins: Number;
-    losses: Number;
-    draws: Number;
-    goalsScored: Number;
-    goalsConceded: Number;
-    cleanSheets: Number;
-  };
+  wins: number;
+  losses: number;
+  draws: number;
+  goalsScored: number;
+  goalsConceded: number;
+  cleanSheets: number;
 }
 
 export interface ITeam extends Document {
-  name: String;
-  leagueId: String;
-  logoUrl: String;
+  id: string;
+  name: string;
+  league: mongoose.Types.ObjectId;
+  logoUrl: string;
   players: mongoose.Types.ObjectId[];
   captain: mongoose.Types.ObjectId;
   stats: ITeamStats;
 }
 
-const teamSchema: Schema = new Schema(
+const teamSchema: Schema = new Schema<ITeam>(
   {
     name: { type: String, required: true },
     players: [{ type: mongoose.Types.ObjectId, ref: "Player" }],
     captain: { type: mongoose.Types.ObjectId, ref: "Player" },
-    leagueId: { type: mongoose.Types.ObjectId, ref: "League" },
+    league: { type: mongoose.Types.ObjectId, ref: "League" },
     logoUrl: { type: String },
     stats: {
       wins: { type: Number, default: 0 },
