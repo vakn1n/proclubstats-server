@@ -11,29 +11,25 @@ export interface IPlayerStats {
 export interface IPlayer extends Document {
   id: string;
   team: mongoose.Types.ObjectId;
-  phoneNumber: Number;
-  email: string;
-  firstName: string;
-  lastName: string;
-  shirtName: string;
+  phone?: Number;
+  email?: string;
+  name: string;
   age: number;
-  imgUrl: string;
+  imgUrl?: string;
   stats: IPlayerStats;
+  position: string;
   playablePositions: string[];
-  favoritePosition: string;
 }
 
 const playerSchema: Schema = new Schema(
   {
-    team: { type: mongoose.Types.ObjectId, required: true },
+    team: { type: mongoose.Schema.Types.ObjectId, required: true },
     email: { type: String },
-    phoneNumber: { type: Number },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    shirtName: { type: String },
+    phone: { type: Number },
+    name: { type: String, required: true },
     age: { type: Number, required: true },
+    position: { type: String, required: true },
     playablePositions: [{ type: String, required: true }],
-    favoritePosition: { type: String, required: true },
     imgUrl: { type: String },
     stats: {
       games: { type: Number, default: 0 },

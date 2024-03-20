@@ -2,7 +2,17 @@ import { NextFunction, Request, Response } from "express";
 import PlayerService from "../services/player-service";
 import logger from "../logger";
 
-class PlayerController {
+export type AddPlayerDataRequest = {
+  name: string;
+  phone?: string;
+  imgUrl?: string;
+  age: number;
+  teamId: string;
+  position: string;
+  playablePositions: string[];
+};
+
+export default class PlayerController {
   private static instance: PlayerController;
   private playerService: PlayerService;
 
@@ -18,7 +28,10 @@ class PlayerController {
   }
 
   async addPlayer(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const playerData = req.body;
+    const playerData = req.body as AddPlayerDataRequest;
+
+    // TODO: get image file, upload it to cloudinary, get imgUrl, save it into AddPlayerDataRequest
+
     try {
       const player = await this.playerService.addPlayer(playerData);
       res.status(201).json(player);
@@ -48,6 +61,15 @@ class PlayerController {
       next(error);
     }
   }
-}
 
-export default PlayerController;
+  async deletePlayer(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.params;
+
+    try {
+      await this.playerService.deletePlayer(id);
+      res.status(204).send(); // 204 No Content
+    } catch (error: any) {
+      next(error);
+    }
+  }
+}
