@@ -6,6 +6,7 @@ import Team from "../models/team";
 import { ITeam } from "../models/team";
 import Player, { IPlayer } from "../models/player";
 import CacheService from "./cache-service";
+import { ClientSession } from "mongodb";
 
 interface LeagueTableRow {
   teamId: string;
@@ -53,6 +54,18 @@ class LeagueService {
     return league;
   }
 
+  async addTeamToLeague(teamId: Types.ObjectId, leagueId: string, session: ClientSession) {
+    logger.info(`Adding team with id ${teamId} to league with id ${leagueId}`);
+
+    const league = await League.findById(leagueId);
+    if (!league) {
+      throw new NotFoundError(`League with id ${leagueId} not found`);
+    }
+
+    league.teams.push(teamId);
+    await league.save({ session });
+  }
+
   async addFixtureToLeague(leagueId: string, fixtureId: Types.ObjectId) {
     throw new Error("Method not implemented.");
   }
@@ -90,7 +103,7 @@ class LeagueService {
   }
 
   private async setLeagueTableInCache(leagueId: string, leagueTable: LeagueTableRow[]): Promise<void> {
-    await this.cacheService.set(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`, JSON.stringify(leagueTable));
+    await this.cacheService.set(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`, leagueTable);
   }
 
   private async getLeagueTableFromCache(leagueId: string): Promise<LeagueTableRow[] | null> {
@@ -114,7 +127,7 @@ class LeagueService {
   private async calculateLeagueTable(leagueId: string): Promise<LeagueTableRow[]> {
     const league = await League.findById(leagueId).populate<{ teams: ITeam[] }>({
       path: "teams",
-      select: "name stats",
+      select: "name stats id ",
     });
 
     if (!league) {
@@ -163,19 +176,9 @@ class LeagueService {
       return b.goalsScored - a.goalsScored; // Higher goals scored first
     });
   }
-  private async getTopScorersFromCache(leagueId: string): Promise<IPlayer[] | null> {
-    const cachedData = await this.cacheService.get(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`);
-    if (cachedData) {
-      return JSON.parse(cachedData);
-    }
-    return null;
-  }
-
-  private async setTopScorersInCache(leagueId: string, players: IPlayer[]): Promise<void> {
-    await this.cacheService.set(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`, JSON.stringify(players));
-  }
 
   async getTopScorers(leagueId: string, limit: number = 10): Promise<IPlayer[]> {
+    logger.info(`getting top scorers for ${leagueId}`);
     let topScorers = await this.getTopScorersFromCache(leagueId);
     if (!topScorers) {
       topScorers = await this.calculateTopScorers(leagueId, limit);
@@ -185,21 +188,36 @@ class LeagueService {
     return topScorers;
   }
 
+  private async getTopScorersFromCache(leagueId: string): Promise<IPlayer[] | null> {
+    // const cachedData = await this.cacheService.get(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`);
+    // if (cachedData) {
+    //   return JSON.parse(cachedData);
+    // }
+    return null;
+  }
+
   private async calculateTopScorers(leagueId: string, limit: number): Promise<IPlayer[]> {
-    return await Team.aggregate<IPlayer>([
-      { $match: { leagueId: leagueId } },
-      { $lookup: { from: "players", localField: "players", foreignField: "_id", as: "players" } },
-      { $unwind: "$players" },
-      {
-        $group: {
-          _id: "$players._id",
-          name: { $first: "$players.name" },
-          goalsScored: { $sum: "$players.goalsScored" },
+    logger.info(`calculating top scorers for league with id ${leagueId}`);
+
+    try {
+      return await Team.aggregate<IPlayer>([
+        { $match: { league: new Types.ObjectId(leagueId) } },
+        { $lookup: { from: "players", localField: "players", foreignField: "_id", as: "players" } },
+        { $unwind: "$players" },
+        {
+          $group: {
+            _id: "$players._id",
+            name: { $first: "$players.name" },
+            goalsScored: { $sum: "$players.goalsScored" },
+          },
         },
-      },
-      { $sort: { goalsScored: -1 } },
-      { $limit: limit },
-    ]);
+        { $sort: { goalsScored: -1 } },
+        { $limit: limit },
+      ]);
+    } catch (e) {
+      logger.error(e);
+      throw new Error(`failed to calculate top scorers for league with id ${leagueId}`);
+    }
   }
 
   async getTopAssists(leagueId: string, limit: number = 10): Promise<IPlayer[]> {
@@ -207,21 +225,34 @@ class LeagueService {
     if (!topAssists) {
       // Perform the aggregation if the data is not in the cache
       topAssists = await this.calculateTopAssists(leagueId, limit);
-      await this.setTopScorersInCache(leagueId, topAssists);
+      await this.setTopAssistsInCache(leagueId, topAssists);
     }
 
     return topAssists;
   }
 
   private async calculateTopAssists(leagueId: string, limit: number = 10): Promise<IPlayer[]> {
-    return await Team.aggregate<IPlayer>([
-      { $match: { leagueId: leagueId } },
-      { $lookup: { from: "players", localField: "players", foreignField: "_id", as: "players" } },
-      { $unwind: "$players" },
-      { $group: { _id: "$players._id", name: { $first: "$players.name" }, assists: { $sum: "$players.assists" } } },
-      { $sort: { assists: -1 } },
-      { $limit: limit },
-    ]);
+    try {
+      return await Team.aggregate<IPlayer>([
+        { $match: { league: new Types.ObjectId(leagueId) } },
+        { $lookup: { from: "players", localField: "players", foreignField: "_id", as: "players" } },
+        { $unwind: "$players" },
+        { $group: { _id: "$players._id", name: { $first: "$players.name" }, assists: { $sum: "$players.assists" } } },
+        { $sort: { assists: -1 } },
+        { $limit: limit },
+      ]);
+    } catch (e) {
+      logger.error(e);
+      throw new Error(`failed to calculate top assists for league with id ${leagueId}`);
+    }
+  }
+
+  async setTopAssistsInCache(leagueId: string, players: IPlayer[]) {
+    await this.cacheService.set(`${TOP_ASSISTS_CACHE_KEY}:${leagueId}`, players);
+  }
+
+  private async setTopScorersInCache(leagueId: string, players: IPlayer[]): Promise<void> {
+    await this.cacheService.set(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`, players);
   }
 }
 

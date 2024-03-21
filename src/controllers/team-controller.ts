@@ -26,11 +26,20 @@ class TeamController {
       next(error);
     }
   }
+  async deleteTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: teamId } = req.params;
+    try {
+      await this.teamService.deleteTeam(teamId);
+      res.sendStatus(204);
+    } catch (error: any) {
+      next(error);
+    }
+  }
 
   async getTeamById(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { id } = req.params;
+    const { id: teamId } = req.params;
     try {
-      const team = await this.teamService.getTeamById(id);
+      const team = await this.teamService.getTeamById(teamId);
       res.json(team);
     } catch (error: any) {
       next(error);

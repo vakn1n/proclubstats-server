@@ -56,9 +56,15 @@ class LeagueController {
   }
 
   async getLeagueTable(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { id } = req.params;
+    const { id: leagueId } = req.params;
+
+    if (!leagueId) {
+      res.status(404).send({ message: "No league id provided" });
+      return;
+    }
+
     try {
-      const leagueTable = await this.leagueService.getLeagueTable(id);
+      const leagueTable = await this.leagueService.getLeagueTable(leagueId);
       res.json(leagueTable);
     } catch (error: any) {
       next(error);
@@ -66,16 +72,30 @@ class LeagueController {
   }
 
   async getTopScorers(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: leagueId } = req.params;
+
+    if (!leagueId) {
+      res.status(404).send({ message: "No league id provided" });
+      return;
+    }
+
     try {
-      const topScorers = await this.leagueService.getTopScorers();
+      const topScorers = await this.leagueService.getTopScorers(leagueId);
       res.json(topScorers);
     } catch (error) {
       next(error);
     }
   }
   async getTopAssists(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: leagueId } = req.params;
+
+    if (!leagueId) {
+      res.status(404).send({ message: "No league id provided" });
+      return;
+    }
+
     try {
-      const topAssists = await this.leagueService.getTopAssists();
+      const topAssists = await this.leagueService.getTopAssists(leagueId);
       res.json(topAssists);
     } catch (error) {
       next(error);
