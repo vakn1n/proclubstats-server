@@ -127,7 +127,7 @@ class LeagueService {
   private async calculateLeagueTable(leagueId: string): Promise<LeagueTableRow[]> {
     const league = await League.findById(leagueId).populate<{ teams: ITeam[] }>({
       path: "teams",
-      select: "name stats",
+      select: "name stats id ",
     });
 
     if (!league) {
@@ -178,7 +178,7 @@ class LeagueService {
   }
 
   async getTopScorers(leagueId: string, limit: number = 10): Promise<IPlayer[]> {
-    logger.info(`getting top scores for ${leagueId}`);
+    logger.info(`getting top scorers for ${leagueId}`);
     let topScorers = await this.getTopScorersFromCache(leagueId);
     if (!topScorers) {
       topScorers = await this.calculateTopScorers(leagueId, limit);
@@ -189,10 +189,10 @@ class LeagueService {
   }
 
   private async getTopScorersFromCache(leagueId: string): Promise<IPlayer[] | null> {
-    const cachedData = await this.cacheService.get(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`);
-    if (cachedData) {
-      return JSON.parse(cachedData);
-    }
+    // const cachedData = await this.cacheService.get(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`);
+    // if (cachedData) {
+    //   return JSON.parse(cachedData);
+    // }
     return null;
   }
 
@@ -201,7 +201,7 @@ class LeagueService {
 
     try {
       return await Team.aggregate<IPlayer>([
-        { $match: { leagueId: leagueId } },
+        { $match: { league: new Types.ObjectId(leagueId) } },
         { $lookup: { from: "players", localField: "players", foreignField: "_id", as: "players" } },
         { $unwind: "$players" },
         {
@@ -232,14 +232,19 @@ class LeagueService {
   }
 
   private async calculateTopAssists(leagueId: string, limit: number = 10): Promise<IPlayer[]> {
-    return await Team.aggregate<IPlayer>([
-      { $match: { leagueId: leagueId } },
-      { $lookup: { from: "players", localField: "players", foreignField: "_id", as: "players" } },
-      { $unwind: "$players" },
-      { $group: { _id: "$players._id", name: { $first: "$players.name" }, assists: { $sum: "$players.assists" } } },
-      { $sort: { assists: -1 } },
-      { $limit: limit },
-    ]);
+    try {
+      return await Team.aggregate<IPlayer>([
+        { $match: { league: new Types.ObjectId(leagueId) } },
+        { $lookup: { from: "players", localField: "players", foreignField: "_id", as: "players" } },
+        { $unwind: "$players" },
+        { $group: { _id: "$players._id", name: { $first: "$players.name" }, assists: { $sum: "$players.assists" } } },
+        { $sort: { assists: -1 } },
+        { $limit: limit },
+      ]);
+    } catch (e) {
+      logger.error(e);
+      throw new Error(`failed to calculate top assists for league with id ${leagueId}`);
+    }
   }
 
   async setTopAssistsInCache(leagueId: string, players: IPlayer[]) {

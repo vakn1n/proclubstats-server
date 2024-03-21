@@ -19,10 +19,10 @@ export default class CacheService {
 
   private async initializeClient() {
     if (!this.client.isOpen) {
-      logger.info("Connecting to Redis");
+      console.log("Connecting to Redis");
       await this.client.connect();
       this.isConnected = true;
-      logger.info("Redis is running");
+      console.log("Redis is running");
     }
   }
 
@@ -38,6 +38,7 @@ export default class CacheService {
       return;
     }
     const stringValue = JSON.stringify(value);
+    logger.info(`Cache: Setting ${key} to ${stringValue}`);
     if (expiresIn) {
       await this.client.set(key, stringValue, { EX: expiresIn });
     } else {
@@ -49,12 +50,13 @@ export default class CacheService {
     if (this.isConnected) {
       const value = await this.client.get(key);
       if (value) {
-        logger.info(`cache hit for key ${key}`);
-        return JSON.parse(value);
+        const parsedValue = JSON.parse(value);
+        logger.info(`Cache: cache hit for key ${key} with value ${parsedValue}`);
+        return JSON.parse(parsedValue);
       }
     }
 
-    logger.info(`cache miss for key ${key}`);
+    logger.info(`Cache: cache miss for key ${key}`);
 
     return null;
   }
