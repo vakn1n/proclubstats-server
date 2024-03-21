@@ -50,9 +50,8 @@ export default class CacheService {
     if (this.isConnected) {
       const value = await this.client.get(key);
       if (value) {
-        const parsedValue = JSON.parse(value);
-        logger.info(`Cache: cache hit for key ${key} with value ${parsedValue}`);
-        return JSON.parse(parsedValue);
+        logger.info(`Cache: cache hit for key ${key} with value ${value}`);
+        return value;
       }
     }
 
