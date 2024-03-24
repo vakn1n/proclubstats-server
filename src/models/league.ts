@@ -23,7 +23,7 @@ export interface ILeague extends Document {
 const leagueSchema: Schema = new Schema<ILeague>(
   {
     name: { type: String, required: true },
-    teams: [{ type: mongoose.Types.ObjectId, ref: "Team" }],
+    teams: [{ type: mongoose.Schema.Types.ObjectId, ref: "Team" }],
     currentTitleHolder: {
       type: mongoose.Types.ObjectId,
       ref: "Team",
@@ -39,7 +39,7 @@ const leagueSchema: Schema = new Schema<ILeague>(
         role: { type: String, enum: Object.values(Role), required: true },
       },
     ],
-    fixtures: [{ type: mongoose.Types.ObjectId, ref: "Fixture" }],
+    fixtures: [{ type: mongoose.Schema.Types.ObjectId, ref: "Fixture" }],
   },
   {
     toJSON: { virtuals: true },

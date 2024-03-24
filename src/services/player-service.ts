@@ -21,7 +21,7 @@ export default class PlayerService {
     const { teamId, age, name, playablePositions, position, phone, imgUrl } = data;
 
     return await transactionService.withTransaction(async (session) => {
-      const player = await Player.create({ name, team: teamId, age, playablePositions, position, phone });
+      const player = await Player.create({ name, team: teamId, age, playablePositions, position, phone, session });
       await TeamService.getInstance().addPlayerToTeam(player._id, teamId, session);
       return player;
     });

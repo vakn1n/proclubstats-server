@@ -64,6 +64,7 @@ export default class CacheService {
     if (!this.isConnected) {
       return;
     }
+    logger.info(`Cache: removing key ${key} from cache`);
     await this.client.del(key);
   }
 

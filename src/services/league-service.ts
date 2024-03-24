@@ -1,12 +1,12 @@
+import { ClientSession } from "mongodb";
 import { Types } from "mongoose";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
 import League, { ILeague } from "../models/league";
-import Team from "../models/team";
-import { ITeam } from "../models/team";
-import Player, { IPlayer } from "../models/player";
+import { IPlayer } from "../models/player";
+import Team, { ITeam } from "../models/team";
 import CacheService from "./cache-service";
-import { ClientSession } from "mongodb";
+import { transactionService } from "./transaction-service";
 
 interface LeagueTableRow {
   teamId: string;
@@ -49,8 +49,8 @@ class LeagueService {
 
     logger.info(`Adding league with name ${name}`);
 
-    const league = new League({ name });
-    await league.save();
+    const league = await League.create({ name });
+
     return league;
   }
 
@@ -64,10 +64,18 @@ class LeagueService {
 
     league.teams.push(teamId);
     await league.save({ session });
+
+    await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`);
   }
 
-  async addFixtureToLeague(leagueId: string, fixtureId: Types.ObjectId) {
-    throw new Error("Method not implemented.");
+  async addFixtureToLeague(leagueId: string, fixtureId: Types.ObjectId, session: ClientSession): Promise<void> {
+    const league = await League.findById(leagueId, {}, { session });
+    if (!league) {
+      throw new NotFoundError(`League with id ${leagueId} not found`);
+    }
+
+    league.fixtures.push(fixtureId);
+    await league.save({ session });
   }
 
   async removeLeague(id: string): Promise<ILeague> {
@@ -103,7 +111,7 @@ class LeagueService {
   }
 
   private async setLeagueTableInCache(leagueId: string, leagueTable: LeagueTableRow[]): Promise<void> {
-    await this.cacheService.set(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`, leagueTable);
+    await this.cacheService.set(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`, leagueTable, 10 * 60 * 60 * 1000);
   }
 
   private async getLeagueTableFromCache(leagueId: string): Promise<LeagueTableRow[] | null> {

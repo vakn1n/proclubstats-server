@@ -14,8 +14,8 @@ export interface ITeam extends Document {
   name: string;
   league: mongoose.Types.ObjectId;
   logoUrl?: string;
-  players: mongoose.Schema.Types.ObjectId[];
-  captain: mongoose.Schema.Types.ObjectId;
+  players: mongoose.Types.ObjectId[];
+  captain: mongoose.Types.ObjectId;
   stats: ITeamStats;
 }
 

@@ -10,7 +10,7 @@ export interface IPlayerStats {
 
 export interface IPlayer extends Document {
   id: string;
-  team: mongoose.Types.ObjectId;
+  team: mongoose.Schema.Types.ObjectId;
   phone?: Number;
   email?: string;
   name: string;

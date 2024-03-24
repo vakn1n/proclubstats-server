@@ -1,9 +1,10 @@
-import { ClientSession, ObjectId } from "mongoose";
+import mongoose, { ClientSession, ObjectId, Types } from "mongoose";
 import NotFoundError from "../errors/not-found-error";
 import Team, { ITeam } from "../models/team";
 import logger from "../logger";
 import { transactionService } from "./transaction-service";
 import LeagueService from "./league-service";
+import { IFixtureTeamStats } from "../models/fixture";
 
 class TeamService {
   private static instance: TeamService;
@@ -17,11 +18,19 @@ class TeamService {
     return TeamService.instance;
   }
 
-  async createTeam(name: string, leagueId: string, logoUrl: string): Promise<ITeam> {
+  async createAndAddTeamToLeague(name: string, leagueId: string, logoUrl: string): Promise<ITeam> {
     logger.info(`Creating team with name ${name} for league with id ${leagueId}`);
 
     return await transactionService.withTransaction(async (session) => {
+      const leagueObjectId = new mongoose.Types.ObjectId(leagueId);
+
+      const existingTeam = await Team.findOne({ name, league: leagueObjectId });
+      if (existingTeam) {
+        throw new Error(`Team with name ${name} already exists in league with id ${leagueId}`);
+      }
+
       const newTeam = await Team.create({ name, league: leagueId, logoUrl });
+
       await LeagueService.getInstance().addTeamToLeague(newTeam._id, leagueId, session);
       return newTeam;
     });
@@ -48,16 +57,29 @@ class TeamService {
     }
   }
 
-  async addPlayerToTeam(playerId: ObjectId, teamId: string, session: ClientSession): Promise<void> {
+  async addPlayerToTeam(playerId: Types.ObjectId, teamId: string, session: ClientSession): Promise<void> {
     logger.info(`Adding player ${playerId} to team ${teamId}`);
     const team = await Team.findById(teamId).session(session);
-    console.log(team);
 
     if (!team) {
       throw new Error(`Team with id ${teamId} not found`);
     }
     team.players.push(playerId);
     await team.save({ session });
+  }
+
+  async addFixtureStats(
+    teamId: Types.ObjectId,
+    homeTeamStats: IFixtureTeamStats,
+    session: ClientSession
+  ): Promise<void> {
+    logger.info(`Adding fixture stats for team with id ${teamId}`);
+
+    const team = await Team.findById({ id: teamId }, { session });
+
+    if (!team) {
+      throw new NotFoundError(`Team with id ${teamId} not found `);
+    }
   }
 }
 

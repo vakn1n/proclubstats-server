@@ -16,11 +16,10 @@ export default class FixtureController {
     return this.instance;
   }
 
-  async createFixture(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async addFixture(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const fixtureData = req.body;
     try {
-      const { leagueId, ...fixtureData } = req.body;
-
-      const fixture = await this.fixtureService.addFixtureToLeague(leagueId, fixtureData);
+      const fixture = await this.fixtureService.addFixture(fixtureData);
 
       res.status(201).json(fixture);
     } catch (error: any) {
@@ -38,10 +37,60 @@ export default class FixtureController {
     }
   }
 
-  async getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getAllFixtures(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const fixtures = await this.fixtureService.getAllFixtures();
       res.json(fixtures);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  async updateFixtureResult(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.params;
+    const { result } = req.body;
+    console.log(result);
+
+    if (!result) {
+      res.status(400).send({ message: "No result provided" });
+      return;
+    }
+
+    try {
+      await this.fixtureService.updateFixtureResult(id, result);
+      res.sendStatus(200);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  async updateFixtureStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: leagueId } = req.params;
+    const { homeTeamStats, awayTeamStats } = req.body;
+
+    if (!leagueId || !homeTeamStats || !awayTeamStats) {
+      res.status(400).send({ message: "No home/away stats provided" });
+      return;
+    }
+
+    try {
+      await this.fixtureService.updateFixtureStats(leagueId, homeTeamStats, awayTeamStats);
+      res.sendStatus(200);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  async deleteFixture(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: leagueId } = req.params;
+
+    if (!leagueId) {
+      res.status(400).send({ message: "No leagueId provided" });
+      return;
+    }
+    try {
+      await this.fixtureService.deleteFixture(leagueId);
+      res.sendStatus(204);
     } catch (error: any) {
       next(error);
     }

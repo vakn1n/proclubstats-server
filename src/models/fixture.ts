@@ -1,23 +1,73 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
-export interface IFixture extends Document {
-  id: string;
-  leagueId: mongoose.Types.ObjectId;
-  homeTeamId: mongoose.Types.ObjectId;
-  awayTeamId: mongoose.Types.ObjectId;
-  round: number;
-  homeTeamGoals: number | null;
-  awayTeamGoals: number | null;
+export interface IPlayerStats {
+  playerId: mongoose.Types.ObjectId;
+  goals?: number;
+  assists?: number;
+  rating?: number;
+  // add other player stats
 }
 
-const fixtureSchema = new Schema(
+export interface IFixtureTeamStats {
+  goals: number;
+  playerStats: IPlayerStats[];
+  // add other teams stats
+}
+
+export interface IFixture extends Document {
+  league: mongoose.Types.ObjectId;
+  homeTeam: mongoose.Types.ObjectId;
+  awayTeam: mongoose.Types.ObjectId;
+  round: number;
+  date?: Date;
+  played: boolean;
+  result?: {
+    homeTeamGoals: number;
+    awayTeamGoals: number;
+  };
+  homeTeamStats?: IFixtureTeamStats;
+  awayTeamStats?: IFixtureTeamStats;
+}
+
+const fixtureSchema = new Schema<IFixture>(
   {
-    leagueId: { type: mongoose.Types.ObjectId, ref: "League ", required: true },
-    homeTeamId: { type: mongoose.Types.ObjectId, ref: "Team", required: true },
-    awayTeamId: { type: mongoose.Types.ObjectId, ref: "Team", required: true },
+    league: { type: mongoose.Schema.Types.ObjectId, ref: "League", required: true },
     round: { type: Number, required: true },
-    homeTeamGoals: { type: Number },
-    awayTeamGoals: { type: Number },
+    played: { type: Boolean, default: false },
+    date: { type: Date },
+    result: {
+      type: {
+        homeTeamGoals: { type: Number },
+        awayTeamGoals: { type: Number },
+      },
+      required: false,
+    },
+    homeTeamStats: {
+      type: {
+        playerStats: [
+          {
+            playerId: { type: mongoose.Schema.Types.ObjectId, ref: "Player" },
+            goals: { type: Number },
+            assists: [{ type: Number }],
+            rating: { type: Number },
+          },
+        ],
+      },
+      required: false,
+    },
+    awayTeamStats: {
+      type: {
+        playerStats: [
+          {
+            playerId: { type: mongoose.Schema.Types.ObjectId, ref: "Player" },
+            goals: { type: Number },
+            assists: [{ type: Number }],
+            rating: { type: Number },
+          },
+        ],
+      },
+      required: false,
+    },
   },
   {
     toJSON: { virtuals: true },
