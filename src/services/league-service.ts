@@ -65,6 +65,7 @@ class LeagueService {
     league.teams.push(teamId);
     await league.save({ session });
 
+    // invalidate cache for table when team is added to the league
     await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`);
   }
 
@@ -197,10 +198,10 @@ class LeagueService {
   }
 
   private async getTopScorersFromCache(leagueId: string): Promise<IPlayer[] | null> {
-    // const cachedData = await this.cacheService.get(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`);
-    // if (cachedData) {
-    //   return JSON.parse(cachedData);
-    // }
+    const cachedData = await this.cacheService.get(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`);
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    }
     return null;
   }
 
@@ -256,11 +257,11 @@ class LeagueService {
   }
 
   async setTopAssistsInCache(leagueId: string, players: IPlayer[]) {
-    await this.cacheService.set(`${TOP_ASSISTS_CACHE_KEY}:${leagueId}`, players);
+    await this.cacheService.set(`${TOP_ASSISTS_CACHE_KEY}:${leagueId}`, players, 10 * 60 * 60 * 1000);
   }
 
   private async setTopScorersInCache(leagueId: string, players: IPlayer[]): Promise<void> {
-    await this.cacheService.set(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`, players);
+    await this.cacheService.set(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`, players, 10 * 60 * 60 * 1000);
   }
 }
 

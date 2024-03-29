@@ -6,6 +6,7 @@ import morgan from "morgan";
 import { connectToDatabase } from "./database";
 import { playerRoutes, fixtureRoutes, leagueRoutes, teamRoutes } from "./routes";
 import errorHandlerMiddleware from "./middlewares/error-handler";
+import logger from "./logger";
 
 const app = express();
 
@@ -29,8 +30,13 @@ app.use(errorHandlerMiddleware);
 
 const port = process.env.PORT || 3000;
 
-connectToDatabase().then(() => {
-  app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+connectToDatabase()
+  .then(() => {
+    app.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+    });
+  })
+  .catch((e) => {
+    logger.error(e);
+    process.exit(1);
   });
-});

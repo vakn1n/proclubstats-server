@@ -36,20 +36,33 @@ class TeamController {
     }
   }
 
-  async getTeamById(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getTeamPlayers(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id: teamId } = req.params;
+
+    if (!teamId) {
+      res.status(400).send({ message: "No teamId provided" });
+      return;
+    }
+
     try {
-      const team = await this.teamService.getTeamById(teamId);
+      const team = await this.teamService.getTeamPlayers(teamId);
       res.json(team);
     } catch (error: any) {
       next(error);
     }
   }
 
-  async getAllTeams(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getTeamById(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: teamId } = req.params;
+
+    if (!teamId) {
+      res.status(400).send({ message: "No teamId provided" });
+      return;
+    }
+
     try {
-      const teams = await this.teamService.getAllTeams();
-      res.json(teams);
+      const team = await this.teamService.getTeamById(teamId);
+      res.json(team);
     } catch (error: any) {
       next(error);
     }

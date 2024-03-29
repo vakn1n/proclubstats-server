@@ -5,6 +5,7 @@ import logger from "../logger";
 import { transactionService } from "./transaction-service";
 import LeagueService from "./league-service";
 import { IFixtureTeamStats } from "../models/fixture";
+import { IPlayer } from "../models/player";
 
 class TeamService {
   private static instance: TeamService;
@@ -18,8 +19,20 @@ class TeamService {
     return TeamService.instance;
   }
 
+  async getTeamPlayers(teamId: string): Promise<IPlayer[]> {
+    logger.info(`TeamService: getting players for team ${teamId}`);
+
+    const team = await Team.findById(teamId).populate<{ players: IPlayer[] }>("players");
+
+    if (!team) {
+      throw new NotFoundError(`Team ${teamId} not found`);
+    }
+
+    return team.players;
+  }
+
   async createAndAddTeamToLeague(name: string, leagueId: string, logoUrl: string): Promise<ITeam> {
-    logger.info(`Creating team with name ${name} for league with id ${leagueId}`);
+    logger.info(`TeamService: Creating team with name ${name} for league with id ${leagueId}`);
 
     return await transactionService.withTransaction(async (session) => {
       const leagueObjectId = new mongoose.Types.ObjectId(leagueId);
@@ -37,16 +50,13 @@ class TeamService {
   }
 
   async getTeamById(id: string): Promise<ITeam> {
+    logger.info(`TeamService: getting team ${id}`);
+
     const team = await Team.findById(id);
     if (!team) {
       throw new NotFoundError(`Team with id of: ${id} not found`);
     }
     return team;
-  }
-
-  async getAllTeams(): Promise<ITeam[]> {
-    const teams = await Team.find({});
-    return teams;
   }
 
   async deleteTeam(id: string): Promise<void> {
