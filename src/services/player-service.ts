@@ -1,7 +1,8 @@
-import { AddPlayerDataRequest } from "../controllers/player-controller";
+import { AddPlayerDataRequest, PlayerDTO } from "../../types-changeToNPM/shared-DTOs";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
-import Player, { IPlayer } from "../models/player";
+import { PlayerMapper } from "../mappers/player-mapper";
+import Player from "../models/player";
 import TeamService from "./team-service";
 import { transactionService } from "./transaction-service";
 
@@ -15,7 +16,7 @@ export default class PlayerService {
     return this.instance;
   }
 
-  async addPlayer(data: AddPlayerDataRequest): Promise<IPlayer> {
+  async addPlayer(data: AddPlayerDataRequest): Promise<PlayerDTO> {
     logger.info(`adding player with name ${data.name} to team with id ${data.teamId}`);
 
     const { teamId, age, name, playablePositions, position, phone, imgUrl } = data;
@@ -23,23 +24,24 @@ export default class PlayerService {
     return await transactionService.withTransaction(async (session) => {
       const player = await Player.create({ name, team: teamId, age, playablePositions, position, phone, session });
       await TeamService.getInstance().addPlayerToTeam(player._id, teamId, session);
-      return player;
+      return PlayerMapper.mapToDto(player);
     });
   }
 
-  async getPlayerById(id: string): Promise<IPlayer> {
+  async getPlayerById(id: string): Promise<PlayerDTO> {
     logger.info(`getting player with id ${id}`);
 
     const player = await Player.findById(id);
     if (!player) {
       throw new NotFoundError(`cant find player with id ${id}`);
     }
-    return player;
+
+    return await PlayerMapper.mapToDto(player);
   }
 
-  async getAllPlayers(): Promise<IPlayer[]> {
+  async getAllPlayers(): Promise<PlayerDTO[]> {
     const players = await Player.find();
-    return players;
+    return PlayerMapper.mapToDtos(players);
   }
 
   async deletePlayer(id: string): Promise<void> {

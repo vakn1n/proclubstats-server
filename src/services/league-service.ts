@@ -6,21 +6,7 @@ import League, { ILeague } from "../models/league";
 import { IPlayer } from "../models/player";
 import Team, { ITeam } from "../models/team";
 import CacheService from "./cache-service";
-import { transactionService } from "./transaction-service";
-
-interface LeagueTableRow {
-  teamId: string;
-  teamName: string;
-  gamesPlayed: number;
-  gamesWon: number;
-  gamesLost: number;
-  draws: number;
-  goalDifference: number;
-  points: number;
-  goalsConceded: number;
-  goalsScored: number;
-  cleanSheets: number;
-}
+import { LeagueTableRow } from "../../types-changeToNPM/shared-DTOs";
 
 const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
 const TOP_SCORERS_CACHE_KEY = "topScorers";
@@ -54,7 +40,7 @@ class LeagueService {
     return league;
   }
 
-  async addTeamToLeague(teamId: Types.ObjectId, leagueId: string, session: ClientSession) {
+  async addTeamToLeague(teamId: Types.ObjectId, leagueId: string, session: ClientSession): Promise<void> {
     logger.info(`Adding team with id ${teamId} to league with id ${leagueId}`);
 
     const league = await League.findById(leagueId);
@@ -216,7 +202,7 @@ class LeagueService {
         {
           $group: {
             _id: "$players._id",
-            name: { $first: "$players.name" },
+            player: { $first: "$players" },
             goalsScored: { $sum: "$players.goalsScored" },
           },
         },
@@ -246,7 +232,7 @@ class LeagueService {
         { $match: { league: new Types.ObjectId(leagueId) } },
         { $lookup: { from: "players", localField: "players", foreignField: "_id", as: "players" } },
         { $unwind: "$players" },
-        { $group: { _id: "$players._id", name: { $first: "$players.name" }, assists: { $sum: "$players.assists" } } },
+        { $group: { _id: "$players._id", player: { $first: "$players" }, assists: { $sum: "$players.assists" } } },
         { $sort: { assists: -1 } },
         { $limit: limit },
       ]);

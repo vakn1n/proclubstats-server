@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface ITeamStats {
   wins: number;
@@ -13,7 +13,7 @@ export interface ITeam extends Document {
   id: string;
   name: string;
   league: mongoose.Types.ObjectId;
-  logoUrl?: string;
+  imgUrl: string;
   players: mongoose.Types.ObjectId[];
   captain: mongoose.Types.ObjectId;
   stats: ITeamStats;
@@ -25,7 +25,7 @@ const teamSchema: Schema = new Schema<ITeam>(
     players: [{ type: mongoose.Schema.Types.ObjectId, ref: "Player" }],
     captain: { type: mongoose.Schema.Types.ObjectId, ref: "Player" },
     league: { type: mongoose.Schema.Types.ObjectId, ref: "League", required: true },
-    logoUrl: { type: String },
+    imgUrl: { type: String },
     stats: {
       wins: { type: Number, default: 0 },
       losses: { type: Number, default: 0 },

@@ -67,6 +67,18 @@ class TeamController {
       next(error);
     }
   }
+
+  async setTeamCaptain(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: teamId } = req.params;
+    const { captainId } = req.body;
+
+    try {
+      await this.teamService.setTeamCaptain(teamId, captainId);
+      res.sendStatus(204);
+    } catch (error: any) {
+      next(error);
+    }
+  }
 }
 
 export default TeamController;

@@ -1,11 +1,15 @@
-import mongoose, { ClientSession, ObjectId, Types } from "mongoose";
+import mongoose, { ClientSession, Types } from "mongoose";
+import { PlayerDTO, TeamDTO } from "../../types-changeToNPM/shared-DTOs";
+import BadRequestError from "../errors/bad-request-error";
 import NotFoundError from "../errors/not-found-error";
-import Team, { ITeam } from "../models/team";
 import logger from "../logger";
-import { transactionService } from "./transaction-service";
-import LeagueService from "./league-service";
+import { PlayerMapper } from "../mappers/player-mapper";
+import { TeamMapper } from "../mappers/team-mapper";
 import { IFixtureTeamStats } from "../models/fixture";
-import { IPlayer } from "../models/player";
+import Player, { IPlayer } from "../models/player";
+import Team, { ITeam } from "../models/team";
+import LeagueService from "./league-service";
+import { transactionService } from "./transaction-service";
 
 class TeamService {
   private static instance: TeamService;
@@ -19,7 +23,7 @@ class TeamService {
     return TeamService.instance;
   }
 
-  async getTeamPlayers(teamId: string): Promise<IPlayer[]> {
+  async getTeamPlayers(teamId: string): Promise<PlayerDTO[]> {
     logger.info(`TeamService: getting players for team ${teamId}`);
 
     const team = await Team.findById(teamId).populate<{ players: IPlayer[] }>("players");
@@ -28,7 +32,7 @@ class TeamService {
       throw new NotFoundError(`Team ${teamId} not found`);
     }
 
-    return team.players;
+    return await PlayerMapper.mapToDtos(team.players);
   }
 
   async createAndAddTeamToLeague(name: string, leagueId: string, logoUrl: string): Promise<ITeam> {
@@ -49,14 +53,14 @@ class TeamService {
     });
   }
 
-  async getTeamById(id: string): Promise<ITeam> {
+  async getTeamById(id: string): Promise<TeamDTO> {
     logger.info(`TeamService: getting team ${id}`);
 
     const team = await Team.findById(id);
     if (!team) {
       throw new NotFoundError(`Team with id of: ${id} not found`);
     }
-    return team;
+    return await TeamMapper.mapToDto(team);
   }
 
   async deleteTeam(id: string): Promise<void> {
@@ -68,7 +72,7 @@ class TeamService {
   }
 
   async addPlayerToTeam(playerId: Types.ObjectId, teamId: string, session: ClientSession): Promise<void> {
-    logger.info(`Adding player ${playerId} to team ${teamId}`);
+    logger.info(`Team Service: Adding player ${playerId} to team ${teamId}`);
     const team = await Team.findById(teamId).session(session);
 
     if (!team) {
@@ -83,13 +87,38 @@ class TeamService {
     homeTeamStats: IFixtureTeamStats,
     session: ClientSession
   ): Promise<void> {
-    logger.info(`Adding fixture stats for team with id ${teamId}`);
+    logger.info(`Team Service: Adding fixture stats for team with id ${teamId}`);
 
     const team = await Team.findById({ id: teamId }, { session });
 
     if (!team) {
       throw new NotFoundError(`Team with id ${teamId} not found `);
     }
+
+    // TODO: finish this
+  }
+
+  async setTeamCaptain(teamId: string, captainId: string): Promise<void> {
+    logger.info(`Team Service: Setting team captain to captain with id ${captainId} for team with id ${teamId}`);
+
+    const team = await Team.findById(teamId);
+
+    if (!team) {
+      throw new NotFoundError(`Team with id ${teamId} not found `);
+    }
+
+    const captain = await Player.findById(captainId);
+
+    if (!captain) {
+      throw new NotFoundError(`Captain with id ${captainId} not found `);
+    }
+
+    if (captain.team._id.toString() != team.id) {
+      throw new BadRequestError(`Captain with id ${captainId} does not belong to team with id ${team.id}`);
+    }
+
+    team.captain = new Types.ObjectId(captainId);
+    await team.save();
   }
 }
 

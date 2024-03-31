@@ -23,7 +23,7 @@ export interface IPlayer extends Document {
 
 const playerSchema: Schema = new Schema(
   {
-    team: { type: mongoose.Schema.Types.ObjectId, required: true },
+    team: { type: mongoose.Schema.Types.ObjectId, ref: "Team", required: true },
     email: { type: String },
     phone: { type: Number },
     name: { type: String, required: true },

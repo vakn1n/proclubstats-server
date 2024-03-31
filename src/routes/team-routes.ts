@@ -5,6 +5,7 @@ const router = Router();
 const teamController = TeamController.getInstance();
 
 router.post("/", teamController.createAndAddTeamToLeague.bind(teamController));
+router.post("/:id/setCaptain", teamController.setTeamCaptain.bind(teamController));
 
 router.get("/:id/players", teamController.getTeamPlayers.bind(teamController));
 router.get("/:id", teamController.getTeamById.bind(teamController));

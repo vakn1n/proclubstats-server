@@ -1,16 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import PlayerService from "../services/player-service";
 import logger from "../logger";
-
-export type AddPlayerDataRequest = {
-  name: string;
-  phone?: string;
-  imgUrl?: string;
-  age: number;
-  teamId: string;
-  position: string;
-  playablePositions: string[];
-};
+import { AddPlayerDataRequest } from "../../types-changeToNPM/shared-DTOs";
 
 export default class PlayerController {
   private static instance: PlayerController;
@@ -28,13 +19,16 @@ export default class PlayerController {
   }
 
   async addPlayer(req: Request, res: Response, next: NextFunction): Promise<void> {
+    // TODO: add validation
     const playerData = req.body as AddPlayerDataRequest;
 
     // TODO: get image file, upload it to cloudinary, get imgUrl, save it into AddPlayerDataRequest
 
     try {
-      const player = await this.playerService.addPlayer(playerData);
-      res.status(201).json(player);
+      // const player = await this.playerService.addPlayer(playerData);
+      await this.playerService.addPlayer(playerData);
+      // res.status(201).json(player);
+      res.sendStatus(201);
     } catch (error: any) {
       next(error);
     }
