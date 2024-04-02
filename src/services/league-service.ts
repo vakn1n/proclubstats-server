@@ -3,10 +3,11 @@ import { Types } from "mongoose";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
 import League, { ILeague } from "../models/league";
-import { IPlayer } from "../models/player";
+import Player, { IPlayer } from "../models/player";
 import Team, { ITeam } from "../models/team";
 import CacheService from "./cache-service";
-import { LeagueTableRow } from "../../types-changeToNPM/shared-DTOs";
+import { LeagueTableRow, PlayerDTO, TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
+import { PlayerMapper } from "../mappers/player-mapper";
 
 const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
 const TOP_SCORERS_CACHE_KEY = "topScorers";
@@ -172,41 +173,51 @@ class LeagueService {
     });
   }
 
-  async getTopScorers(leagueId: string, limit: number = 10): Promise<IPlayer[]> {
+  async getTopScorers(leagueId: string, limit: number = 10): Promise<TopScorer[]> {
     logger.info(`getting top scorers for ${leagueId}`);
     let topScorers = await this.getTopScorersFromCache(leagueId);
     if (!topScorers) {
       topScorers = await this.calculateTopScorers(leagueId, limit);
+      console.log(topScorers);
+
       await this.setTopScorersInCache(leagueId, topScorers);
     }
 
     return topScorers;
   }
 
-  private async getTopScorersFromCache(leagueId: string): Promise<IPlayer[] | null> {
-    const cachedData = await this.cacheService.get(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`);
-    if (cachedData) {
-      return JSON.parse(cachedData);
-    }
-    return null;
-  }
-
-  private async calculateTopScorers(leagueId: string, limit: number): Promise<IPlayer[]> {
+  private async calculateTopScorers(leagueId: string, limit: number): Promise<TopScorer[]> {
     logger.info(`calculating top scorers for league with id ${leagueId}`);
 
     try {
-      return await Team.aggregate<IPlayer>([
+      return await Team.aggregate<TopScorer>([
         { $match: { league: new Types.ObjectId(leagueId) } },
         { $lookup: { from: "players", localField: "players", foreignField: "_id", as: "players" } },
         { $unwind: "$players" },
         {
-          $group: {
-            _id: "$players._id",
-            player: { $first: "$players" },
-            goalsScored: { $sum: "$players.goalsScored" },
+          $addFields: {
+            goalsPerGame: {
+              $cond: {
+                if: { $eq: ["$players.stats.games", 0] },
+                then: 0,
+                else: { $divide: ["$players.stats.goals", "$players.stats.games"] },
+              },
+            },
           },
         },
-        { $sort: { goalsScored: -1 } },
+        {
+          $project: {
+            playerId: "$players._id",
+            teamId: "$_id",
+            teamName: "$name",
+            position: "$players.position",
+            playerImgUrl: "$players.imgUrl",
+            games: "$players.stats.games",
+            goals: "$players.stats.goals",
+            goalsPerGame: 1,
+          },
+        },
+        { $sort: { goals: -1 } },
         { $limit: limit },
       ]);
     } catch (e) {
@@ -215,8 +226,8 @@ class LeagueService {
     }
   }
 
-  async getTopAssists(leagueId: string, limit: number = 10): Promise<IPlayer[]> {
-    let topAssists = await this.getTopScorersFromCache(leagueId);
+  async getTopAssists(leagueId: string, limit: number = 10): Promise<TopAssister[]> {
+    let topAssists = await this.getTopAssistsFromCache(leagueId);
     if (!topAssists) {
       // Perform the aggregation if the data is not in the cache
       topAssists = await this.calculateTopAssists(leagueId, limit);
@@ -226,13 +237,37 @@ class LeagueService {
     return topAssists;
   }
 
-  private async calculateTopAssists(leagueId: string, limit: number = 10): Promise<IPlayer[]> {
+  private async calculateTopAssists(leagueId: string, limit: number): Promise<TopAssister[]> {
+    logger.info(`calculating top assists for league with id ${leagueId}`);
+
     try {
-      return await Team.aggregate<IPlayer>([
+      return await Team.aggregate<TopAssister>([
         { $match: { league: new Types.ObjectId(leagueId) } },
         { $lookup: { from: "players", localField: "players", foreignField: "_id", as: "players" } },
         { $unwind: "$players" },
-        { $group: { _id: "$players._id", player: { $first: "$players" }, assists: { $sum: "$players.assists" } } },
+        {
+          $addFields: {
+            assistsPerGame: {
+              $cond: {
+                if: { $eq: ["$players.stats.games", 0] },
+                then: 0,
+                else: { $divide: ["$players.stats.assists", "$players.stats.games"] },
+              },
+            },
+          },
+        },
+        {
+          $project: {
+            playerId: "$players._id",
+            teamId: "$_id",
+            teamName: "$name",
+            position: "$players.position",
+            playerImgUrl: "$players.imgUrl",
+            games: "$players.stats.games",
+            assists: "$players.stats.assists",
+            assistsPerGame: 1,
+          },
+        },
         { $sort: { assists: -1 } },
         { $limit: limit },
       ]);
@@ -242,11 +277,26 @@ class LeagueService {
     }
   }
 
-  async setTopAssistsInCache(leagueId: string, players: IPlayer[]) {
+  private async getTopScorersFromCache(leagueId: string): Promise<TopScorer[] | null> {
+    const cachedData = await this.cacheService.get(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`);
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    }
+    return null;
+  }
+  private async getTopAssistsFromCache(leagueId: string): Promise<TopAssister[] | null> {
+    const cachedData = await this.cacheService.get(`${TOP_ASSISTS_CACHE_KEY}:${leagueId}`);
+    if (cachedData) {
+      return JSON.parse(cachedData);
+    }
+    return null;
+  }
+
+  async setTopAssistsInCache(leagueId: string, players: TopAssister[]) {
     await this.cacheService.set(`${TOP_ASSISTS_CACHE_KEY}:${leagueId}`, players, 10 * 60 * 60 * 1000);
   }
 
-  private async setTopScorersInCache(leagueId: string, players: IPlayer[]): Promise<void> {
+  private async setTopScorersInCache(leagueId: string, players: TopScorer[]): Promise<void> {
     await this.cacheService.set(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`, players, 10 * 60 * 60 * 1000);
   }
 }

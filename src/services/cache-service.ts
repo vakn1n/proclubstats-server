@@ -47,15 +47,15 @@ export default class CacheService {
   }
 
   async get(key: string): Promise<any | null> {
-    if (this.isConnected) {
-      const value = await this.client.get(key);
-      if (value) {
-        logger.info(`Cache: cache hit for key ${key} with value ${value}`);
-        return value;
-      }
-    }
+    // if (this.isConnected) {
+    //   const value = await this.client.get(key);
+    //   if (value) {
+    //     logger.info(`Cache: cache hit for key ${key} with value ${value}`);
+    //     return value;
+    //   }
+    // }
 
-    logger.info(`Cache: cache miss for key ${key}`);
+    // logger.info(`Cache: cache miss for key ${key}`);
 
     return null;
   }

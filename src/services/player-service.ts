@@ -19,7 +19,13 @@ export default class PlayerService {
   async addPlayer(data: AddPlayerDataRequest): Promise<PlayerDTO> {
     logger.info(`adding player with name ${data.name} to team with id ${data.teamId}`);
 
-    const { teamId, age, name, playablePositions, position, phone, imgUrl } = data;
+    const { teamId, age, name, position, phone, imgUrl } = data;
+
+    let playablePositions = [position];
+
+    if (data.playablePositions) {
+      playablePositions = data.playablePositions;
+    }
 
     return await transactionService.withTransaction(async (session) => {
       const player = await Player.create({ name, team: teamId, age, playablePositions, position, phone, session });

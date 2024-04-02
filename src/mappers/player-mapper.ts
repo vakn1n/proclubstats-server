@@ -8,8 +8,8 @@ export class PlayerMapper {
       throw new Error("Player object is null or undefined");
     }
 
-    console.log(`Map to ${player.name}`);
-
+    console.log(player);
+    console.log(typeof player);
     const { team } = await player.populate<{ team: ITeam }>({ path: "team", select: "id name imgUrl" });
 
     return {
