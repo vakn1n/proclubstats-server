@@ -13,10 +13,12 @@ export class TeamMapper {
       select: "id name imgUrl position",
     });
 
-    const captain = players.find((player) => player._id === team.captain);
+    console.log(team);
+
+    const captain = players.find((player) => team.captain._id.equals(player._id));
 
     return {
-      captain: captain ? { name: captain.name, id: captain.id } : null,
+      captain: captain ? { name: captain.name, id: captain.id, imgUrl: captain.imgUrl } : null,
       leagueId: team.league.toString(),
       id: team.id,
       name: team.name,

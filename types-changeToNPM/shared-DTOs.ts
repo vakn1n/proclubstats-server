@@ -29,6 +29,7 @@ export interface TeamDTO {
   captain: {
     id: string;
     name: string;
+    imgUrl?: string;
   } | null;
   players: {
     id: string;
