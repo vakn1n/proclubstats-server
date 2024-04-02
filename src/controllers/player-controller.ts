@@ -2,13 +2,17 @@ import { NextFunction, Request, Response } from "express";
 import PlayerService from "../services/player-service";
 import logger from "../logger";
 import { AddPlayerDataRequest } from "../../types-changeToNPM/shared-DTOs";
+import ImageService from "../services/images-service";
+import BadRequestError from "../errors/bad-request-error";
 
 export default class PlayerController {
   private static instance: PlayerController;
   private playerService: PlayerService;
+  private imageService: ImageService;
 
   private constructor() {
     this.playerService = PlayerService.getInstance();
+    this.imageService = ImageService.getInstance();
   }
 
   static getInstance(): PlayerController {
@@ -22,9 +26,17 @@ export default class PlayerController {
     // TODO: add validation
     const playerData = req.body as AddPlayerDataRequest;
 
+    if (!req.file) {
+      throw new BadRequestError(`no file`);
+    }
+    const file = req.file;
+
     // TODO: get image file, upload it to cloudinary, get imgUrl, save it into AddPlayerDataRequest
 
     try {
+      const imgUrl = await this.imageService.uploadImage(file);
+      // Add the imgUrl to playerData
+      playerData.imgUrl = imgUrl;
       // const player = await this.playerService.addPlayer(playerData);
       await this.playerService.addPlayer(playerData);
       // res.status(201).json(player);
