@@ -208,6 +208,7 @@ class LeagueService {
         {
           $project: {
             playerId: "$players._id",
+            playerName: "$players.name",
             teamId: "$_id",
             teamName: "$name",
             position: "$players.position",
@@ -259,6 +260,7 @@ class LeagueService {
         {
           $project: {
             playerId: "$players._id",
+            playerName: "$players.name",
             teamId: "$_id",
             teamName: "$name",
             position: "$players.position",
