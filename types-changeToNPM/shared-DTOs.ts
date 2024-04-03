@@ -71,6 +71,12 @@ export type AddPlayerDataRequest = {
   playablePositions?: string[];
 };
 
+export type AddTeamRequest = {
+  name: string;
+  leagueId: string;
+  imgUrl?: string;
+};
+
 export type TopScorer = {
   playerId: string;
   playerName: string;

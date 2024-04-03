@@ -1,5 +1,5 @@
 import mongoose, { ClientSession, Types } from "mongoose";
-import { PlayerDTO, TeamDTO } from "../../types-changeToNPM/shared-DTOs";
+import { AddTeamRequest, PlayerDTO, TeamDTO } from "../../types-changeToNPM/shared-DTOs";
 import BadRequestError from "../errors/bad-request-error";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
@@ -35,7 +35,9 @@ class TeamService {
     return await PlayerMapper.mapToDtos(team.players);
   }
 
-  async createAndAddTeamToLeague(name: string, leagueId: string, logoUrl: string): Promise<ITeam> {
+  async createAndAddTeamToLeague(teamData: AddTeamRequest): Promise<ITeam> {
+    const { name, leagueId, imgUrl } = teamData;
+
     logger.info(`TeamService: Creating team with name ${name} for league with id ${leagueId}`);
 
     return await transactionService.withTransaction(async (session) => {
@@ -46,7 +48,7 @@ class TeamService {
         throw new Error(`Team with name ${name} already exists in league with id ${leagueId}`);
       }
 
-      const newTeam = await Team.create({ name, league: leagueId, logoUrl });
+      const newTeam = await Team.create({ name, league: leagueId, imgUrl });
 
       await LeagueService.getInstance().addTeamToLeague(newTeam._id, leagueId, session);
       return newTeam;

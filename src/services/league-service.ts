@@ -1,13 +1,12 @@
 import { ClientSession } from "mongodb";
 import { Types } from "mongoose";
+import { LeagueTableRow, TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
+import BadRequestError from "../errors/bad-request-error";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
 import League, { ILeague } from "../models/league";
-import Player, { IPlayer } from "../models/player";
 import Team, { ITeam } from "../models/team";
 import CacheService from "./cache-service";
-import { LeagueTableRow, PlayerDTO, TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
-import { PlayerMapper } from "../mappers/player-mapper";
 
 const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
 const TOP_SCORERS_CACHE_KEY = "topScorers";
@@ -28,15 +27,15 @@ class LeagueService {
     return LeagueService.instance;
   }
 
-  async addLeague(name: string): Promise<ILeague> {
+  async addLeague(name: string, imgUrl?: string): Promise<ILeague> {
     const isLeagueExists = !!(await League.exists({ name }));
     if (isLeagueExists) {
-      throw new Error(`League ${name} already exists`);
+      throw new BadRequestError(`League ${name} already exists`);
     }
 
     logger.info(`Adding league with name ${name}`);
 
-    const league = await League.create({ name });
+    const league = await League.create({ name, imgUrl });
 
     return league;
   }

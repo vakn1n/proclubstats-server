@@ -26,20 +26,15 @@ export default class PlayerController {
     // TODO: add validation
     const playerData = req.body as AddPlayerDataRequest;
 
-    if (!req.file) {
-      throw new BadRequestError(`no file`);
-    }
     const file = req.file;
 
-    // TODO: get image file, upload it to cloudinary, get imgUrl, save it into AddPlayerDataRequest
-
     try {
-      const imgUrl = await this.imageService.uploadImage(file);
-      // Add the imgUrl to playerData
-      playerData.imgUrl = imgUrl;
-      // const player = await this.playerService.addPlayer(playerData);
-      await this.playerService.addPlayer(playerData);
-      // res.status(201).json(player);
+      if (file) {
+        const imgUrl = await this.imageService.uploadImage(file);
+        playerData.imgUrl = imgUrl;
+      }
+      const player = await this.playerService.addPlayer(playerData);
+      res.status(201).json(player);
       res.sendStatus(201);
     } catch (error: any) {
       next(error);

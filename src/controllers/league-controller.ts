@@ -1,13 +1,17 @@
 import { NextFunction, Request, Response } from "express";
 import LeagueService from "../services/league-service";
 import logger from "../logger";
+import ImageService from "../services/images-service";
 
 class LeagueController {
   private leagueService: LeagueService;
   private static instance: LeagueController;
 
+  private imageService: ImageService;
+
   private constructor() {
     this.leagueService = LeagueService.getInstance();
+    this.imageService = ImageService.getInstance();
   }
 
   static getInstance(): LeagueController {
@@ -19,18 +23,35 @@ class LeagueController {
 
   async addLeague(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { name } = req.body;
+    if (!name) {
+      res.status(400).json({ error: "Name is required" });
+      return;
+    }
+
+    const file = req.file;
+
+    let imgUrl = undefined;
+
     try {
-      // TODO: validate data
-      const league = await this.leagueService.addLeague(name);
-      res.json(league);
+      if (file) {
+        imgUrl = await this.imageService.uploadImage(file);
+      } else {
+        res.sendStatus(200);
+        return;
+      }
+      const league = await this.leagueService.addLeague(name, imgUrl);
+      res.status(201).json(league);
     } catch (error: any) {
       next(error);
     }
   }
 
   async removeLeague(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.params;
+
     try {
-      // Implement league deletion
+      await this.leagueService.removeLeague(id);
+      res.sendStatus(204);
     } catch (error: any) {
       next(error);
     }

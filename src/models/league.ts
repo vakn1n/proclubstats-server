@@ -14,6 +14,7 @@ interface ILeagueAdmin {
 export interface ILeague extends Document {
   id: string;
   name: string;
+  imgUrl?: string;
   teams: mongoose.Types.ObjectId[];
   currentTitleHolder: mongoose.Types.ObjectId | null;
   admins: ILeagueAdmin[];
@@ -23,6 +24,7 @@ export interface ILeague extends Document {
 const leagueSchema: Schema = new Schema<ILeague>(
   {
     name: { type: String, required: true },
+    imgUrl: { type: String },
     teams: [{ type: mongoose.Schema.Types.ObjectId, ref: "Team" }],
     currentTitleHolder: {
       type: mongoose.Types.ObjectId,

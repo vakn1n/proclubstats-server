@@ -1,5 +1,9 @@
 import { v2 as cloudinary } from "cloudinary";
+import fs from "fs";
+import { promisify } from "util";
 import logger from "../logger";
+
+const unlinkAsync = promisify(fs.unlink);
 
 export default class ImageService {
   private static instance: ImageService;
@@ -12,13 +16,12 @@ export default class ImageService {
   }
 
   private constructor() {
-    // Configure Cloudinary
     cloudinary.config({
       cloud_name: process.env.CLOUDINARY_NAME,
       api_key: process.env.CLOUDINARY_KEY,
       api_secret: process.env.CLOUDINARY_SECRET,
+      secure: true,
     });
-    logger.info("Connected to cloudinary");
   }
 
   async uploadImage(file: Express.Multer.File) {
@@ -26,10 +29,14 @@ export default class ImageService {
     try {
       // Upload image to Cloudinary
       const result = await cloudinary.uploader.upload(file.path);
+
       return result.secure_url;
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       throw new Error("Failed to upload image");
+    } finally {
+      // Delete the local file
+      await unlinkAsync(file.path);
     }
   }
 

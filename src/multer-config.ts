@@ -1,5 +1,5 @@
-import multer, { Multer } from "multer";
-import { Request, Response } from "express";
+import { Request } from "express";
+import multer from "multer";
 
 // Configure multer storage
 const storage = multer.diskStorage({
