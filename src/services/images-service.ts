@@ -14,10 +14,11 @@ export default class ImageService {
   private constructor() {
     // Configure Cloudinary
     cloudinary.config({
-      cloud_name: "your_cloud_name",
-      api_key: "your_api_key",
-      api_secret: "your_api_secret",
+      cloud_name: process.env.CLOUDINARY_NAME,
+      api_key: process.env.CLOUDINARY_KEY,
+      api_secret: process.env.CLOUDINARY_SECRET,
     });
+    logger.info("Connected to cloudinary");
   }
 
   async uploadImage(file: Express.Multer.File) {
