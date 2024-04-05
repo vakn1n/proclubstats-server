@@ -50,6 +50,7 @@ export interface TeamDTO {
 export interface LeagueTableRow {
   teamId: string;
   teamName: string;
+  imgUrl?: string;
   gamesPlayed: number;
   gamesWon: number;
   gamesLost: number;
@@ -64,7 +65,6 @@ export interface LeagueTableRow {
 export type AddPlayerDataRequest = {
   name: string;
   phone?: string;
-  imgUrl?: string;
   age: number;
   teamId: string;
   position: string;
@@ -74,7 +74,6 @@ export type AddPlayerDataRequest = {
 export type AddTeamRequest = {
   name: string;
   leagueId: string;
-  imgUrl?: string;
 };
 
 export type TopScorer = {

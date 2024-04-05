@@ -3,11 +3,19 @@ import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
 import { PlayerMapper } from "../mappers/player-mapper";
 import Player from "../models/player";
+import ImageService from "./images-service";
 import TeamService from "./team-service";
 import { transactionService } from "./transaction-service";
 
 export default class PlayerService {
   private static instance: PlayerService;
+  private teamService: TeamService;
+  private imageService: ImageService;
+
+  constructor() {
+    this.teamService = TeamService.getInstance();
+    this.imageService = ImageService.getInstance();
+  }
 
   static getInstance(): PlayerService {
     if (!this.instance) {
@@ -17,9 +25,9 @@ export default class PlayerService {
   }
 
   async addPlayer(data: AddPlayerDataRequest): Promise<PlayerDTO> {
-    logger.info(`adding player with name ${data.name} to team with id ${data.teamId}`);
+    logger.info(`PlayerService: adding player with name ${data.name} to team with id ${data.teamId}`);
 
-    const { teamId, age, name, position, phone, imgUrl } = data;
+    const { teamId, age, name, position, phone } = data;
 
     let playablePositions = [position];
 
@@ -34,8 +42,27 @@ export default class PlayerService {
     });
   }
 
+  async setPlayerImage(playerId: string, file: Express.Multer.File): Promise<string> {
+    logger.info(`PlayerService: setting  image for player with ${playerId}`);
+
+    const player = await Player.findById(playerId);
+    if (!player) {
+      throw new NotFoundError(`Player with id ${playerId} not found`);
+    }
+
+    if (player.imgUrl) {
+      // remove current image from cloud
+      await this.imageService.deleteImageFromCloudinary(player.imgUrl);
+    }
+    const imageUrl = await this.imageService.uploadImage(file);
+
+    player.imgUrl = imageUrl;
+    await player.save();
+
+    return imageUrl;
+  }
   async getPlayerById(id: string): Promise<PlayerDTO> {
-    logger.info(`getting player with id ${id}`);
+    logger.info(`PlayerService:  getting player with id ${id}`);
 
     const player = await Player.findById(id);
     if (!player) {
@@ -51,11 +78,21 @@ export default class PlayerService {
   }
 
   async deletePlayer(id: string): Promise<void> {
-    logger.info(`deleting player with id ${id}`);
+    logger.info(`PlayerService:  deleting player with id ${id}`);
 
-    const result = await Player.findByIdAndDelete(id);
-    if (!result) {
-      throw new NotFoundError(`Player with id ${id} not found.`);
-    }
+    await transactionService.withTransaction(async (session) => {
+      const player = await Player.findById(id).session(session);
+      if (!player) {
+        throw new NotFoundError(`Player with id ${id} not found.`);
+      }
+
+      await this.teamService.removePlayerFromTeam(player.team, player.id, session);
+
+      await Player.findByIdAndDelete(id, { session });
+
+      if (player.imgUrl) {
+        await this.imageService.deleteImageFromCloudinary(player.imgUrl);
+      }
+    });
   }
 }

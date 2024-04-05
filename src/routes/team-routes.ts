@@ -6,7 +6,9 @@ const router = Router();
 const teamController = TeamController.getInstance();
 
 router.post("/", upload.single("file"), teamController.createAndAddTeamToLeague.bind(teamController));
-router.post("/:id/setCaptain", teamController.setTeamCaptain.bind(teamController));
+
+router.put("/:id/setImage", upload.single("file"), teamController.setTeamImage.bind(teamController));
+router.put("/:id/setCaptain", teamController.setTeamCaptain.bind(teamController));
 
 router.get("/:id/players", teamController.getTeamPlayers.bind(teamController));
 router.get("/:id", teamController.getTeamById.bind(teamController));

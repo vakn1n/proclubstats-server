@@ -2,6 +2,7 @@ import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 import { promisify } from "util";
 import logger from "../logger";
+import { extractPublicId } from "cloudinary-build-url";
 
 const unlinkAsync = promisify(fs.unlink);
 
@@ -37,6 +38,28 @@ export default class ImageService {
     } finally {
       // Delete the local file
       await unlinkAsync(file.path);
+    }
+  }
+
+  async deleteImageFromCloudinary(imageUrl: string): Promise<void> {
+    logger.info(`deleting image from cloudinary: ${imageUrl}`);
+
+    try {
+      const publicId = extractPublicId(imageUrl);
+      console.log(publicId);
+
+      if (!publicId) {
+        throw new Error(`Could not find public id in ${imageUrl}`);
+      }
+
+      // Use the public ID to delete the image
+      const result = await cloudinary.uploader.destroy(publicId);
+      if (result.result !== "ok") {
+        throw new Error("Failed to delete image from Cloudinary");
+      }
+    } catch (error) {
+      logger.error(error);
+      throw new Error("Failed to delete image from Cloudinary");
     }
   }
 

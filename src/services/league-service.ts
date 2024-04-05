@@ -55,6 +55,25 @@ class LeagueService {
     await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`);
   }
 
+  async removeTeamFromLeague(leagueId: Types.ObjectId, teamId: Types.ObjectId, session: ClientSession): Promise<void> {
+    logger.info(`Removing team with id ${teamId} from league with id ${leagueId}`);
+
+    const league = await League.findById(leagueId);
+    if (!league) {
+      throw new NotFoundError(`League with id ${leagueId} not found`);
+    }
+
+    const teamIndex = league.teams.indexOf(teamId);
+    if (teamIndex === -1) {
+      throw new NotFoundError(`Team with id ${teamId} not found in league with id ${leagueId}`);
+    }
+
+    league.teams.splice(teamIndex, 1);
+    await league.save({ session });
+
+    await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`);
+  }
+
   async addFixtureToLeague(leagueId: string, fixtureId: Types.ObjectId, session: ClientSession): Promise<void> {
     const league = await League.findById(leagueId, {}, { session });
     if (!league) {
@@ -70,6 +89,9 @@ class LeagueService {
     if (!league) {
       throw new NotFoundError(`League with id ${id} not found`);
     }
+
+    await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${id}`);
+
     return league;
   }
 
@@ -122,7 +144,7 @@ class LeagueService {
   private async calculateLeagueTable(leagueId: string): Promise<LeagueTableRow[]> {
     const league = await League.findById(leagueId).populate<{ teams: ITeam[] }>({
       path: "teams",
-      select: "name stats id ",
+      select: "name stats id imgUrl",
     });
 
     if (!league) {
@@ -145,6 +167,7 @@ class LeagueService {
     return {
       teamId: team.id,
       teamName: team.name,
+      imgUrl: team.imgUrl,
       gamesPlayed,
       gamesWon: stats.wins,
       gamesLost: stats.losses,

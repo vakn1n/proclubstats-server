@@ -1,18 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import PlayerService from "../services/player-service";
-import logger from "../logger";
 import { AddPlayerDataRequest } from "../../types-changeToNPM/shared-DTOs";
-import ImageService from "../services/images-service";
-import BadRequestError from "../errors/bad-request-error";
+import PlayerService from "../services/player-service";
 
 export default class PlayerController {
   private static instance: PlayerController;
   private playerService: PlayerService;
-  private imageService: ImageService;
 
   private constructor() {
     this.playerService = PlayerService.getInstance();
-    this.imageService = ImageService.getInstance();
   }
 
   static getInstance(): PlayerController {
@@ -29,13 +24,31 @@ export default class PlayerController {
     const file = req.file;
 
     try {
-      if (file) {
-        const imgUrl = await this.imageService.uploadImage(file);
-        playerData.imgUrl = imgUrl;
-      }
       const player = await this.playerService.addPlayer(playerData);
+      if (file) {
+        const imgUrl = await this.playerService.setPlayerImage(player.id, file);
+        player.imgUrl = imgUrl;
+      }
+
       res.status(201).json(player);
-      res.sendStatus(201);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  async setPlayerImage(req: Request, res: Response, next: NextFunction) {
+    const { id } = req.params;
+    const file = req.file;
+
+    if (!file || !id) {
+      return res.status(400).json({
+        message: "Bad request",
+      });
+    }
+
+    try {
+      const imgUrl = await this.playerService.setPlayerImage(id, file);
+      res.status(201).json(imgUrl);
     } catch (error: any) {
       next(error);
     }
@@ -44,7 +57,10 @@ export default class PlayerController {
   async getPlayerById(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
 
-    logger.info(`getting player with id ${id}`);
+    if (!id) {
+      res.status(400).send({ message: "no id provided" });
+      return;
+    }
 
     try {
       const player = await this.playerService.getPlayerById(id);
@@ -66,9 +82,13 @@ export default class PlayerController {
   async deletePlayer(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
 
+    if (!id) {
+      res.status(400).send({ message: "no id provided" });
+      return;
+    }
     try {
       await this.playerService.deletePlayer(id);
-      res.status(204).send(); // 204 No Content
+      res.sendStatus(204);
     } catch (error: any) {
       next(error);
     }
