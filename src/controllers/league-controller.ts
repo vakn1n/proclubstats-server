@@ -122,6 +122,20 @@ class LeagueController {
       next(error);
     }
   }
+
+  async generateFixtures(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: leagueId } = req.params;
+
+    if (!leagueId) {
+      res.status(404).send({ message: "No league id provided" });
+      return;
+    }
+
+    try {
+      const fixtures = await this.leagueService.generateFixtures(leagueId);
+      res.json(fixtures);
+    }
+  }
 }
 
 export default LeagueController;

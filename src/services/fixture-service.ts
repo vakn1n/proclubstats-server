@@ -1,3 +1,4 @@
+import { ClientSession } from "mongoose";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
 import Fixture, { IFixture, IFixtureTeamStats } from "../models/fixture";
@@ -19,6 +20,8 @@ class FixtureService {
     }
     return this.instance;
   }
+
+  async createFixture(fixtureData: any, session: ClientSession): Promise<IFixture> {}
 
   async addFixture(fixtureData: any): Promise<IFixture> {
     logger.info(`Adding fixture ${fixtureData}`);

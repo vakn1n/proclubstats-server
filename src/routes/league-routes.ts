@@ -6,6 +6,7 @@ const router = Router();
 const leagueController = LeagueController.getInstance();
 
 router.post("/", upload.single("file"), leagueController.addLeague.bind(leagueController));
+router.post("/:id/generateFixtures", leagueController.generateFixtures.bind(leagueController));
 
 router.delete("/:id", leagueController.removeLeague.bind(leagueController));
 
