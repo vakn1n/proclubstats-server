@@ -48,7 +48,7 @@ export default class PlayerController {
 
     try {
       const imgUrl = await this.playerService.setPlayerImage(id, file);
-      res.status(201).json(imgUrl);
+      res.status(200).json(imgUrl);
     } catch (error: any) {
       next(error);
     }
