@@ -5,7 +5,7 @@ import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
 import { PlayerMapper } from "../mappers/player-mapper";
 import { TeamMapper } from "../mappers/team-mapper";
-import { IFixtureTeamStats } from "../models/fixture";
+import { IGameTeamStats } from "../models/game";
 import Player, { IPlayer } from "../models/player";
 import Team, { ITeam } from "../models/team";
 import LeagueService from "./league-service";
@@ -135,11 +135,7 @@ class TeamService {
     await team.save({ session });
   }
 
-  async addFixtureStats(
-    teamId: Types.ObjectId,
-    homeTeamStats: IFixtureTeamStats,
-    session: ClientSession
-  ): Promise<void> {
+  async addGameStats(teamId: Types.ObjectId, homeTeamStats: IGameTeamStats, session: ClientSession): Promise<void> {
     logger.info(`Team Service: Adding fixture stats for team with id ${teamId}`);
 
     const team = await Team.findById({ id: teamId }, { session });

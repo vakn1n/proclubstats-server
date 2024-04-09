@@ -8,7 +8,8 @@ import League, { ILeague } from "../models/league";
 import Team, { ITeam } from "../models/team";
 import CacheService from "./cache-service";
 import { transactionService } from "./transaction-service";
-import FixtureService from "./fixture-service";
+import GameService from "./game-service";
+import { AddGameData } from "../models/game";
 
 const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
 const TOP_SCORERS_CACHE_KEY = "topScorers";
@@ -17,11 +18,11 @@ const TOP_ASSISTS_CACHE_KEY = "topAssists";
 class LeagueService {
   private static instance: LeagueService;
   private cacheService: CacheService;
-  private fixtureService: FixtureService
+  private gameService: GameService;
 
   private constructor() {
     this.cacheService = CacheService.getInstance();
-    this.fixtureService = FixtureService.getInstance();
+    this.gameService = GameService.getInstance();
   }
 
   static getInstance(): LeagueService {
@@ -78,55 +79,49 @@ class LeagueService {
     await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`);
   }
 
-  async addFixtureToLeague(leagueId: string, fixtureId: Types.ObjectId, session: ClientSession): Promise<void> {
-    const league = await League.findById(leagueId).session(session);
+  async generateFixtures(leagueId: string) {
+    const league = await League.findById(leagueId);
+
     if (!league) {
       throw new NotFoundError(`League with id ${leagueId} not found`);
     }
-
-    league.fixtures.push(fixtureId);
-    await league.save({ session });
-  }
-
-  async generateFixtures(leagueId: string) {
-    const league = await this.getLeagueById(leagueId);
 
     if (league.teams.length < 2) {
       throw new BadRequestError(`League with id ${leagueId} must have at least 2 teams`);
     }
 
-    const fixtures = this.generateRoundRobinFixtures(league.teams);
+    const fixturesData = this.generateFixturesData(league.teams, league._id);
     await transactionService.withTransaction(async (session) => {
-
-      await Promise.all(fixtures.map(async (round) => {
-        await Promise.all(round.map(async (match) => {
-            await this.fixtureService.createFixture(match, session);
-        }));
-        
-      }))
-      league.fixtures = fixtures.map((f) => f.id);
-      await league.save({ session });
-    }
+      // const fixtures = await Promise.all(
+      //   fixturesData.map(async (fixture) => {
+      //     // console.log(fixture);
+      //     // await this.fixtureService.createFixture(fixture, session);
+      //   })
+      // );
+      // league.fixtures = fixtures;
+      // await league.save({ session });
+    });
   }
 
-  private generateRoundRobinFixtures(teams: Types.ObjectId[]): any[] {
-    const totalRounds = teams.length - 1;
+  private generateFixturesData(teams: Types.ObjectId[], leagueId: Types.ObjectId): AddGameData[] {
+    const totalRounds = (teams.length - 1) * 2;
     const matchesPerRound = teams.length / 2;
-    const rounds: any[] = [];
+    const rounds = [];
 
     for (let round = 0; round < totalRounds; round++) {
-      const fixtures: any[] = [];
+      const roundFixtures: AddGameData[] = [];
       for (let j = 0; j < matchesPerRound; j++) {
-        const fixture = {
-          homeTeam: teams[round],
-          awayTeam: teams[teams.length - 1 - round],
+        roundFixtures.push({
+          leagueId,
+          homeTeamId: teams[round],
+          awayTeamId: teams[teams.length - 1 - round],
           round: round + 1, // Adjust round numbering
-      };
-      fixtures.push(fixture);
+        });
       }
-      rounds.push(fixtures);
+      rounds.push(roundFixtures);
       teams.splice(1, 0, teams.pop()!);
     }
+    console.log(rounds);
 
     return rounds.flat();
   }

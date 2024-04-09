@@ -133,7 +133,9 @@ class LeagueController {
 
     try {
       const fixtures = await this.leagueService.generateFixtures(leagueId);
-      res.json(fixtures);
+      res.status(201).json(fixtures);
+    } catch (error) {
+      next(error);
     }
   }
 }

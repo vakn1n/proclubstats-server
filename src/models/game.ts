@@ -1,5 +1,13 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+export interface AddGameData {
+  leagueId: mongoose.Types.ObjectId;
+  homeTeamId: mongoose.Types.ObjectId;
+  awayTeamId: mongoose.Types.ObjectId;
+  round: number;
+  date?: Date;
+}
+
 export interface IPlayerStats {
   playerId: mongoose.Types.ObjectId;
   goals?: number;
@@ -8,13 +16,13 @@ export interface IPlayerStats {
   // add other player stats
 }
 
-export interface IFixtureTeamStats {
+export interface IGameTeamStats {
   goals: number;
   playerStats: IPlayerStats[];
   // add other teams stats
 }
 
-export interface IFixture extends Document {
+export interface IGame extends Document {
   league: mongoose.Types.ObjectId;
   homeTeam: mongoose.Types.ObjectId;
   awayTeam: mongoose.Types.ObjectId;
@@ -25,13 +33,15 @@ export interface IFixture extends Document {
     homeTeamGoals: number;
     awayTeamGoals: number;
   };
-  homeTeamStats?: IFixtureTeamStats;
-  awayTeamStats?: IFixtureTeamStats;
+  homeTeamStats?: IGameTeamStats;
+  awayTeamStats?: IGameTeamStats;
 }
 
-const fixtureSchema = new Schema<IFixture>(
+const gameSchema = new Schema<IGame>(
   {
     league: { type: mongoose.Schema.Types.ObjectId, ref: "League", required: true },
+    homeTeam: { type: mongoose.Schema.Types.ObjectId, ref: "Team", required: true },
+    awayTeam: { type: mongoose.Schema.Types.ObjectId, ref: "Team", required: true },
     round: { type: Number, required: true },
     played: { type: Boolean, default: false },
     date: { type: Date },
@@ -75,6 +85,6 @@ const fixtureSchema = new Schema<IFixture>(
   }
 );
 
-const Fixture = mongoose.model<IFixture>("Fixture", fixtureSchema);
+const Game = mongoose.model<IGame>("Game", gameSchema);
 
-export default Fixture;
+export default Game;

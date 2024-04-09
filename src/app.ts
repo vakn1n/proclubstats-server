@@ -16,7 +16,7 @@ app.use(json()); // format
 app.use(morgan("dev")); // logger
 
 app.use("/player", playerRoutes);
-app.use("/fixture", fixtureRoutes);
+app.use("/game", fixtureRoutes);
 app.use("/league", leagueRoutes);
 app.use("/team", teamRoutes);
 
