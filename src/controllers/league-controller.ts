@@ -126,13 +126,15 @@ class LeagueController {
   async generateFixtures(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id: leagueId } = req.params;
 
-    if (!leagueId) {
-      res.status(404).send({ message: "No league id provided" });
+    const { startDate, fixturesPerWeek }: { startDate: string; fixturesPerWeek: number } = req.body;
+
+    if (!leagueId || !startDate || !fixturesPerWeek) {
+      res.status(404).send({ message: "missing date for generate fixtures" });
       return;
     }
 
     try {
-      const fixtures = await this.leagueService.generateFixtures(leagueId);
+      const fixtures = await this.leagueService.generateFixtures(leagueId, startDate, fixturesPerWeek);
       res.status(201).json(fixtures);
     } catch (error) {
       next(error);

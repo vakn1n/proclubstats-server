@@ -10,6 +10,7 @@ import CacheService from "./cache-service";
 import { transactionService } from "./transaction-service";
 import GameService from "./game-service";
 import { AddGameData } from "../models/game";
+import { AddFixtureData } from "../models/fixture";
 
 const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
 const TOP_SCORERS_CACHE_KEY = "topScorers";
@@ -79,7 +80,7 @@ class LeagueService {
     await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`);
   }
 
-  async generateFixtures(leagueId: string) {
+  async generateFixtures(leagueId: string, leagueStartDate: string, fixturesPerWeek: number) {
     const league = await League.findById(leagueId);
 
     if (!league) {
@@ -90,7 +91,9 @@ class LeagueService {
       throw new BadRequestError(`League with id ${leagueId} must have at least 2 teams`);
     }
 
-    const fixturesData = this.generateFixturesData(league.teams, league._id);
+    const startDate = new Date(leagueStartDate);
+
+    const fixturesData = this.generateFixturesData(league.teams, league._id, startDate, fixturesPerWeek);
     await transactionService.withTransaction(async (session) => {
       // const fixtures = await Promise.all(
       //   fixturesData.map(async (fixture) => {
@@ -103,36 +106,71 @@ class LeagueService {
     });
   }
 
-  private generateFixturesData(teams: Types.ObjectId[], leagueId: Types.ObjectId): AddGameData[] {
-    const totalRounds = (teams.length - 1) * 2;
-    const matchesPerRound = teams.length / 2;
-    const rounds = [];
+  private generateFixturesData(teams: Types.ObjectId[], leagueId: Types.ObjectId, leagueStartDate: Date, fixturesPerWeek: number): AddFixtureData[] {
+    // TODO: handle dummy team
+    // TODO: use random to generate the fixtures better
 
-    for (let round = 0; round < totalRounds; round++) {
-      const roundFixtures: AddGameData[] = [];
-      for (let j = 0; j < matchesPerRound; j++) {
-        roundFixtures.push({
-          leagueId,
-          homeTeamId: teams[round],
-          awayTeamId: teams[teams.length - 1 - round],
-          round: round + 1, // Adjust round numbering
-        });
+    const fixturesCount = teams.length - 1;
+    const gamesPerFixture = Math.ceil(teams.length / 2);
+    const fixtures: AddFixtureData[] = [];
+
+    let startDate: Date = leagueStartDate;
+    let endDate: Date = new Date(leagueStartDate.getTime());
+    endDate.setDate(endDate.getDate() + 7);
+
+    let reverseOrder = false;
+    for (let k = 0; k < 2; k++) {
+      for (let round = k * fixturesCount; round < k * fixturesCount + fixturesCount; round++) {
+        const fixtureGames: AddGameData[] = [];
+        for (let j = 0; j < gamesPerFixture; j++) {
+          const homeTeamIndex = reverseOrder ? teams.length - 1 - j : j;
+          const awayTeamIndex = reverseOrder ? j : teams.length - 1 - j;
+          fixtureGames.push({
+            leagueId,
+            homeTeamId: teams[homeTeamIndex],
+            awayTeamId: teams[awayTeamIndex],
+          });
+        }
+
+        fixtures.push({ leagueId, gamesData: fixtureGames, round: round + 1, startDate: new Date(startDate.getTime()), endDate: new Date(endDate.getTime()) });
+
+        // updates date after we done all fixtures of the week
+        if ((round + 1) % fixturesPerWeek === 0) {
+          startDate.setDate(endDate.getDate() + 1);
+          endDate.setDate(startDate.getDate() + 7);
+        }
+        teams.splice(1, 0, teams.pop()!);
       }
-      rounds.push(roundFixtures);
-      teams.splice(1, 0, teams.pop()!);
+      reverseOrder = !reverseOrder;
     }
-    console.log(rounds);
-
-    return rounds.flat();
+    return fixtures;
   }
 
-  private async saveFixtures(fixtures: any[], leagueId: string) {
+  //            1                    2                     3                      4                     5                      6
+  // [[a2, 36], [78, e44]], [[e4, a2], [78, 36]], [[a2, 78], [e4, 36]], [[a2, 36], [78, e4]] , [[e4, a2], [78, 36]], [[a2, 78], [e4, 36]]
+
+  //            1                    2                     3                      4                     5                      6
+  // [[a2, 36], [78, e4]], [[a2, e4], [36, 78]], [[a2, 78], [e4, 36]], [[36, a2], [e4, 78]] , [[e4, a2], [78, 36]], [[78, a2], [36, e4]]
+
+  shuffleTeams(teams: Types.ObjectId[]): void {
+    for (let i = teams.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [teams[i], teams[j]] = [teams[j], teams[i]];
+    }
+  }
+
+  async removeAllFixtures(leagueId: string): Promise<void> {
     // await transactionService.withTransaction(async (session) => {
-    //   for (const fixture of fixtures) {
-    //     await FixtureService.getInstance().addFixture(fixture, session);
-    //   }
-    //   league.fixtures = fixtures.map((f) => f.id);
-    //   await league.save({ session });
+    //    // Find all fixtures associated with the league
+    //    const fixtures = await Fixture.find({ league: leagueId }).session(session);
+    //    // Remove all fixtures
+    //    await Fixture.deleteMany({ league: leagueId }).session(session);
+    //    // Remove references to fixtures from the league
+    //    await League.updateOne({ _id: leagueId }, { $set: { fixtures: [] } }).session(session);
+    //    // For each fixture, remove all games
+    //    for (const fixture of fixtures) {
+    //      await Game.deleteMany({ fixture: fixture._id }).session(session);
+    //    }
     // });
   }
 

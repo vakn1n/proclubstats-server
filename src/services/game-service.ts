@@ -1,9 +1,10 @@
 import { ClientSession } from "mongoose";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
-import Game, { AddGameData, IGame, IGameTeamStats } from "../models/game";
+import Game, { AddGameData, GameStatus, IGame, IGameTeamStats } from "../models/game";
 import TeamService from "./team-service";
 import { transactionService } from "./transaction-service";
+import BadRequestError from "../errors/bad-request-error";
 
 class GameService {
   private static instance: GameService;
@@ -18,12 +19,12 @@ class GameService {
   }
 
   async createGame(gameData: AddGameData, session: ClientSession): Promise<IGame> {
-    const { homeTeamId, awayTeamId, round, leagueId } = gameData;
+    const { homeTeamId, awayTeamId, leagueId, fixtureId } = gameData;
 
     const game = new Game({
       homeTeam: homeTeamId,
       awayTeam: awayTeamId,
-      round,
+      fixture: fixtureId,
       league: leagueId,
     });
 
@@ -41,7 +42,7 @@ class GameService {
     }
 
     game.result = result;
-    game.played = true;
+    game.status = GameStatus.PLAYED;
 
     await game.save();
   }
@@ -55,8 +56,8 @@ class GameService {
       throw new NotFoundError(`game ${gameId} not found`);
     }
 
-    if (!game.played) {
-      throw new Error(`can't update game stats before updating its result`);
+    if (game.status !== GameStatus.PLAYED) {
+      throw new BadRequestError(`can't update game stats before updating its result`);
     }
 
     await transactionService.withTransaction(async (session) => {
@@ -68,6 +69,7 @@ class GameService {
         TeamService.getInstance().addGameStats(game.awayTeam, awayTeamStats, session),
       ]);
 
+      game.status = GameStatus.COMPLETED;
       await game.save({ session });
     });
   }
@@ -85,7 +87,7 @@ class GameService {
       game.homeTeamStats = gameData.homeTeamStats;
       game.awayTeamStats = gameData.awayTeamStats;
       game.result = gameData.result;
-      game.played = true;
+      game.status = GameStatus.COMPLETED;
 
       await Promise.all([
         TeamService.getInstance().addGameStats(game.homeTeam, gameData.homeTeamStats, session),

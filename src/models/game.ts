@@ -1,10 +1,18 @@
 import mongoose, { Schema, Document } from "mongoose";
 
+export enum GameStatus {
+  SCHEDULED = "Scheduled",
+  POSTPONED = "Postponed",
+  CANCELLED = "Cancelled",
+  PLAYED = "Played",
+  COMPLETED = "Completed",
+}
+
 export interface AddGameData {
   leagueId: mongoose.Types.ObjectId;
   homeTeamId: mongoose.Types.ObjectId;
   awayTeamId: mongoose.Types.ObjectId;
-  round: number;
+  fixtureId?: mongoose.Types.ObjectId;
   date?: Date;
 }
 
@@ -23,12 +31,12 @@ export interface IGameTeamStats {
 }
 
 export interface IGame extends Document {
-  league: mongoose.Types.ObjectId;
+  id: string;
+  fixture: mongoose.Types.ObjectId;
   homeTeam: mongoose.Types.ObjectId;
   awayTeam: mongoose.Types.ObjectId;
-  round: number;
   date?: Date;
-  played: boolean;
+  status: GameStatus;
   result?: {
     homeTeamGoals: number;
     awayTeamGoals: number;
@@ -39,12 +47,11 @@ export interface IGame extends Document {
 
 const gameSchema = new Schema<IGame>(
   {
-    league: { type: mongoose.Schema.Types.ObjectId, ref: "League", required: true },
+    fixture: { type: mongoose.Schema.Types.ObjectId, ref: "League", required: true },
     homeTeam: { type: mongoose.Schema.Types.ObjectId, ref: "Team", required: true },
     awayTeam: { type: mongoose.Schema.Types.ObjectId, ref: "Team", required: true },
-    round: { type: Number, required: true },
-    played: { type: Boolean, default: false },
     date: { type: Date },
+    status: { type: String, required: true, default: GameStatus.SCHEDULED, enum: Object.values(GameStatus) },
     result: {
       type: {
         homeTeamGoals: { type: Number },
