@@ -1,13 +1,13 @@
 import mongoose, { Schema, Document } from "mongoose";
 import { GameStatus, IGameTeamStats } from "../../types-changeToNPM/shared-DTOs";
 
-export type AddGameData {
+export type AddGameData = {
   leagueId: mongoose.Types.ObjectId;
   homeTeamId: mongoose.Types.ObjectId;
   awayTeamId: mongoose.Types.ObjectId;
   fixtureId?: string;
   date?: Date;
-}
+};
 
 export interface IGame extends Document {
   id: string;

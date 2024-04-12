@@ -1,6 +1,6 @@
 import { ClientSession } from "mongodb";
 import { Types } from "mongoose";
-import { LeagueTableRow, TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
+import { FixtureDTO, LeagueTableRow, TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
 import BadRequestError from "../errors/bad-request-error";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
@@ -80,13 +80,13 @@ class LeagueService {
     await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`);
   }
 
-  async getLeagueFixtures(leagueId: string): Promise<IFixture[]> {
+  async getLeagueFixtures(leagueId: string): Promise<FixtureDTO[]> {
     const league = await League.findById(leagueId);
     if (!league) {
       throw new NotFoundError(`League with id ${leagueId} not found`);
     }
 
-    return this.fixtureService.getLeagueFixtures(league._id);
+    return await this.fixtureService.getLeagueFixtures(league._id);
   }
 
   async generateFixtures(leagueId: string, leagueStartDate: string, fixturesPerWeek: number): Promise<IFixture[]> {

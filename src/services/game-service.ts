@@ -1,10 +1,11 @@
 import { ClientSession } from "mongoose";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
-import Game, { AddGameData, GameStatus, IGame, IGameTeamStats } from "../models/game";
+import Game, { AddGameData, IGame } from "../models/game";
 import TeamService from "./team-service";
 import { transactionService } from "./transaction-service";
 import BadRequestError from "../errors/bad-request-error";
+import { GameStatus, IGameTeamStats } from "../../types-changeToNPM/shared-DTOs";
 
 class GameService {
   private static instance: GameService;

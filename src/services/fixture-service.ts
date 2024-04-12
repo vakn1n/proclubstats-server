@@ -3,7 +3,7 @@ import Fixture, { AddFixtureData, IFixture } from "../models/fixture";
 import GameService from "./game-service";
 import { AddGameData } from "../models/game";
 import logger from "../logger";
-import { FixtureDto } from "../../types-changeToNPM/shared-DTOs";
+import { FixtureDTO } from "../../types-changeToNPM/shared-DTOs";
 import { FixtureMapper } from "../mappers/fixture-mapper";
 
 export default class FixtureService {
@@ -40,11 +40,11 @@ export default class FixtureService {
     return fixture;
   }
 
-  async getLeagueFixtures(leagueId:Types.ObjectId) : Promise<FixtureDto[]> {
-    const fixtures = await Fixture.find({ league: leagueId });
+  async getLeagueFixtures(leagueId: Types.ObjectId): Promise<FixtureDTO[]> {
+    logger.info(`FixtureService: getting fixtures for league ${leagueId}`);
 
-    return await FixtureMapper.
+    const fixtures = await Fixture.find({ league: leagueId }).sort({ round: 1 });
 
-    return fixtures;
+    return await FixtureMapper.mapToDtos(fixtures);
   }
 }

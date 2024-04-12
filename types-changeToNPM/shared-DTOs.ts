@@ -108,30 +108,13 @@ export enum GameStatus {
   COMPLETED = "Completed",
 }
 
-export type FixtureDto = {
+export type FixtureDTO = {
   id: string;
   round: number;
   leagueId: string;
   startDate: Date;
   endDate: Date;
-  games: {
-    homeTeam: {
-      id: string;
-      name: string;
-      imgUrl?: string;
-    };
-    awayTeamId: {
-      id: string;
-      name: string;
-      imgUrl?: string;
-    };
-    result: {
-      homeTeamGoals: number;
-      awayTeamGoals: number;
-    };
-    status: GameStatus;
-    date?: Date;
-  }[];
+  games: GameFixtureData[];
 };
 
 export type IPlayerStats = {
@@ -147,10 +130,11 @@ export type IGameTeamStats = {
   // add other teams stats
 };
 
-export type GameDto = {
+export type GameDTO = {
   id: string;
   fixtureId: string;
-  result: {
+  status: GameStatus;
+  result?: {
     homeTeamGoals: number;
     awayTeamGoals: number;
   };
@@ -166,5 +150,24 @@ export type GameDto = {
     imgUrl?: string;
     stats: IGameTeamStats;
   };
+  date?: Date;
+};
+
+export type GameFixtureData = {
+  homeTeam: {
+    id: string;
+    name: string;
+    imgUrl?: string;
+  };
+  awayTeam: {
+    id: string;
+    name: string;
+    imgUrl?: string;
+  };
+  result?: {
+    homeTeamGoals: number;
+    awayTeamGoals: number;
+  };
+  status: GameStatus;
   date?: Date;
 };

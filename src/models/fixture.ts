@@ -1,4 +1,4 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 import { AddGameData } from "./game";
 
 export interface AddFixtureData {

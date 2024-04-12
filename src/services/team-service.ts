@@ -1,11 +1,10 @@
 import mongoose, { ClientSession, Types } from "mongoose";
-import { AddTeamRequest, PlayerDTO, TeamDTO } from "../../types-changeToNPM/shared-DTOs";
+import { AddTeamRequest, IGameTeamStats, PlayerDTO, TeamDTO } from "../../types-changeToNPM/shared-DTOs";
 import BadRequestError from "../errors/bad-request-error";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
 import { PlayerMapper } from "../mappers/player-mapper";
 import { TeamMapper } from "../mappers/team-mapper";
-import { IGameTeamStats } from "../models/game";
 import Player, { IPlayer } from "../models/player";
 import Team, { ITeam } from "../models/team";
 import LeagueService from "./league-service";
