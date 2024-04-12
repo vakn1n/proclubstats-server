@@ -21,6 +21,8 @@ class GameService {
   async createGame(gameData: AddGameData, session: ClientSession): Promise<IGame> {
     const { homeTeamId, awayTeamId, leagueId, fixtureId } = gameData;
 
+    logger.info(`GameService: creating game, home team ${homeTeamId} and away team ${awayTeamId}`);
+
     const game = new Game({
       homeTeam: homeTeamId,
       awayTeam: awayTeamId,

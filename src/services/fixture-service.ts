@@ -2,6 +2,9 @@ import { ClientSession, Types } from "mongoose";
 import Fixture, { AddFixtureData, IFixture } from "../models/fixture";
 import GameService from "./game-service";
 import { AddGameData } from "../models/game";
+import logger from "../logger";
+import { FixtureDto } from "../../types-changeToNPM/shared-DTOs";
+import { FixtureMapper } from "../mappers/fixture-mapper";
 
 export default class FixtureService {
   private static instance: FixtureService;
@@ -18,22 +21,30 @@ export default class FixtureService {
     return this.instance;
   }
 
-  private async createFixture(leagueId: Types.ObjectId, startDate: Date, endDate: Date, round: number, session: ClientSession): Promise<IFixture> {
+  async generateFixture(fixtureData: AddFixtureData, session: ClientSession): Promise<IFixture> {
+    const { leagueId, round, startDate, endDate, gamesData } = fixtureData;
+
+    logger.info(`FixtureService: generating fixture for round ${round} `);
+
     const fixture = new Fixture({ league: leagueId, startDate, endDate, round });
+
+    const games = await Promise.all(
+      gamesData.map(async (gameData) => {
+        gameData.fixtureId = fixture.id;
+        return await this.gameService.createGame(gameData, session);
+      })
+    );
+
+    fixture.games = games.map((game) => game._id);
     await fixture.save({ session });
     return fixture;
   }
 
-  async generateFixture(fixtureData: AddFixtureData, session: ClientSession): Promise<IFixture> {
-    const { leagueId, round, startDate, endDate, gamesData } = fixtureData;
-    const fixture = await this.createFixture(leagueId, startDate, endDate, round, session);
+  async getLeagueFixtures(leagueId:Types.ObjectId) : Promise<FixtureDto[]> {
+    const fixtures = await Fixture.find({ league: leagueId });
 
-    await Promise.all(
-      gamesData.map(async (gameData) => {
-        const game = await this.gameService.createGame(gameData, session);
-      })
-    );
+    return await FixtureMapper.
 
-    return fixture;
+    return fixtures;
   }
 }

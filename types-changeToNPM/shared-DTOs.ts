@@ -99,3 +99,72 @@ export type TopAssister = {
   assists: number;
   assistsPerGame: number;
 };
+
+export enum GameStatus {
+  SCHEDULED = "Scheduled",
+  POSTPONED = "Postponed",
+  CANCELLED = "Cancelled",
+  PLAYED = "Played",
+  COMPLETED = "Completed",
+}
+
+export type FixtureDto = {
+  id: string;
+  round: number;
+  leagueId: string;
+  startDate: Date;
+  endDate: Date;
+  games: {
+    homeTeam: {
+      id: string;
+      name: string;
+      imgUrl?: string;
+    };
+    awayTeamId: {
+      id: string;
+      name: string;
+      imgUrl?: string;
+    };
+    result: {
+      homeTeamGoals: number;
+      awayTeamGoals: number;
+    };
+    status: GameStatus;
+    date?: Date;
+  }[];
+};
+
+export type IPlayerStats = {
+  goals?: number;
+  assists?: number;
+  rating?: number;
+  // add other player stats
+};
+
+export type IGameTeamStats = {
+  goals: number;
+  playerStats: IPlayerStats[];
+  // add other teams stats
+};
+
+export type GameDto = {
+  id: string;
+  fixtureId: string;
+  result: {
+    homeTeamGoals: number;
+    awayTeamGoals: number;
+  };
+  homeTeam: {
+    id: string;
+    name: string;
+    imgUrl?: string;
+    stats: IGameTeamStats;
+  };
+  awayTeam: {
+    id: string;
+    name: string;
+    imgUrl?: string;
+    stats: IGameTeamStats;
+  };
+  date?: Date;
+};

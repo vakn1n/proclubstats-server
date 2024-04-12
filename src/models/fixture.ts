@@ -11,6 +11,7 @@ export interface AddFixtureData {
 
 export interface IFixture extends Document {
   id: string;
+  _id: mongoose.Types.ObjectId;
   league: mongoose.Types.ObjectId;
   round: number;
   startDate: Date;
@@ -18,13 +19,19 @@ export interface IFixture extends Document {
   games: mongoose.Types.ObjectId[];
 }
 
-const fixtureSchema = new Schema<IFixture>({
-  league: { type: mongoose.Schema.Types.ObjectId, ref: "League", required: true },
-  round: { type: Number, required: true },
-  startDate: { type: mongoose.Schema.Types.Date, required: true },
-  endDate: { type: mongoose.Schema.Types.Date, required: true },
-  games: [{ type: mongoose.Schema.Types.ObjectId, ref: "Game", required: true }],
-});
+const fixtureSchema = new Schema<IFixture>(
+  {
+    league: { type: mongoose.Schema.Types.ObjectId, ref: "League", required: true },
+    round: { type: Number, required: true },
+    startDate: { type: mongoose.Schema.Types.Date, required: true },
+    endDate: { type: mongoose.Schema.Types.Date, required: true },
+    games: [{ type: mongoose.Schema.Types.ObjectId, ref: "Game", required: true }],
+  },
+  {
+    toJSON: { virtuals: true },
+    id: true, // Use 'id' instead of '_id'
+  }
+);
 
 const Fixture = mongoose.model<IFixture>("Fixture", fixtureSchema);
 

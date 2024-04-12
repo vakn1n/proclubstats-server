@@ -8,13 +8,12 @@ export class PlayerMapper {
       throw new Error("Player object is null or undefined");
     }
 
-    console.log(player);
-    console.log(typeof player);
     const { team } = await player.populate<{ team: ITeam }>({ path: "team", select: "id name imgUrl" });
 
     return {
       id: player.id,
       name: player.name,
+      imgUrl: player.imgUrl,
       age: player.age,
       position: player.position,
       playablePositions: player.playablePositions,
@@ -34,8 +33,6 @@ export class PlayerMapper {
   }
 
   static async mapToDtos(players: IPlayer[]): Promise<PlayerDTO[]> {
-    console.log("mapp");
-
     if (!players) {
       throw new Error("Players object is null or undefined");
     }

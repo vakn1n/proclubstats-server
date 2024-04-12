@@ -123,7 +123,7 @@ class LeagueController {
     }
   }
 
-  async generateFixtures(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async generateLeagueFixtures(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id: leagueId } = req.params;
 
     const { startDate, fixturesPerWeek }: { startDate: string; fixturesPerWeek: number } = req.body;
@@ -138,6 +138,17 @@ class LeagueController {
       res.status(201).json(fixtures);
     } catch (error) {
       next(error);
+    }
+  }
+
+  async getLeagueFixtures(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: leagueId } = req.params;
+
+    try {
+      const fixtures = await this.leagueService.getLeagueFixtures(leagueId);
+      res.json(fixtures);
+    } catch (e) {
+      next(e);
     }
   }
 }

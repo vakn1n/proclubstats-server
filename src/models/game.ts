@@ -1,33 +1,12 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { GameStatus, IGameTeamStats } from "../../types-changeToNPM/shared-DTOs";
 
-export enum GameStatus {
-  SCHEDULED = "Scheduled",
-  POSTPONED = "Postponed",
-  CANCELLED = "Cancelled",
-  PLAYED = "Played",
-  COMPLETED = "Completed",
-}
-
-export interface AddGameData {
+export type AddGameData {
   leagueId: mongoose.Types.ObjectId;
   homeTeamId: mongoose.Types.ObjectId;
   awayTeamId: mongoose.Types.ObjectId;
-  fixtureId?: mongoose.Types.ObjectId;
+  fixtureId?: string;
   date?: Date;
-}
-
-export interface IPlayerStats {
-  playerId: mongoose.Types.ObjectId;
-  goals?: number;
-  assists?: number;
-  rating?: number;
-  // add other player stats
-}
-
-export interface IGameTeamStats {
-  goals: number;
-  playerStats: IPlayerStats[];
-  // add other teams stats
 }
 
 export interface IGame extends Document {

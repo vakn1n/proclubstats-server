@@ -4,13 +4,13 @@ import { LeagueTableRow, TopAssister, TopScorer } from "../../types-changeToNPM/
 import BadRequestError from "../errors/bad-request-error";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
+import { AddFixtureData, IFixture } from "../models/fixture";
+import { AddGameData } from "../models/game";
 import League, { ILeague } from "../models/league";
 import Team, { ITeam } from "../models/team";
 import CacheService from "./cache-service";
+import FixtureService from "./fixture-service";
 import { transactionService } from "./transaction-service";
-import GameService from "./game-service";
-import { AddGameData } from "../models/game";
-import { AddFixtureData } from "../models/fixture";
 
 const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
 const TOP_SCORERS_CACHE_KEY = "topScorers";
@@ -19,11 +19,11 @@ const TOP_ASSISTS_CACHE_KEY = "topAssists";
 class LeagueService {
   private static instance: LeagueService;
   private cacheService: CacheService;
-  private gameService: GameService;
+  private fixtureService: FixtureService;
 
   private constructor() {
     this.cacheService = CacheService.getInstance();
-    this.gameService = GameService.getInstance();
+    this.fixtureService = FixtureService.getInstance();
   }
 
   static getInstance(): LeagueService {
@@ -80,7 +80,18 @@ class LeagueService {
     await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`);
   }
 
-  async generateFixtures(leagueId: string, leagueStartDate: string, fixturesPerWeek: number) {
+  async getLeagueFixtures(leagueId: string): Promise<IFixture[]> {
+    const league = await League.findById(leagueId);
+    if (!league) {
+      throw new NotFoundError(`League with id ${leagueId} not found`);
+    }
+
+    return this.fixtureService.getLeagueFixtures(league._id);
+  }
+
+  async generateFixtures(leagueId: string, leagueStartDate: string, fixturesPerWeek: number): Promise<IFixture[]> {
+    logger.info(`LeagueService: Generating fixtures for league with id ${leagueId}`);
+
     const league = await League.findById(leagueId);
 
     if (!league) {
@@ -94,19 +105,21 @@ class LeagueService {
     const startDate = new Date(leagueStartDate);
 
     const fixturesData = this.generateFixturesData(league.teams, league._id, startDate, fixturesPerWeek);
-    await transactionService.withTransaction(async (session) => {
-      // const fixtures = await Promise.all(
-      //   fixturesData.map(async (fixture) => {
-      //     // console.log(fixture);
-      //     // await this.fixtureService.createFixture(fixture, session);
-      //   })
-      // );
-      // league.fixtures = fixtures;
-      // await league.save({ session });
+    return await transactionService.withTransaction(async (session) => {
+      const fixtures = await Promise.all(
+        fixturesData.map(async (fixtureData) => {
+          return await this.fixtureService.generateFixture(fixtureData, session);
+        })
+      );
+      league.fixtures = fixtures.map((fixture) => fixture._id);
+      await league.save({ session });
+      return fixtures;
     });
   }
 
   private generateFixturesData(teams: Types.ObjectId[], leagueId: Types.ObjectId, leagueStartDate: Date, fixturesPerWeek: number): AddFixtureData[] {
+    logger.info(`LeagueService: generating fixtures data`);
+
     // TODO: handle dummy team
     // TODO: use random to generate the fixtures better
 
@@ -144,19 +157,6 @@ class LeagueService {
       reverseOrder = !reverseOrder;
     }
     return fixtures;
-  }
-
-  //            1                    2                     3                      4                     5                      6
-  // [[a2, 36], [78, e44]], [[e4, a2], [78, 36]], [[a2, 78], [e4, 36]], [[a2, 36], [78, e4]] , [[e4, a2], [78, 36]], [[a2, 78], [e4, 36]]
-
-  //            1                    2                     3                      4                     5                      6
-  // [[a2, 36], [78, e4]], [[a2, e4], [36, 78]], [[a2, 78], [e4, 36]], [[36, a2], [e4, 78]] , [[e4, a2], [78, 36]], [[78, a2], [36, e4]]
-
-  shuffleTeams(teams: Types.ObjectId[]): void {
-    for (let i = teams.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [teams[i], teams[j]] = [teams[j], teams[i]];
-    }
   }
 
   async removeAllFixtures(leagueId: string): Promise<void> {
