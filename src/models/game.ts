@@ -2,7 +2,6 @@ import mongoose, { Schema, Document } from "mongoose";
 import { GameStatus, IGameTeamStats } from "../../types-changeToNPM/shared-DTOs";
 
 export type AddGameData = {
-  leagueId: mongoose.Types.ObjectId;
   homeTeamId: mongoose.Types.ObjectId;
   awayTeamId: mongoose.Types.ObjectId;
   fixtureId?: string;
@@ -26,7 +25,7 @@ export interface IGame extends Document {
 
 const gameSchema = new Schema<IGame>(
   {
-    fixture: { type: mongoose.Schema.Types.ObjectId, ref: "League", required: true },
+    fixture: { type: mongoose.Schema.Types.ObjectId, ref: "Fixture", required: true },
     homeTeam: { type: mongoose.Schema.Types.ObjectId, ref: "Team", required: true },
     awayTeam: { type: mongoose.Schema.Types.ObjectId, ref: "Team", required: true },
     date: { type: Date },

@@ -171,3 +171,13 @@ export type GameFixtureData = {
   status: GameStatus;
   date?: Date;
 };
+
+export type AddSingleFixtureData = {
+  round: number;
+  startDate: string;
+  endDate: string;
+  games: {
+    homeTeamId: string;
+    awayTeamId: string;
+  }[];
+};

@@ -7,8 +7,10 @@ const leagueController = LeagueController.getInstance();
 
 router.post("/", upload.single("file"), leagueController.addLeague.bind(leagueController));
 router.post("/:id/generateFixtures", leagueController.generateLeagueFixtures.bind(leagueController));
+router.post("/:id/createFixture", leagueController.createLeagueFixture.bind(leagueController));
 
 router.delete("/:id", leagueController.removeLeague.bind(leagueController));
+router.delete("/:id/allFixtures", leagueController.deleteAllLeagueFixtures.bind(leagueController));
 
 router.get("/:id", leagueController.getLeagueById.bind(leagueController));
 router.get("/", leagueController.getAllLeagues.bind(leagueController));

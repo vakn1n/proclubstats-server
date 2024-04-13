@@ -1,4 +1,4 @@
-import { ClientSession } from "mongoose";
+import { ClientSession, Types } from "mongoose";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
 import Game, { AddGameData, IGame } from "../models/game";
@@ -20,7 +20,7 @@ class GameService {
   }
 
   async createGame(gameData: AddGameData, session: ClientSession): Promise<IGame> {
-    const { homeTeamId, awayTeamId, leagueId, fixtureId } = gameData;
+    const { homeTeamId, awayTeamId, fixtureId } = gameData;
 
     logger.info(`GameService: creating game, home team ${homeTeamId} and away team ${awayTeamId}`);
 
@@ -28,7 +28,6 @@ class GameService {
       homeTeam: homeTeamId,
       awayTeam: awayTeamId,
       fixture: fixtureId,
-      league: leagueId,
     });
 
     await game.save({ session });
@@ -36,7 +35,7 @@ class GameService {
   }
 
   async updateGameResult(gameId: string, result: { homeTeamGoals: number; awayTeamGoals: number }): Promise<void> {
-    logger.info(`updating game ${gameId} result`);
+    logger.info(`GameService: updating game ${gameId} result`);
 
     const game = await Game.findById(gameId);
 
@@ -51,7 +50,7 @@ class GameService {
   }
 
   async updateGameStats(gameId: string, homeTeamStats: IGameTeamStats, awayTeamStats: IGameTeamStats) {
-    logger.info(`updating fixture ${gameId} stats`);
+    logger.info(`GameService: updating game ${gameId} stats`);
 
     const game = await Game.findById(gameId);
 
@@ -79,12 +78,12 @@ class GameService {
 
   async addGameResultAndStats(gameId: string, gameData: any) {
     // TODO: create type for the fixture data
-    logger.info(`updating fixture ${gameId} result and stats`);
+    logger.info(`GameService: updating game ${gameId} result and stats`);
 
     const game = await Game.findById(gameId);
 
     if (!game) {
-      throw new NotFoundError(`fixture ${gameId} not found`);
+      throw new NotFoundError(`game ${gameId} not found`);
     }
     await transactionService.withTransaction(async (session) => {
       game.homeTeamStats = gameData.homeTeamStats;
@@ -99,6 +98,16 @@ class GameService {
 
       await game.save({ session });
     });
+  }
+
+  async deleteFixtureGames(fixtureId: Types.ObjectId, session: ClientSession) {
+    logger.info(`GameService: deleting games for fixture ${fixtureId}`);
+    try {
+      await Game.deleteMany({ fixture: fixtureId }).session(session);
+    } catch (e) {
+      logger.error(e);
+      throw new Error(`failed to delete games for fixture ${fixtureId}`);
+    }
   }
 
   async deleteGame(id: string): Promise<IGame> {

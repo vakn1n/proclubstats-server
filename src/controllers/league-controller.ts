@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import LeagueService from "../services/league-service";
 import logger from "../logger";
 import ImageService from "../services/images-service";
+import { AddSingleFixtureData } from "../../types-changeToNPM/shared-DTOs";
 
 class LeagueController {
   private leagueService: LeagueService;
@@ -123,6 +124,24 @@ class LeagueController {
     }
   }
 
+  async createLeagueFixture(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: leagueId } = req.params;
+
+    if (!leagueId) {
+      res.status(404).send({ message: "No league id provided" });
+      return;
+    }
+
+    const fixtureData = req.body as AddSingleFixtureData;
+
+    try {
+      const fixture = await this.leagueService.createFixture(leagueId, fixtureData);
+      res.status(201).json(fixture);
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async generateLeagueFixtures(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id: leagueId } = req.params;
 
@@ -144,11 +163,32 @@ class LeagueController {
   async getLeagueFixtures(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id: leagueId } = req.params;
 
+    if (!leagueId) {
+      res.status(404).send({ message: "No league id provided" });
+      return;
+    }
+
     try {
       const fixtures = await this.leagueService.getLeagueFixtures(leagueId);
       res.json(fixtures);
     } catch (e) {
       next(e);
+    }
+  }
+
+  async deleteAllLeagueFixtures(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: leagueId } = req.params;
+
+    if (!leagueId) {
+      res.status(404).send({ message: "No league id provided" });
+      return;
+    }
+
+    try {
+      await this.leagueService.deleteAllFixtures(leagueId);
+      res.sendStatus(204);
+    } catch (error) {
+      next(error);
     }
   }
 }

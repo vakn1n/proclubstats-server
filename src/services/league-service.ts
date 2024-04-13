@@ -1,6 +1,6 @@
 import { ClientSession } from "mongodb";
 import { Types } from "mongoose";
-import { FixtureDTO, LeagueTableRow, TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
+import { AddSingleFixtureData, FixtureDTO, LeagueTableRow, TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
 import BadRequestError from "../errors/bad-request-error";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
@@ -11,6 +11,7 @@ import Team, { ITeam } from "../models/team";
 import CacheService from "./cache-service";
 import FixtureService from "./fixture-service";
 import { transactionService } from "./transaction-service";
+import { FixtureMapper } from "../mappers/fixture-mapper";
 
 const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
 const TOP_SCORERS_CACHE_KEY = "topScorers";
@@ -80,6 +81,33 @@ class LeagueService {
     await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`);
   }
 
+  async createFixture(leagueId: string, addFixtureData: AddSingleFixtureData): Promise<FixtureDTO> {
+    const { round, games } = addFixtureData;
+
+    logger.info(`LeagueService: adding fixture ${round} for league ${leagueId}`);
+
+    const league = await League.findById(leagueId);
+    if (!league) {
+      throw new NotFoundError(`League with id ${leagueId} not found`);
+    }
+
+    const startDate = new Date(addFixtureData.startDate);
+    const endDate = new Date(addFixtureData.endDate);
+
+    const gamesData: AddGameData[] = games.map((game) => ({
+      awayTeamId: new Types.ObjectId(game.awayTeamId),
+      homeTeamId: new Types.ObjectId(game.homeTeamId),
+    }));
+
+    return await transactionService.withTransaction(async (session) => {
+      const fixture = await this.fixtureService.generateFixture({ leagueId: league._id, round, gamesData, startDate, endDate }, session);
+      league.fixtures.push(fixture._id);
+      const fixtureDto = await FixtureMapper.mapToDto(fixture);
+      await league.save({ session });
+      return fixtureDto;
+    });
+  }
+
   async getLeagueFixtures(leagueId: string): Promise<FixtureDTO[]> {
     const league = await League.findById(leagueId);
     if (!league) {
@@ -132,6 +160,7 @@ class LeagueService {
     endDate.setDate(endDate.getDate() + 7);
 
     let reverseOrder = false;
+    // two league rounds
     for (let k = 0; k < 2; k++) {
       for (let round = k * fixturesCount; round < k * fixturesCount + fixturesCount; round++) {
         const fixtureGames: AddGameData[] = [];
@@ -139,7 +168,6 @@ class LeagueService {
           const homeTeamIndex = reverseOrder ? teams.length - 1 - j : j;
           const awayTeamIndex = reverseOrder ? j : teams.length - 1 - j;
           fixtureGames.push({
-            leagueId,
             homeTeamId: teams[homeTeamIndex],
             awayTeamId: teams[awayTeamIndex],
           });
@@ -159,19 +187,24 @@ class LeagueService {
     return fixtures;
   }
 
-  async removeAllFixtures(leagueId: string): Promise<void> {
-    // await transactionService.withTransaction(async (session) => {
-    //    // Find all fixtures associated with the league
-    //    const fixtures = await Fixture.find({ league: leagueId }).session(session);
-    //    // Remove all fixtures
-    //    await Fixture.deleteMany({ league: leagueId }).session(session);
-    //    // Remove references to fixtures from the league
-    //    await League.updateOne({ _id: leagueId }, { $set: { fixtures: [] } }).session(session);
-    //    // For each fixture, remove all games
-    //    for (const fixture of fixtures) {
-    //      await Game.deleteMany({ fixture: fixture._id }).session(session);
-    //    }
-    // });
+  async deleteAllFixtures(leagueId: string): Promise<void> {
+    logger.info(`LeagueService: removing all fixtures for league with id ${leagueId}`);
+
+    const league = await League.findById(leagueId);
+    if (!league) {
+      throw new NotFoundError(`League with id ${leagueId} not found`);
+    }
+
+    await transactionService.withTransaction(async (session) => {
+      await this.fixtureService.deleteFixtures(league.fixtures, session);
+      try {
+        league.fixtures = [];
+        await league.save({ session });
+      } catch (e) {
+        logger.error(e);
+        throw new Error(`failed to remove fixtures for league with id ${leagueId}`);
+      }
+    });
   }
 
   async removeLeague(id: string): Promise<ILeague> {

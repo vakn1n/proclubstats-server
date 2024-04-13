@@ -1,10 +1,9 @@
 import { ClientSession, Types } from "mongoose";
+import { FixtureDTO } from "../../types-changeToNPM/shared-DTOs";
+import logger from "../logger";
+import { FixtureMapper } from "../mappers/fixture-mapper";
 import Fixture, { AddFixtureData, IFixture } from "../models/fixture";
 import GameService from "./game-service";
-import { AddGameData } from "../models/game";
-import logger from "../logger";
-import { FixtureDTO } from "../../types-changeToNPM/shared-DTOs";
-import { FixtureMapper } from "../mappers/fixture-mapper";
 
 export default class FixtureService {
   private static instance: FixtureService;
@@ -46,5 +45,18 @@ export default class FixtureService {
     const fixtures = await Fixture.find({ league: leagueId }).sort({ round: 1 });
 
     return await FixtureMapper.mapToDtos(fixtures);
+  }
+
+  async deleteFixtures(fixturesIds: Types.ObjectId[], session: ClientSession) {
+    logger.info(`FixtureService: deleting ${fixturesIds.length} fixtures`);
+
+    await Promise.all(fixturesIds.map(async (fixtureId) => await this.gameService.deleteFixtureGames(fixtureId, session)));
+
+    try {
+      await Fixture.deleteMany({ _id: { $in: fixturesIds } }).session(session);
+    } catch (e) {
+      logger.error(e);
+      throw new Error(`Failed to delete fixtures`);
+    }
   }
 }
