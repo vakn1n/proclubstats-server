@@ -20,7 +20,7 @@ const logger = winston.createLogger({
   format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
   transports: [
     transport,
-    errorConsoleTransport,
+    // errorConsoleTransport,
     new winston.transports.Console({
       format: winston.format.simple(),
     }),

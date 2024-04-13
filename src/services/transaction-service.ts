@@ -10,8 +10,10 @@ class TransactionService {
       await session.commitTransaction();
       logger.info(`Commit transaction`);
       return result;
-    } catch (error) {
+    } catch (error: any) {
       logger.info(`Abort transaction`);
+      logger.error(error.message);
+
       await session.abortTransaction();
       throw error;
     } finally {

@@ -27,12 +27,14 @@ export default class FixtureService {
 
     const fixture = new Fixture({ league: leagueId, startDate, endDate, round });
 
-    const games = await Promise.all(
-      gamesData.map(async (gameData) => {
-        gameData.fixtureId = fixture.id;
-        return await this.gameService.createGame(gameData, session);
-      })
-    );
+    // const games = await Promise.all(
+    //   gamesData.map(async (gameData) => {
+    //     gameData.fixtureId = fixture.id;
+    //     return await this.gameService.createGame(gameData, session);
+    //   })
+    // );
+
+    const games = await this.gameService.createFixtureGames(gamesData, fixture._id, session);
 
     fixture.games = games.map((game) => game._id);
     await fixture.save({ session });
@@ -53,7 +55,7 @@ export default class FixtureService {
     await Promise.all(fixturesIds.map(async (fixtureId) => await this.gameService.deleteFixtureGames(fixtureId, session)));
 
     try {
-      await Fixture.deleteMany({ _id: { $in: fixturesIds } }).session(session);
+      await Fixture.deleteMany({ _id: { $in: fixturesIds } }, { session });
     } catch (e) {
       logger.error(e);
       throw new Error(`Failed to delete fixtures`);

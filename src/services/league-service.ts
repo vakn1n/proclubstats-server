@@ -4,7 +4,7 @@ import { AddSingleFixtureData, FixtureDTO, LeagueTableRow, TopAssister, TopScore
 import BadRequestError from "../errors/bad-request-error";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
-import { AddFixtureData, IFixture } from "../models/fixture";
+import Fixture, { AddFixtureData, IFixture } from "../models/fixture";
 import { AddGameData } from "../models/game";
 import League, { ILeague } from "../models/league";
 import Team, { ITeam } from "../models/team";
@@ -91,12 +91,18 @@ class LeagueService {
       throw new NotFoundError(`League with id ${leagueId} not found`);
     }
 
+    const isFixtureRoundExists = await Fixture.exists({ round, league: league._id });
+
+    if (isFixtureRoundExists) {
+      throw new BadRequestError(`Fixture with round ${round} already exists`);
+    }
+
     const startDate = new Date(addFixtureData.startDate);
     const endDate = new Date(addFixtureData.endDate);
 
     const gamesData: AddGameData[] = games.map((game) => ({
-      awayTeamId: new Types.ObjectId(game.awayTeamId),
-      homeTeamId: new Types.ObjectId(game.homeTeamId),
+      awayTeam: new Types.ObjectId(game.awayTeamId),
+      homeTeam: new Types.ObjectId(game.homeTeamId),
     }));
 
     return await transactionService.withTransaction(async (session) => {
@@ -168,8 +174,8 @@ class LeagueService {
           const homeTeamIndex = reverseOrder ? teams.length - 1 - j : j;
           const awayTeamIndex = reverseOrder ? j : teams.length - 1 - j;
           fixtureGames.push({
-            homeTeamId: teams[homeTeamIndex],
-            awayTeamId: teams[awayTeamIndex],
+            homeTeam: teams[homeTeamIndex],
+            awayTeam: teams[awayTeamIndex],
           });
         }
 

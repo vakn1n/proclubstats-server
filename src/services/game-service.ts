@@ -19,19 +19,31 @@ class GameService {
     return this.instance;
   }
 
-  async createGame(gameData: AddGameData, session: ClientSession): Promise<IGame> {
-    const { homeTeamId, awayTeamId, fixtureId } = gameData;
+  async createGame(gameData: AddGameData, fixtureId: Types.ObjectId, session: ClientSession): Promise<IGame> {
+    const { homeTeam, awayTeam } = gameData;
 
-    logger.info(`GameService: creating game, home team ${homeTeamId} and away team ${awayTeamId}`);
+    logger.info(`GameService: creating game, home team ${homeTeam} and away team ${awayTeam}`);
 
     const game = new Game({
-      homeTeam: homeTeamId,
-      awayTeam: awayTeamId,
+      homeTeam,
+      awayTeam,
       fixture: fixtureId,
     });
 
     await game.save({ session });
+
     return game;
+  }
+
+  async createFixtureGames(gamesData: AddGameData[], fixtureId: Types.ObjectId, session: ClientSession): Promise<IGame[]> {
+    logger.info(`GameService: creating games for fixture with id ${fixtureId}`);
+
+    const gamesWithFixtureId = gamesData.map((game) => ({
+      ...game,
+      fixture: fixtureId,
+    }));
+
+    return await Game.insertMany(gamesWithFixtureId, { session });
   }
 
   async updateGameResult(gameId: string, result: { homeTeamGoals: number; awayTeamGoals: number }): Promise<void> {
@@ -102,12 +114,7 @@ class GameService {
 
   async deleteFixtureGames(fixtureId: Types.ObjectId, session: ClientSession) {
     logger.info(`GameService: deleting games for fixture ${fixtureId}`);
-    try {
-      await Game.deleteMany({ fixture: fixtureId }).session(session);
-    } catch (e) {
-      logger.error(e);
-      throw new Error(`failed to delete games for fixture ${fixtureId}`);
-    }
+    await Game.deleteMany({ fixture: fixtureId }, { session });
   }
 
   async deleteGame(id: string): Promise<IGame> {
