@@ -27,13 +27,6 @@ export default class FixtureService {
 
     const fixture = new Fixture({ league: leagueId, startDate, endDate, round });
 
-    // const games = await Promise.all(
-    //   gamesData.map(async (gameData) => {
-    //     gameData.fixtureId = fixture.id;
-    //     return await this.gameService.createGame(gameData, session);
-    //   })
-    // );
-
     const games = await this.gameService.createFixtureGames(gamesData, fixture._id, session);
 
     fixture.games = games.map((game) => game._id);
@@ -41,10 +34,10 @@ export default class FixtureService {
     return fixture;
   }
 
-  async getLeagueFixtures(leagueId: Types.ObjectId): Promise<FixtureDTO[]> {
+  async getLeagueFixtures(leagueId: Types.ObjectId, limit: number): Promise<FixtureDTO[]> {
     logger.info(`FixtureService: getting fixtures for league ${leagueId}`);
 
-    const fixtures = await Fixture.find({ league: leagueId }).sort({ round: 1 });
+    const fixtures = await Fixture.find({ league: leagueId }, {}, { sort: { round: 1 }, limit });
 
     return await FixtureMapper.mapToDtos(fixtures);
   }
@@ -52,7 +45,7 @@ export default class FixtureService {
   async deleteFixtures(fixturesIds: Types.ObjectId[], session: ClientSession) {
     logger.info(`FixtureService: deleting ${fixturesIds.length} fixtures`);
 
-    await Promise.all(fixturesIds.map(async (fixtureId) => await this.gameService.deleteFixtureGames(fixtureId, session)));
+    await this.gameService.deleteFixturesGames(fixturesIds, session);
 
     try {
       await Fixture.deleteMany({ _id: { $in: fixturesIds } }, { session });

@@ -163,13 +163,15 @@ class LeagueController {
   async getLeagueFixtures(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id: leagueId } = req.params;
 
+    const limit = req.query.limit;
+
     if (!leagueId) {
       res.status(404).send({ message: "No league id provided" });
       return;
     }
 
     try {
-      const fixtures = await this.leagueService.getLeagueFixtures(leagueId);
+      const fixtures = await this.leagueService.getLeagueFixtures(leagueId, Number(limit) || 3);
       res.json(fixtures);
     } catch (e) {
       next(e);

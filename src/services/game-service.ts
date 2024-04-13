@@ -112,9 +112,9 @@ class GameService {
     });
   }
 
-  async deleteFixtureGames(fixtureId: Types.ObjectId, session: ClientSession) {
-    logger.info(`GameService: deleting games for fixture ${fixtureId}`);
-    await Game.deleteMany({ fixture: fixtureId }, { session });
+  async deleteFixturesGames(fixturesIds: Types.ObjectId[], session: ClientSession) {
+    logger.info(`GameService: deleting games for fixtures with ids ${fixturesIds}`);
+    await Game.deleteMany({ fixtureId: { $in: fixturesIds } }, { session });
   }
 
   async deleteGame(id: string): Promise<IGame> {

@@ -114,13 +114,13 @@ class LeagueService {
     });
   }
 
-  async getLeagueFixtures(leagueId: string): Promise<FixtureDTO[]> {
+  async getLeagueFixtures(leagueId: string, limit: number): Promise<FixtureDTO[]> {
     const league = await League.findById(leagueId);
     if (!league) {
       throw new NotFoundError(`League with id ${leagueId} not found`);
     }
 
-    return await this.fixtureService.getLeagueFixtures(league._id);
+    return await this.fixtureService.getLeagueFixtures(league._id, limit);
   }
 
   async generateFixtures(leagueId: string, leagueStartDate: string, fixturesPerWeek: number): Promise<IFixture[]> {
@@ -140,11 +140,12 @@ class LeagueService {
 
     const fixturesData = this.generateFixturesData(league.teams, league._id, startDate, fixturesPerWeek);
     return await transactionService.withTransaction(async (session) => {
-      const fixtures = await Promise.all(
-        fixturesData.map(async (fixtureData) => {
-          return await this.fixtureService.generateFixture(fixtureData, session);
-        })
-      );
+      const fixtures = [];
+
+      for (const fixtureData of fixturesData) {
+        const fixture = await this.fixtureService.generateFixture(fixtureData, session);
+        fixtures.push(fixture);
+      }
       league.fixtures = fixtures.map((fixture) => fixture._id);
       await league.save({ session });
       return fixtures;
