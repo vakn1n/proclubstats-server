@@ -58,7 +58,7 @@ export default class GameController {
     }
   }
 
-  async updateGameStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async updateGamePlayersStats(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id: gameId } = req.params;
     const { homeTeamStats, awayTeamStats } = req.body;
 
@@ -68,7 +68,7 @@ export default class GameController {
     }
 
     try {
-      await this.gameService.updateGameStats(gameId, homeTeamStats, awayTeamStats);
+      await this.gameService.updateGamePlayersStats(gameId, homeTeamStats, awayTeamStats);
       res.sendStatus(200);
     } catch (error: any) {
       next(error);

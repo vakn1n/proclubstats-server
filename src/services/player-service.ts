@@ -1,8 +1,9 @@
+import { ClientSession } from "mongoose";
 import { AddPlayerDataRequest, PlayerDTO } from "../../types-changeToNPM/shared-DTOs";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
 import { PlayerMapper } from "../mappers/player-mapper";
-import Player from "../models/player";
+import Player, { IPlayer } from "../models/player";
 import ImageService from "./images-service";
 import TeamService from "./team-service";
 import { transactionService } from "./transaction-service";
@@ -61,6 +62,33 @@ export default class PlayerService {
 
     return imageUrl;
   }
+
+  async updatePlayersGameStats(
+    playersStats: { playerId: string; rating: number; goals?: number; assists?: number; playerOfTheMatch: boolean }[],
+    session: ClientSession
+  ): Promise<void> {
+    const players = await Promise.all(
+      playersStats.map(async (playerStats) => {
+        const player = await Player.findById(playerStats.playerId, {}, { session });
+        if (!player) {
+          throw new NotFoundError(`Player with id ${playerStats.playerId} not found`);
+        }
+        const { goals, assists, rating, playerOfTheMatch } = playerStats;
+        player.stats.goals += goals || 0;
+        player.stats.assists += assists || 0;
+        player.stats.games = player.stats.games + 1;
+        if (playerOfTheMatch) {
+          player.stats.playerOfTheMatch = player.stats.playerOfTheMatch + 1;
+        }
+        player.stats.avgRating = (player.stats.avgRating * player.stats.games + rating) / player.stats.games;
+        return player;
+      })
+    );
+    await Promise.all(players.map(async (player) => player.save({ session })));
+  }
+
+  // async updateSinglePlayerGameStats(player: IPlayer, rating: number, playerOfTheMatch: boolean = false, goals: number = 0, assists: number = 0) {}
+
   async getPlayerById(id: string): Promise<PlayerDTO> {
     logger.info(`PlayerService:  getting player with id ${id}`);
 

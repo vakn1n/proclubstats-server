@@ -8,8 +8,8 @@ router.get("/", gameController.getAllGames.bind(gameController));
 router.get("/:id", gameController.getGameById.bind(gameController));
 
 router.put("/:id/updateResult", gameController.updateGameResult.bind(gameController));
-router.put("/:id/updateStats", gameController.updateGameStats.bind(gameController));
-router.put("/:id/updateResultAndStats", gameController.updateResultAndStats.bind(gameController));
+router.put("/:id/updatePlayersStats", gameController.updateGamePlayersStats.bind(gameController));
+// router.put("/:id/updateResultAndStats", gameController.updateResultAndStats.bind(gameController));
 
 router.delete("/:id", gameController.deleteGame.bind(gameController));
 

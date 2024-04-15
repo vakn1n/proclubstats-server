@@ -6,6 +6,7 @@ export interface IPlayerStats {
   assists: number;
   cleanSheets: number;
   playerOfTheMatch: number;
+  avgRating: number;
 }
 
 export interface IPlayer extends Document {

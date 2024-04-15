@@ -6,6 +6,7 @@ import TeamService from "./team-service";
 import { transactionService } from "./transaction-service";
 import BadRequestError from "../errors/bad-request-error";
 import { GAME_STATUS } from "../../types-changeToNPM/shared-DTOs";
+import PlayerService from "./player-service";
 
 class GameService {
   private static instance: GameService;
@@ -57,18 +58,24 @@ class GameService {
     }
 
     transactionService.withTransaction(async (session) => {
+      if (game.status === GAME_STATUS.PLAYED || game.status === GAME_STATUS.COMPLETED) {
+        // TODO: remove prev result from teams stats
+      }
       game.result = {
         homeTeamGoals,
         awayTeamGoals,
       };
       game.status = GAME_STATUS.PLAYED;
 
-      await game.updateTeamStats(session);
+      await Promise.all([
+        TeamService.getInstance().updateTeamGameStats(game.homeTeam, homeTeamGoals, awayTeamGoals, session),
+        TeamService.getInstance().updateTeamGameStats(game.awayTeam, awayTeamGoals, homeTeamGoals, session),
+      ]);
       await game.save({ session });
     });
   }
 
-  async updateGameStats(gameId: string, homeTeamStats: any, awayTeamStats: any) {
+  async updateGamePlayersStats(gameId: string, homeTeamPlayersStats: any, awayTeamPlayersStats: any) {
     logger.info(`GameService: updating game ${gameId} stats`);
 
     const game = await Game.findById(gameId);
@@ -78,17 +85,15 @@ class GameService {
     }
 
     if (game.status !== GAME_STATUS.PLAYED) {
-      throw new BadRequestError(`can't update game stats before updating its result`);
+      throw new BadRequestError(`can't update game players stats before updating its result`);
     }
 
     await transactionService.withTransaction(async (session) => {
-      game.homeTeamStats = homeTeamStats;
-      game.awayTeamStats = awayTeamStats;
       game.status = GAME_STATUS.COMPLETED;
 
       await Promise.all([
-        TeamService.getInstance().addTeamGameStats(game.homeTeam, homeTeamStats, session),
-        TeamService.getInstance().addTeamGameStats(game.awayTeam, awayTeamStats, session),
+        PlayerService.getInstance().updatePlayersGameStats(homeTeamPlayersStats, session),
+        PlayerService.getInstance().updatePlayersGameStats(awayTeamPlayersStats, session),
       ]);
 
       await game.save({ session });

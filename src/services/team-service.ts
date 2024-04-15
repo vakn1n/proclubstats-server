@@ -134,16 +134,32 @@ class TeamService {
     await team.save({ session });
   }
 
-  async addTeamGameStats(teamId: Types.ObjectId, teamStats: any, session: ClientSession): Promise<void> {
-    logger.info(`Team Service: Adding game stats for team with id ${teamId}`);
+  async updateTeamGameStats(teamId: Types.ObjectId, goalsScored: number, goalsConceded: number, session: ClientSession): Promise<void> {
+    logger.info(`TeamService: Updating stats for team ${teamId}`);
 
-    const team = await Team.findById({ id: teamId }, {}, { session });
+    const team = await Team.findById(teamId, {}, { session });
 
     if (!team) {
-      throw new NotFoundError(`Team with id ${teamId} not found `);
+      throw new NotFoundError(`Team with id ${teamId} not found`);
     }
 
-    // TODO: finish this
+    // Update team stats
+    team.stats.goalsScored += goalsScored;
+    team.stats.goalsConceded += goalsConceded;
+
+    if (!goalsConceded) {
+      team.stats.cleanSheets += 1;
+    }
+
+    if (goalsScored > goalsConceded) {
+      team.stats.wins += 1;
+    } else if (goalsScored < goalsConceded) {
+      team.stats.losses += 1;
+    } else {
+      team.stats.draws += 1;
+    }
+
+    await team.save({ session });
   }
 
   async setTeamCaptain(teamId: string, captainId: string): Promise<void> {

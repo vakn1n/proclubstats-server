@@ -68,6 +68,7 @@ export type AddPlayerDataRequest = {
   age: number;
   teamId: string;
   position: string;
+  imgUrl?: string;
   playablePositions?: string[];
 };
 
@@ -108,38 +109,6 @@ export enum GAME_STATUS {
   COMPLETED = "Completed", // for when both result and stats are updated
 }
 
-export type FixtureDTO = {
-  id: string;
-  round: number;
-  leagueId: string;
-  startDate: Date;
-  endDate: Date;
-  games: GameFixtureData[];
-};
-
-export type GameDTO = {
-  id: string;
-  fixtureId: string;
-  status: GAME_STATUS;
-  result?: {
-    homeTeamGoals: number;
-    awayTeamGoals: number;
-  };
-  homeTeam: {
-    id: string;
-    name: string;
-    imgUrl?: string;
-    // stats: IGameTeamStats;
-  };
-  awayTeam: {
-    id: string;
-    name: string;
-    imgUrl?: string;
-    // stats: IGameTeamStats;
-  };
-  date?: Date;
-};
-
 export type GameFixtureData = {
   id: string;
   homeTeam: {
@@ -158,6 +127,56 @@ export type GameFixtureData = {
   };
   status: GAME_STATUS;
   date?: Date;
+};
+
+export type FixtureDTO = {
+  id: string;
+  round: number;
+  leagueId: string;
+  startDate: Date;
+  endDate: Date;
+  games: GameFixtureData[];
+};
+
+type GoalData = {
+  scorerId: string;
+  minute?: number;
+  assistId?: string;
+};
+
+export type GameDTO = {
+  id: string;
+  fixtureId: string;
+  status: GAME_STATUS;
+  result?: {
+    homeTeamGoals: number;
+    awayTeamGoals: number;
+  };
+  homeTeam: {
+    id: string;
+    name: string;
+    imgUrl?: string;
+    goals?: GoalData[];
+    redCards?: string[];
+    // playerStats?: GameTeamPlayersStats;
+  };
+  awayTeam: {
+    id: string;
+    name: string;
+    imgUrl?: string;
+    goals?: GoalData[];
+    redCards?: string[];
+    // playerStats?: GameTeamPlayersStats;
+  };
+  date?: Date;
+};
+
+export type GameTeamPlayersStatsData = {
+  playerId: string;
+  rating: number;
+  playerOfTheMatch?: boolean;
+  goals?: number;
+  assists?: number;
 };
 
 export type AddSingleFixtureData = {
