@@ -43,15 +43,15 @@ export default class GameController {
 
   async updateGameResult(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
-    const { result } = req.body;
+    const { homeTeamGoals, awayTeamGoals } = req.body;
 
-    if (!result) {
-      res.status(400).send({ message: "No result provided" });
+    if (homeTeamGoals === undefined || homeTeamGoals === undefined) {
+      res.status(400).send({ message: "Invalid result provided" });
       return;
     }
 
     try {
-      await this.gameService.updateGameResult(id, result);
+      await this.gameService.updateGameResult(id, homeTeamGoals, awayTeamGoals);
       res.sendStatus(200);
     } catch (error: any) {
       next(error);
@@ -59,16 +59,32 @@ export default class GameController {
   }
 
   async updateGameStats(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { id: leagueId } = req.params;
+    const { id: gameId } = req.params;
     const { homeTeamStats, awayTeamStats } = req.body;
 
-    if (!leagueId || !homeTeamStats || !awayTeamStats) {
+    if (!gameId || !homeTeamStats || !awayTeamStats) {
       res.status(400).send({ message: "No home/away stats provided" });
       return;
     }
 
     try {
-      await this.gameService.updateGameStats(leagueId, homeTeamStats, awayTeamStats);
+      await this.gameService.updateGameStats(gameId, homeTeamStats, awayTeamStats);
+      res.sendStatus(200);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+  async updateResultAndStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: gameId } = req.params;
+    const gameData = req.body;
+
+    if (!gameId || !gameData) {
+      res.status(400).send({ message: "missing data" });
+      return;
+    }
+
+    try {
+      await this.gameService.updateGameResultAndStats(gameId, gameData);
       res.sendStatus(200);
     } catch (error: any) {
       next(error);

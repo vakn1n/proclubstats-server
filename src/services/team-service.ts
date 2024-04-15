@@ -1,5 +1,5 @@
 import mongoose, { ClientSession, Types } from "mongoose";
-import { AddTeamRequest, IGameTeamStats, PlayerDTO, TeamDTO } from "../../types-changeToNPM/shared-DTOs";
+import { AddTeamRequest, PlayerDTO, TeamDTO } from "../../types-changeToNPM/shared-DTOs";
 import BadRequestError from "../errors/bad-request-error";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
@@ -109,7 +109,7 @@ class TeamService {
 
   async addPlayerToTeam(playerId: Types.ObjectId, teamId: string, session: ClientSession): Promise<void> {
     logger.info(`Team Service: Adding player ${playerId} to team ${teamId}`);
-    const team = await Team.findById(teamId).session(session);
+    const team = await Team.findById(teamId, {}, { session });
 
     if (!team) {
       throw new Error(`Team with id ${teamId} not found`);
@@ -120,7 +120,7 @@ class TeamService {
 
   async removePlayerFromTeam(teamId: Types.ObjectId, playerId: Types.ObjectId, session: ClientSession) {
     logger.info(`Team Service: Removing player ${playerId} from team ${teamId}`);
-    const team = await Team.findById(teamId).session(session);
+    const team = await Team.findById(teamId, {}, { session });
     if (!team) {
       throw new Error(`Team with id ${teamId} not found`);
     }
@@ -134,10 +134,10 @@ class TeamService {
     await team.save({ session });
   }
 
-  async addGameStats(teamId: Types.ObjectId, homeTeamStats: IGameTeamStats, session: ClientSession): Promise<void> {
-    logger.info(`Team Service: Adding fixture stats for team with id ${teamId}`);
+  async addTeamGameStats(teamId: Types.ObjectId, teamStats: any, session: ClientSession): Promise<void> {
+    logger.info(`Team Service: Adding game stats for team with id ${teamId}`);
 
-    const team = await Team.findById({ id: teamId }, { session });
+    const team = await Team.findById({ id: teamId }, {}, { session });
 
     if (!team) {
       throw new NotFoundError(`Team with id ${teamId} not found `);

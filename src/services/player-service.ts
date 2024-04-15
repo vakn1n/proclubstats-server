@@ -81,7 +81,7 @@ export default class PlayerService {
     logger.info(`PlayerService:  deleting player with id ${id}`);
 
     await transactionService.withTransaction(async (session) => {
-      const player = await Player.findById(id).session(session);
+      const player = await Player.findById(id, {}, { session });
       if (!player) {
         throw new NotFoundError(`Player with id ${id} not found.`);
       }

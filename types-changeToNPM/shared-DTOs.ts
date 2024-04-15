@@ -100,12 +100,12 @@ export type TopAssister = {
   assistsPerGame: number;
 };
 
-export enum GameStatus {
+export enum GAME_STATUS {
   SCHEDULED = "Scheduled",
   POSTPONED = "Postponed",
   CANCELLED = "Cancelled",
   PLAYED = "Played",
-  COMPLETED = "Completed",
+  COMPLETED = "Completed", // for when both result and stats are updated
 }
 
 export type FixtureDTO = {
@@ -117,23 +117,10 @@ export type FixtureDTO = {
   games: GameFixtureData[];
 };
 
-export type IPlayerStats = {
-  goals?: number;
-  assists?: number;
-  rating?: number;
-  // add other player stats
-};
-
-export type IGameTeamStats = {
-  goals: number;
-  playerStats: IPlayerStats[];
-  // add other teams stats
-};
-
 export type GameDTO = {
   id: string;
   fixtureId: string;
-  status: GameStatus;
+  status: GAME_STATUS;
   result?: {
     homeTeamGoals: number;
     awayTeamGoals: number;
@@ -142,18 +129,19 @@ export type GameDTO = {
     id: string;
     name: string;
     imgUrl?: string;
-    stats: IGameTeamStats;
+    // stats: IGameTeamStats;
   };
   awayTeam: {
     id: string;
     name: string;
     imgUrl?: string;
-    stats: IGameTeamStats;
+    // stats: IGameTeamStats;
   };
   date?: Date;
 };
 
 export type GameFixtureData = {
+  id: string;
   homeTeam: {
     id: string;
     name: string;
@@ -168,7 +156,7 @@ export type GameFixtureData = {
     homeTeamGoals: number;
     awayTeamGoals: number;
   };
-  status: GameStatus;
+  status: GAME_STATUS;
   date?: Date;
 };
 
