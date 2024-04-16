@@ -58,33 +58,17 @@ export default class GameController {
     }
   }
 
-  async updateGamePlayersStats(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async updateGameEventsAndPlayersStats(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id: gameId } = req.params;
-    const { homeTeamStats, awayTeamStats } = req.body;
+    const { homeTeam, awayTeam } = req.body;
 
-    if (!gameId || !homeTeamStats || !awayTeamStats) {
+    if (!gameId || !homeTeam || !awayTeam) {
       res.status(400).send({ message: "No home/away stats provided" });
       return;
     }
 
     try {
-      await this.gameService.updateGamePlayersStats(gameId, homeTeamStats, awayTeamStats);
-      res.sendStatus(200);
-    } catch (error: any) {
-      next(error);
-    }
-  }
-  async updateResultAndStats(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { id: gameId } = req.params;
-    const gameData = req.body;
-
-    if (!gameId || !gameData) {
-      res.status(400).send({ message: "missing data" });
-      return;
-    }
-
-    try {
-      await this.gameService.updateGameResultAndStats(gameId, gameData);
+      await this.gameService.updateGameEventsAndPlayersStats(gameId, homeTeam, awayTeam);
       res.sendStatus(200);
     } catch (error: any) {
       next(error);

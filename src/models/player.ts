@@ -22,6 +22,15 @@ export interface IPlayer extends Document {
   playablePositions: string[];
 }
 
+const playerStatsSchema = new Schema({
+  games: { type: Number, default: 0 },
+  goals: { type: Number, default: 0 },
+  assists: { type: Number, default: 0 },
+  cleanSheets: { type: Number, default: 0 },
+  playerOfTheMatch: { type: Number, default: 0 },
+  avgRating: { type: Number, default: 0.0 },
+});
+
 const playerSchema: Schema = new Schema(
   {
     team: { type: mongoose.Schema.Types.ObjectId, ref: "Team", required: true },
@@ -32,13 +41,7 @@ const playerSchema: Schema = new Schema(
     position: { type: String, required: true },
     playablePositions: [{ type: String, required: true }],
     imgUrl: { type: String },
-    stats: {
-      games: { type: Number, default: 0 },
-      goals: { type: Number, default: 0 },
-      assists: { type: Number, default: 0 },
-      cleanSheets: { type: Number, default: 0 },
-      playerOfTheMatch: { type: Number, default: 0 },
-    },
+    stats: playerStatsSchema,
   },
   {
     toJSON: { virtuals: true },

@@ -6,14 +6,26 @@ export class GameMapper {
   //     if (!game) {
   //       throw new Error("game object is null or undefined");
   //     }
-  //     const { homeTeam, awayTeam } = await game.populate<{
-  //       homeTeam: ITeam;
-  //       awayTeam: ITeam;
-  //     }>({
-  //         path: "homeTeam",
-  //         select: "id name imgUrl",
-  //       }),
-  //     }
+  //     const { games } = await game.populate<{ games: GameFixtureData[] }>({
+  //         path: "homeTeam awayTeam",
+  //         select: "id homeTeam awayTeam result status date",
+  //         populate: [
+  //           {
+  //             path: "homeTeam",
+  //             select: "id name imgUrl",
+  //           },
+  //           {
+  //             path: "awayTeam",
+  //             select: "id name imgUrl",
+  //           },
+  //         ],
+  //       });
+  //     // Populate homeTeam and awayTeam to access their fields
+  //     const populatedGame = await game.populate<{}>({
+  //         path: "homeTeam awayTeam",
+  //         select: "id name imgUrl", // Adjust the select fields as needed
+  //       });
+  //   }
   //   static async mapToDtos(games: IGame[]): Promise<GameDTO[]> {
   //     return await Promise.all(games.map((game) => this.mapToDto(game)));
   //   }

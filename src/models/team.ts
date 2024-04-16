@@ -19,6 +19,15 @@ export interface ITeam extends Document {
   stats: ITeamStats;
 }
 
+const teamStatsSchema = new Schema({
+  wins: { type: Number, default: 0 },
+  losses: { type: Number, default: 0 },
+  draws: { type: Number, default: 0 },
+  goalsScored: { type: Number, default: 0 },
+  goalsConceded: { type: Number, default: 0 },
+  cleanSheets: { type: Number, default: 0 },
+});
+
 const teamSchema: Schema = new Schema<ITeam>(
   {
     name: { type: String, required: true },
@@ -26,14 +35,7 @@ const teamSchema: Schema = new Schema<ITeam>(
     captain: { type: mongoose.Schema.Types.ObjectId, ref: "Player" },
     league: { type: mongoose.Schema.Types.ObjectId, ref: "League", required: true },
     imgUrl: { type: String },
-    stats: {
-      wins: { type: Number, default: 0 },
-      losses: { type: Number, default: 0 },
-      draws: { type: Number, default: 0 },
-      goalsScored: { type: Number, default: 0 },
-      goalsConceded: { type: Number, default: 0 },
-      cleanSheets: { type: Number, default: 0 },
-    },
+    stats: teamStatsSchema,
   },
   {
     toJSON: { virtuals: true },

@@ -1,5 +1,5 @@
 import { ClientSession } from "mongoose";
-import { AddPlayerDataRequest, PlayerDTO } from "../../types-changeToNPM/shared-DTOs";
+import { AddPlayerDataRequest, PlayerDTO, PlayerGameStatsData } from "../../types-changeToNPM/shared-DTOs";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
 import { PlayerMapper } from "../mappers/player-mapper";
@@ -63,15 +63,15 @@ export default class PlayerService {
     return imageUrl;
   }
 
-  async updatePlayersGameStats(
-    playersStats: { playerId: string; rating: number; goals?: number; assists?: number; playerOfTheMatch: boolean }[],
-    session: ClientSession
-  ): Promise<void> {
-    const players = await Promise.all(
+  async updatePlayersGameStats(playersStats: PlayerGameStatsData[], session: ClientSession): Promise<void> {
+    console.log(playersStats);
+
+    await Promise.all(
       playersStats.map(async (playerStats) => {
-        const player = await Player.findById(playerStats.playerId, {}, { session });
+        logger.info(`update game stat for player with id ${playerStats.id}`);
+        const player = await Player.findById(playerStats.id, {}, { session });
         if (!player) {
-          throw new NotFoundError(`Player with id ${playerStats.playerId} not found`);
+          throw new NotFoundError(`Player with id ${playerStats.id} not found`);
         }
         const { goals, assists, rating, playerOfTheMatch } = playerStats;
         player.stats.goals += goals || 0;
@@ -81,13 +81,11 @@ export default class PlayerService {
           player.stats.playerOfTheMatch = player.stats.playerOfTheMatch + 1;
         }
         player.stats.avgRating = (player.stats.avgRating * player.stats.games + rating) / player.stats.games;
+        player.save({ session });
         return player;
       })
     );
-    await Promise.all(players.map(async (player) => player.save({ session })));
   }
-
-  // async updateSinglePlayerGameStats(player: IPlayer, rating: number, playerOfTheMatch: boolean = false, goals: number = 0, assists: number = 0) {}
 
   async getPlayerById(id: string): Promise<PlayerDTO> {
     logger.info(`PlayerService:  getting player with id ${id}`);

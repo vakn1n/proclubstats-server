@@ -23,6 +23,7 @@ export class PlayerMapper {
         cleanSheets: player.stats.cleanSheets,
         assists: player.stats.assists,
         playerOfTheMatch: player.stats.playerOfTheMatch,
+        avgRating: player.stats.avgRating,
       },
       team: {
         id: team.id,

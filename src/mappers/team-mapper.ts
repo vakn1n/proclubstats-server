@@ -13,6 +13,8 @@ export class TeamMapper {
       select: "id name imgUrl position",
     });
 
+    console.log(team.stats);
+
     const captain = players.find((player) => team.captain?._id.equals(player._id));
 
     return {
@@ -29,7 +31,12 @@ export class TeamMapper {
       })),
       stats: {
         games: team.stats.wins + team.stats.losses + team.stats.draws,
-        ...team.stats,
+        cleanSheets: team.stats.cleanSheets,
+        goalsScored: team.stats.goalsScored,
+        goalsConceded: team.stats.goalsConceded,
+        draws: team.stats.draws,
+        wins: team.stats.wins,
+        losses: team.stats.losses,
       },
     };
   }
