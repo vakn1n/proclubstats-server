@@ -91,32 +91,67 @@ class GameService {
     if (game.status !== GAME_STATUS.PLAYED && game.status !== GAME_STATUS.COMPLETED) {
       throw new BadRequestError(`can't update game players stats before updating its result`);
     }
-
-    return await transactionService.withTransaction(async (session) => {
+    await transactionService.withTransaction(async (session) => {
       game.status = GAME_STATUS.COMPLETED;
       game.homeTeamStats = {
         goals: homeTeamStats.goals?.map((goalData) => ({ scorerId: goalData.scorerId, minute: goalData.minute, assisterId: goalData.assisterId })),
-        // playerStats: homeTeamStats.playersStats.map((playerStat) => ({
-        //   playerId: playerStat.id,
-        //   rating: playerStat.rating,
-        //   playerOfTheMatch: playerStat.playerOfTheMatch,
-        // })),
+        playersStats: homeTeamStats.playersStats.map((playerStat) => ({
+          playerId: playerStat.id,
+          rating: playerStat.rating,
+          playerOfTheMatch: playerStat.playerOfTheMatch,
+        })),
       };
       game.awayTeamStats = {
         goals: awayTeamStats.goals?.map((goalData) => ({ scorerId: goalData.scorerId, minute: goalData.minute, assisterId: goalData.assisterId })),
-        // playerStats: awayTeamStats.playersStats?.map((playerStat) => ({
-        //   playerId: playerStat.id,
-        //   rating: playerStat.rating,
-        //   playerOfTheMatch: playerStat.playerOfTheMatch,
-        // })),
+        playersStats: awayTeamStats.playersStats?.map((playerStat) => ({
+          playerId: playerStat.id,
+          rating: playerStat.rating,
+          playerOfTheMatch: playerStat.playerOfTheMatch,
+        })),
       };
+      await PlayerService.getInstance().updatePlayersGameStats(homeTeamStats.playersStats, session);
+      await PlayerService.getInstance().updatePlayersGameStats(awayTeamStats.playersStats || [], session);
+    });
+  }
 
-      // await Promise.all([
-      await PlayerService.getInstance().updatePlayersGameStats(homeTeamStats.playersStats, session),
-        await PlayerService.getInstance().updatePlayersGameStats(awayTeamStats.playersStats || [], session),
-        // ]);
+  async updateTeamGameStats(gameId: string, isHomeTeam: boolean, teamStats: TeamGameStatsData) {
+    logger.info(`GameService: updating game ${gameId} team stats`);
+    const game = await Game.findById(gameId);
+    if (!game) {
+      throw new NotFoundError(`game ${gameId} not found`);
+    }
+    if (game.status !== GAME_STATUS.PLAYED && game.status !== GAME_STATUS.COMPLETED) {
+      throw new BadRequestError(`can't update game team stats before updating its result`);
+    }
 
-        await game.save({ session });
+    return await transactionService.withTransaction(async (session) => {
+      const playersStats = teamStats.playersStats?.map((playerStat) => ({
+        playerId: playerStat.id,
+        rating: playerStat.rating,
+        playerOfTheMatch: playerStat.playerOfTheMatch,
+      }));
+
+      if (isHomeTeam) {
+        game.homeTeamStats = {
+          goals: teamStats.goals?.map((goalData) => ({ scorerId: goalData.scorerId, minute: goalData.minute, assisterId: goalData.assisterId })),
+          playersStats,
+        };
+        if (game.awayTeam) {
+          game.status = GAME_STATUS.COMPLETED;
+        }
+      } else {
+        game.awayTeamStats = {
+          goals: teamStats.goals?.map((goalData) => ({ scorerId: goalData.scorerId, minute: goalData.minute, assisterId: goalData.assisterId })),
+          playersStats,
+        };
+        if (game.homeTeamStats) {
+          game.status = GAME_STATUS.COMPLETED;
+        }
+      }
+
+      await PlayerService.getInstance().updatePlayersGameStats(teamStats.playersStats, session);
+
+      await game.save({ session });
     });
   }
 

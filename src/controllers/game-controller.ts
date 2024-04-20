@@ -77,6 +77,23 @@ export default class GameController {
     }
   }
 
+  async updateTeamGameStats(req: Request, res: Response, next: NextFunction) {
+    const { id: gameId } = req.params;
+    const { teamStats, isHomeTeam } = req.body;
+
+    if (!gameId || !teamStats) {
+      res.status(400).send({ message: "No home team provided" });
+      return;
+    }
+
+    try {
+      await this.gameService.updateTeamGameStats(gameId, isHomeTeam, teamStats);
+      res.sendStatus(200);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
   async deleteGame(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id: leagueId } = req.params;
 

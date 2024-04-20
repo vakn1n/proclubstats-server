@@ -23,7 +23,7 @@ export type IPlayerGameStats = {
 
 export type ITeamGameStats = {
   goals?: IGoal[];
-  playerStats?: IPlayerGameStats[];
+  playersStats?: IPlayerGameStats[];
   // add other teams stats
 };
 

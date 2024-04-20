@@ -9,6 +9,7 @@ router.get("/:id", gameController.getGameById.bind(gameController));
 
 router.put("/:id/updateResult", gameController.updateGameResult.bind(gameController));
 router.put("/:id/stats", gameController.updateGameStats.bind(gameController));
+router.put("/:id/teamStats", gameController.updateTeamGameStats.bind(gameController));
 
 router.delete("/:id", gameController.deleteGame.bind(gameController));
 
