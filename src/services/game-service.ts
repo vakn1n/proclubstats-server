@@ -5,8 +5,9 @@ import Game, { AddGameData, IGame } from "../models/game";
 import TeamService from "./team-service";
 import { transactionService } from "./transaction-service";
 import BadRequestError from "../errors/bad-request-error";
-import { GAME_STATUS, TeamGameStatsData } from "../../types-changeToNPM/shared-DTOs";
+import { GAME_STATUS, GameDTO, TeamGameStatsData } from "../../types-changeToNPM/shared-DTOs";
 import PlayerService from "./player-service";
+import { GameMapper } from "../mappers/game-mapper";
 
 class GameService {
   private static instance: GameService;
@@ -57,7 +58,7 @@ class GameService {
       throw new NotFoundError(`game ${gameId} not found`);
     }
 
-    transactionService.withTransaction(async (session) => {
+    return await transactionService.withTransaction(async (session) => {
       if (game.status === GAME_STATUS.PLAYED || game.status === GAME_STATUS.COMPLETED) {
         // TODO: remove prev result from teams stats
       }
@@ -67,15 +68,18 @@ class GameService {
       };
       game.status = GAME_STATUS.PLAYED;
 
-      await Promise.all([
-        TeamService.getInstance().updateTeamGameStats(game.homeTeam, homeTeamGoals, awayTeamGoals, session),
-        TeamService.getInstance().updateTeamGameStats(game.awayTeam, awayTeamGoals, homeTeamGoals, session),
-      ]);
+      // await Promise.all([
+      //   TeamService.getInstance().updateTeamGameStats(game.homeTeam, homeTeamGoals, awayTeamGoals, session),
+      //   TeamService.getInstance().updateTeamGameStats(game.awayTeam, awayTeamGoals, homeTeamGoals, session),
+      // ]);
+      await TeamService.getInstance().updateTeamGameStats(game.homeTeam, homeTeamGoals, awayTeamGoals, session);
+      await TeamService.getInstance().updateTeamGameStats(game.awayTeam, awayTeamGoals, homeTeamGoals, session);
       await game.save({ session });
+      console.log("game saved");
     });
   }
 
-  async updateGameEventsAndPlayersStats(gameId: string, homeTeamStats: TeamGameStatsData, awayTeamStats: TeamGameStatsData) {
+  async updateGameStats(gameId: string, homeTeamStats: TeamGameStatsData, awayTeamStats: TeamGameStatsData) {
     logger.info(`GameService: updating game ${gameId} events and players stats`);
 
     const game = await Game.findById(gameId);
@@ -88,31 +92,31 @@ class GameService {
       throw new BadRequestError(`can't update game players stats before updating its result`);
     }
 
-    await transactionService.withTransaction(async (session) => {
+    return await transactionService.withTransaction(async (session) => {
       game.status = GAME_STATUS.COMPLETED;
       game.homeTeamStats = {
         goals: homeTeamStats.goals?.map((goalData) => ({ scorerId: goalData.scorerId, minute: goalData.minute, assisterId: goalData.assisterId })),
-        playerStats: homeTeamStats.playersStats.map((playerStat) => ({
-          playerId: playerStat.id,
-          rating: playerStat.rating,
-          playerOfTheMatch: playerStat.playerOfTheMatch,
-        })),
+        // playerStats: homeTeamStats.playersStats.map((playerStat) => ({
+        //   playerId: playerStat.id,
+        //   rating: playerStat.rating,
+        //   playerOfTheMatch: playerStat.playerOfTheMatch,
+        // })),
       };
       game.awayTeamStats = {
         goals: awayTeamStats.goals?.map((goalData) => ({ scorerId: goalData.scorerId, minute: goalData.minute, assisterId: goalData.assisterId })),
-        playerStats: awayTeamStats.playersStats?.map((playerStat) => ({
-          playerId: playerStat.id,
-          rating: playerStat.rating,
-          playerOfTheMatch: playerStat.playerOfTheMatch,
-        })),
+        // playerStats: awayTeamStats.playersStats?.map((playerStat) => ({
+        //   playerId: playerStat.id,
+        //   rating: playerStat.rating,
+        //   playerOfTheMatch: playerStat.playerOfTheMatch,
+        // })),
       };
 
-      await Promise.all([
-        PlayerService.getInstance().updatePlayersGameStats(homeTeamStats.playersStats, session),
-        PlayerService.getInstance().updatePlayersGameStats(awayTeamStats.playersStats || [], session),
-      ]);
+      // await Promise.all([
+      await PlayerService.getInstance().updatePlayersGameStats(homeTeamStats.playersStats, session),
+        await PlayerService.getInstance().updatePlayersGameStats(awayTeamStats.playersStats || [], session),
+        // ]);
 
-      await game.save({ session });
+        await game.save({ session });
     });
   }
 
@@ -134,14 +138,14 @@ class GameService {
     return game;
   }
 
-  async getGameById(id: string): Promise<IGame> {
+  async getGameById(id: string): Promise<GameDTO> {
     logger.info(`getting game ${id}`);
 
     const game = await Game.findById(id);
     if (!game) {
       throw new NotFoundError(`game with id ${id} not found`);
     }
-    return game;
+    return await GameMapper.mapToDto(game);
   }
 
   async getAllGames(): Promise<IGame[]> {

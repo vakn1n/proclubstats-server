@@ -140,18 +140,19 @@ export type FixtureDTO = {
   games: GameFixtureData[];
 };
 
-type GoalData = {
+export type GoalData = {
   scorer: {
     id: string;
     name: string;
     imgUrl?: string;
   };
   minute?: number;
-  assist: {
+  assister: {
     id: string;
     name: string;
     imgUrl?: string;
   };
+  isOwnGoal?: boolean;
 };
 
 export type GameDTO = {
@@ -167,14 +168,12 @@ export type GameDTO = {
     name: string;
     imgUrl?: string;
     goals?: GoalData[];
-    redCards?: string[]; // players ids
   };
   awayTeam: {
     id: string;
     name: string;
     imgUrl?: string;
     goals?: GoalData[];
-    redCards?: string[];
   };
   date?: Date;
 };

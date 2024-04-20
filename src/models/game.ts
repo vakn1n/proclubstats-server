@@ -1,7 +1,5 @@
-import mongoose, { Schema, Document, ClientSession } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 import { GAME_STATUS } from "../../types-changeToNPM/shared-DTOs";
-import Team, { ITeam } from "./team";
-import logger from "../logger";
 
 export type AddGameData = {
   homeTeam: mongoose.Types.ObjectId;
@@ -25,7 +23,7 @@ export type IPlayerGameStats = {
 
 export type ITeamGameStats = {
   goals?: IGoal[];
-  playerStats: IPlayerGameStats[];
+  playerStats?: IPlayerGameStats[];
   // add other teams stats
 };
 

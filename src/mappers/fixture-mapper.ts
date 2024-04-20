@@ -10,16 +10,10 @@ export class FixtureMapper {
     const { games } = await fixture.populate<{ games: GameFixtureData[] }>({
       path: "games",
       select: "id homeTeam awayTeam result status date",
-      populate: [
-        {
-          path: "homeTeam",
-          select: "id name imgUrl",
-        },
-        {
-          path: "awayTeam",
-          select: "id name imgUrl",
-        },
-      ],
+      populate: {
+        path: "homeTeam awayTeam",
+        select: "id name imgUrl",
+      },
     });
 
     return {

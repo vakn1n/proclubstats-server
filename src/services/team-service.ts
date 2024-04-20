@@ -160,6 +160,8 @@ class TeamService {
     }
 
     await team.save({ session });
+
+    logger.info(`successfully saved`);
   }
 
   async setTeamCaptain(teamId: string, captainId: string): Promise<void> {

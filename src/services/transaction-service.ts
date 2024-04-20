@@ -5,6 +5,8 @@ class TransactionService {
   async withTransaction<T>(fn: (session: ClientSession) => Promise<T>): Promise<T> {
     const session = await startSession();
     session.startTransaction();
+    // session.withTransaction
+
     try {
       const result = await fn(session);
       await session.commitTransaction();
@@ -17,7 +19,7 @@ class TransactionService {
       await session.abortTransaction();
       throw error;
     } finally {
-      session.endSession();
+      await session.endSession();
     }
   }
 }

@@ -64,27 +64,23 @@ export default class PlayerService {
   }
 
   async updatePlayersGameStats(playersStats: PlayerGameStatsData[], session: ClientSession): Promise<void> {
-    console.log(playersStats);
-
-    await Promise.all(
-      playersStats.map(async (playerStats) => {
-        logger.info(`update game stat for player with id ${playerStats.id}`);
-        const player = await Player.findById(playerStats.id, {}, { session });
-        if (!player) {
-          throw new NotFoundError(`Player with id ${playerStats.id} not found`);
-        }
-        const { goals, assists, rating, playerOfTheMatch } = playerStats;
-        player.stats.goals += goals || 0;
-        player.stats.assists += assists || 0;
-        player.stats.games = player.stats.games + 1;
-        if (playerOfTheMatch) {
-          player.stats.playerOfTheMatch = player.stats.playerOfTheMatch + 1;
-        }
-        player.stats.avgRating = (player.stats.avgRating * player.stats.games + rating) / player.stats.games;
-        player.save({ session });
-        return player;
-      })
-    );
+    // await Promise.all(
+    for (const playerStats of playersStats) {
+      logger.info(`update game stat for player with id ${playerStats.id}`);
+      const player = await Player.findById(playerStats.id, {}, { session });
+      if (!player) {
+        throw new NotFoundError(`Player with id ${playerStats.id} not found`);
+      }
+      const { goals, assists, rating, playerOfTheMatch } = playerStats;
+      player.stats.goals += goals || 0;
+      player.stats.assists += assists || 0;
+      player.stats.games = player.stats.games + 1;
+      if (playerOfTheMatch) {
+        player.stats.playerOfTheMatch = player.stats.playerOfTheMatch + 1;
+      }
+      player.stats.avgRating = (player.stats.avgRating * player.stats.games + rating) / player.stats.games;
+      player.save({ session });
+    }
   }
 
   async getPlayerById(id: string): Promise<PlayerDTO> {
