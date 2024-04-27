@@ -82,63 +82,12 @@ export default class PlayerService {
     }
   }
 
-  private createUpdatePlayerPerformanceQuery(playerId: string, goals: number, assists: number, rating: number, playerOfTheMatch: boolean, cleanSheet: boolean) {
-    return {
-      updateOne: {
-        filter: { _id: new Types.ObjectId(playerId) },
-        update: [
-          {
-            $set: {
-              "stats.goals": { $add: ["$stats.goals", goals || 0] },
-              "stats.assists": { $add: ["$stats.assists", assists || 0] },
-              "stats.games": { $add: ["$stats.games", 1] },
-              "stats.playerOfTheMatch": { $add: ["$stats.playerOfTheMatch", playerOfTheMatch ? 1 : 0] },
-              "stats.cleanSheets": { $add: ["$stats.cleanSheets", cleanSheet ? 1 : 0] },
-              "stats.avgRating": {
-                $cond: [
-                  { $eq: ["$stats.games", 0] },
-                  { $ifNull: [rating, 0] },
-                  {
-                    $divide: [{ $add: [{ $multiply: ["$stats.avgRating", "$stats.games"] }, rating || 0] }, { $add: ["$stats.games", 1] }],
-                  },
-                ],
-              },
-            },
-          },
-        ],
-      },
-    };
-  }
-
   async revertPlayersGamePerformance(playersStats: IPlayerGamePerformance[], session: ClientSession): Promise<void> {
     logger.info(`reverting players game performance..`);
 
     const revertOperations = playersStats.map((playerStats) => {
       const { playerId, goals, assists, rating, playerOfTheMatch, cleanSheet } = playerStats;
-      return {
-        updateOne: {
-          filter: { _id: new Types.ObjectId(playerId) },
-          update: {
-            $set: {
-              "stats.goals": { $subtract: ["$stats.goals", goals || 0] },
-              "stats.assists": { $subtract: ["$stats.assists", assists || 0] },
-              "stats.games": { $subtract: ["$stats.games", 1] },
-              "stats.playerOfTheMatch": { $subtract: ["$stats.playerOfTheMatch", playerOfTheMatch ? 1 : 0] },
-              "stats.cleanSheets": { $subtract: ["$stats.cleanSheets", cleanSheet ? 1 : 0] },
-              "stats.avgRating": {
-                $cond: [
-                  { $eq: ["$stats.games", 1] }, // Check if this is the first game
-                  0, // If it's the first game, set avgRating to 0
-                  {
-                    $divide: [{ $subtract: [{ $multiply: ["$stats.avgRating", "$stats.games"] }, rating || 0] }, { $subtract: ["$stats.games", 1] }],
-                  },
-                ],
-              },
-            },
-          },
-          upsert: false,
-        },
-      };
+      return this.createRevertPlayerPerformanceQuery(playerId, goals || 0, assists || 0, rating, playerOfTheMatch || false, cleanSheet);
     });
 
     try {
@@ -186,5 +135,62 @@ export default class PlayerService {
         await this.imageService.deleteImageFromCloudinary(player.imgUrl);
       }
     });
+  }
+
+  private createUpdatePlayerPerformanceQuery(playerId: string, goals: number, assists: number, rating: number, playerOfTheMatch: boolean, cleanSheet: boolean) {
+    return {
+      updateOne: {
+        filter: { _id: new Types.ObjectId(playerId) },
+        update: [
+          {
+            $set: {
+              "stats.goals": { $add: ["$stats.goals", goals || 0] },
+              "stats.assists": { $add: ["$stats.assists", assists || 0] },
+              "stats.games": { $add: ["$stats.games", 1] },
+              "stats.playerOfTheMatch": { $add: ["$stats.playerOfTheMatch", playerOfTheMatch ? 1 : 0] },
+              "stats.cleanSheets": { $add: ["$stats.cleanSheets", cleanSheet ? 1 : 0] },
+              "stats.avgRating": {
+                $cond: [
+                  { $eq: ["$stats.games", 0] },
+                  { $ifNull: [rating, 0] },
+                  {
+                    $divide: [{ $add: [{ $multiply: ["$stats.avgRating", "$stats.games"] }, rating] }, { $add: ["$stats.games", 1] }],
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      },
+    };
+  }
+
+  private createRevertPlayerPerformanceQuery(playerId: string, goals: number, assists: number, rating: number, playerOfTheMatch: boolean, cleanSheet: boolean) {
+    return {
+      updateOne: {
+        filter: { _id: new Types.ObjectId(playerId) },
+        update: [
+          {
+            $set: {
+              "stats.goals": { $subtract: ["$stats.goals", goals || 0] },
+              "stats.assists": { $subtract: ["$stats.assists", assists || 0] },
+              "stats.games": { $subtract: ["$stats.games", 1] },
+              "stats.playerOfTheMatch": { $subtract: ["$stats.playerOfTheMatch", playerOfTheMatch ? 1 : 0] },
+              "stats.cleanSheets": { $subtract: ["$stats.cleanSheets", cleanSheet ? 1 : 0] },
+              // Calculate the new average rating outside of the $cond operator
+              "stats.avgRating": {
+                $cond: [
+                  { $eq: ["$stats.games", 1] }, // Check if this is the first game
+                  0, // If it's the first game, set avgRating to 0
+                  {
+                    $divide: [{ $subtract: [{ $multiply: ["$stats.avgRating", "$stats.games"] }, rating] }, { $subtract: ["$stats.games", 1] }],
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      },
+    };
   }
 }

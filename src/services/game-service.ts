@@ -110,8 +110,6 @@ class GameService {
   private async setGamePlayersPerformance(game: IGame, isHomeTeam: boolean, playersStats: IPlayerGamePerformance[], session: ClientSession) {
     if (isHomeTeam) {
       if (game.homeTeamPlayersPerformance?.length) {
-        console.log(game.homeTeamPlayersPerformance);
-
         await PlayerService.getInstance().revertPlayersGamePerformance(game.homeTeamPlayersPerformance, session);
       }
       game.homeTeamPlayersPerformance = playersStats;

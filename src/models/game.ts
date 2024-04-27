@@ -28,6 +28,7 @@ type PopulatedGamePerformance = {
   assists?: number;
   rating: number;
   playerOfTheMatch?: boolean;
+  cleanSheet: boolean;
 };
 
 export interface IGame extends Document {
@@ -49,10 +50,11 @@ export interface IGame extends Document {
 
 const playerGameStatsSchema = new Schema({
   playerId: { type: mongoose.Schema.Types.ObjectId, ref: "Player", required: true },
-  rating: { type: Number, required: false },
-  redCard: { type: Boolean, required: false },
-  goals: { type: Number, required: false },
-  assists: { type: Number, required: false },
+  rating: { type: Number, required: true },
+  cleanSheet: { type: Boolean, required: true },
+  goals: { type: Number },
+  assists: { type: Number },
+  playerOfTheMatch: { type: Boolean },
   // add other player stats
 });
 
