@@ -140,19 +140,22 @@ export type FixtureDTO = {
   games: GameFixtureData[];
 };
 
-export type GoalData = {
-  scorer: {
-    id: string;
-    name: string;
-    imgUrl?: string;
-  };
-  minute?: number;
-  assister: {
-    id: string;
-    name: string;
-    imgUrl?: string;
-  };
-  isOwnGoal?: boolean;
+export type UpdatePlayerPerformanceDataRequest = {
+  playerId: string;
+  goals: number;
+  assists: number;
+  playerOfTheMatch: boolean;
+  rating: number;
+};
+
+export type PlayerPerformanceDTO = {
+  playerId: string;
+  name: string;
+  imgUrl?: string;
+  rating: number;
+  goals?: number;
+  assists?: number;
+  playerOfTheMatch?: boolean;
 };
 
 export type GameDTO = {
@@ -167,33 +170,15 @@ export type GameDTO = {
     id: string;
     name: string;
     imgUrl?: string;
-    goals?: GoalData[];
+    playersPerformance?: PlayerPerformanceDTO[];
   };
   awayTeam: {
     id: string;
     name: string;
     imgUrl?: string;
-    goals?: GoalData[];
+    playersPerformance?: PlayerPerformanceDTO[];
   };
   date?: Date;
-};
-
-export type PlayerGameStatsData = {
-  id: string;
-  goals?: number;
-  assists?: number;
-  rating: number;
-  playerOfTheMatch?: boolean;
-};
-
-export type TeamGameStatsData = {
-  playersStats: PlayerGameStatsData[];
-  goals?: {
-    scorerId: string;
-    minute?: number;
-    assisterId?: string;
-    isOwnGoal?: boolean;
-  }[];
 };
 
 export type AddSingleFixtureData = {

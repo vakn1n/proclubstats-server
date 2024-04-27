@@ -1,13 +1,12 @@
 import { ClientSession, Types } from "mongoose";
+import { GAME_STATUS, GameDTO, PlayerPerformanceDTO, UpdatePlayerPerformanceDataRequest } from "../../types-changeToNPM/shared-DTOs";
+import BadRequestError from "../errors/bad-request-error";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
-import Game, { AddGameData, IGame } from "../models/game";
+import Game, { AddGameData, IGame, IPlayerGamePerformance } from "../models/game";
+import PlayerService from "./player-service";
 import TeamService from "./team-service";
 import { transactionService } from "./transaction-service";
-import BadRequestError from "../errors/bad-request-error";
-import { GAME_STATUS, GameDTO, TeamGameStatsData } from "../../types-changeToNPM/shared-DTOs";
-import PlayerService from "./player-service";
-import { GameMapper } from "../mappers/game-mapper";
 
 class GameService {
   private static instance: GameService;
@@ -66,55 +65,20 @@ class GameService {
         homeTeamGoals,
         awayTeamGoals,
       };
+
+      if (game.status !== GAME_STATUS.SCHEDULED) {
+        // TODO: revert prev result from teams stats
+      }
+
       game.status = GAME_STATUS.PLAYED;
 
-      // await Promise.all([
-      //   TeamService.getInstance().updateTeamGameStats(game.homeTeam, homeTeamGoals, awayTeamGoals, session),
-      //   TeamService.getInstance().updateTeamGameStats(game.awayTeam, awayTeamGoals, homeTeamGoals, session),
-      // ]);
       await TeamService.getInstance().updateTeamGameStats(game.homeTeam, homeTeamGoals, awayTeamGoals, session);
       await TeamService.getInstance().updateTeamGameStats(game.awayTeam, awayTeamGoals, homeTeamGoals, session);
       await game.save({ session });
-      console.log("game saved");
     });
   }
 
-  async updateGameStats(gameId: string, homeTeamStats: TeamGameStatsData, awayTeamStats: TeamGameStatsData) {
-    logger.info(`GameService: updating game ${gameId} events and players stats`);
-
-    const game = await Game.findById(gameId);
-
-    if (!game) {
-      throw new NotFoundError(`game ${gameId} not found`);
-    }
-
-    if (game.status !== GAME_STATUS.PLAYED && game.status !== GAME_STATUS.COMPLETED) {
-      throw new BadRequestError(`can't update game players stats before updating its result`);
-    }
-    await transactionService.withTransaction(async (session) => {
-      game.status = GAME_STATUS.COMPLETED;
-      game.homeTeamStats = {
-        goals: homeTeamStats.goals?.map((goalData) => ({ scorerId: goalData.scorerId, minute: goalData.minute, assisterId: goalData.assisterId })),
-        playersStats: homeTeamStats.playersStats.map((playerStat) => ({
-          playerId: playerStat.id,
-          rating: playerStat.rating,
-          playerOfTheMatch: playerStat.playerOfTheMatch,
-        })),
-      };
-      game.awayTeamStats = {
-        goals: awayTeamStats.goals?.map((goalData) => ({ scorerId: goalData.scorerId, minute: goalData.minute, assisterId: goalData.assisterId })),
-        playersStats: awayTeamStats.playersStats?.map((playerStat) => ({
-          playerId: playerStat.id,
-          rating: playerStat.rating,
-          playerOfTheMatch: playerStat.playerOfTheMatch,
-        })),
-      };
-      await PlayerService.getInstance().updatePlayersGameStats(homeTeamStats.playersStats, session);
-      await PlayerService.getInstance().updatePlayersGameStats(awayTeamStats.playersStats || [], session);
-    });
-  }
-
-  async updateTeamGameStats(gameId: string, isHomeTeam: boolean, teamStats: TeamGameStatsData) {
+  async updateTeamPlayersPerformance(gameId: string, isHomeTeam: boolean, playersPerformance: UpdatePlayerPerformanceDataRequest[]) {
     logger.info(`GameService: updating game ${gameId} team stats`);
     const game = await Game.findById(gameId);
     if (!game) {
@@ -125,34 +89,38 @@ class GameService {
     }
 
     return await transactionService.withTransaction(async (session) => {
-      const playersStats = teamStats.playersStats?.map((playerStat) => ({
-        playerId: playerStat.id,
-        rating: playerStat.rating,
-        playerOfTheMatch: playerStat.playerOfTheMatch,
+      const isCleanSheet = isHomeTeam ? game.result!.awayTeamGoals === 0 : game.result!.homeTeamGoals === 0;
+      const playersStats: IPlayerGamePerformance[] = playersPerformance.map((playerPerformance) => ({
+        ...playerPerformance,
+        cleanSheet: isCleanSheet,
       }));
 
-      if (isHomeTeam) {
-        game.homeTeamStats = {
-          goals: teamStats.goals?.map((goalData) => ({ scorerId: goalData.scorerId, minute: goalData.minute, assisterId: goalData.assisterId })),
-          playersStats,
-        };
-        if (game.awayTeam) {
-          game.status = GAME_STATUS.COMPLETED;
-        }
-      } else {
-        game.awayTeamStats = {
-          goals: teamStats.goals?.map((goalData) => ({ scorerId: goalData.scorerId, minute: goalData.minute, assisterId: goalData.assisterId })),
-          playersStats,
-        };
-        if (game.homeTeamStats) {
-          game.status = GAME_STATUS.COMPLETED;
-        }
+      await this.setGamePlayersPerformance(game, isHomeTeam, playersStats, session);
+
+      if (game.homeTeamPlayersPerformance?.length && game.awayTeamPlayersPerformance?.length) {
+        game.status = GAME_STATUS.COMPLETED;
       }
 
-      await PlayerService.getInstance().updatePlayersGameStats(teamStats.playersStats, session);
+      await PlayerService.getInstance().updatePlayersGamePerformance(playersStats, session);
 
       await game.save({ session });
     });
+  }
+
+  private async setGamePlayersPerformance(game: IGame, isHomeTeam: boolean, playersStats: IPlayerGamePerformance[], session: ClientSession) {
+    if (isHomeTeam) {
+      if (game.homeTeamPlayersPerformance?.length) {
+        console.log(game.homeTeamPlayersPerformance);
+
+        await PlayerService.getInstance().revertPlayersGamePerformance(game.homeTeamPlayersPerformance, session);
+      }
+      game.homeTeamPlayersPerformance = playersStats;
+    } else {
+      if (game.awayTeamPlayersPerformance?.length) {
+        await PlayerService.getInstance().revertPlayersGamePerformance(game.awayTeamPlayersPerformance, session);
+      }
+      game.awayTeamPlayersPerformance = playersStats;
+    }
   }
 
   async deleteFixturesGames(fixturesIds: Types.ObjectId[], session: ClientSession) {
@@ -180,7 +148,7 @@ class GameService {
     if (!game) {
       throw new NotFoundError(`game with id ${id} not found`);
     }
-    return await GameMapper.mapToDto(game);
+    return await game.toDTO();
   }
 
   async getAllGames(): Promise<IGame[]> {

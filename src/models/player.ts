@@ -23,12 +23,12 @@ export interface IPlayer extends Document {
 }
 
 const playerStatsSchema = new Schema({
-  games: { type: Number, default: 0 },
-  goals: { type: Number, default: 0 },
-  assists: { type: Number, default: 0 },
-  cleanSheets: { type: Number, default: 0 },
-  playerOfTheMatch: { type: Number, default: 0 },
-  avgRating: { type: Number, default: 0.0 },
+  games: { type: Number, default: 0, required: true },
+  goals: { type: Number, default: 0, required: true },
+  assists: { type: Number, default: 0, required: true },
+  cleanSheets: { type: Number, default: 0, required: true },
+  playerOfTheMatch: { type: Number, default: 0, required: true },
+  avgRating: { type: Number, default: 0.0, required: true },
 });
 
 const playerSchema: Schema = new Schema(
@@ -48,6 +48,20 @@ const playerSchema: Schema = new Schema(
     id: true, // Use 'id' instead of '_id'
   }
 );
+
+playerSchema.pre("save", function (next) {
+  if (!this.stats) {
+    this.stats = {
+      games: 0,
+      goals: 0,
+      assists: 0,
+      cleanSheets: 0,
+      playerOfTheMatch: 0,
+      avgRating: 0.0,
+    };
+  }
+  next();
+});
 
 const Player = mongoose.model<IPlayer>("Player", playerSchema);
 

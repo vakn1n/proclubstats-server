@@ -1,9 +1,10 @@
-import { ClientSession } from "mongoose";
-import { AddPlayerDataRequest, PlayerDTO, PlayerGameStatsData } from "../../types-changeToNPM/shared-DTOs";
+import { ClientSession, Types } from "mongoose";
+import { AddPlayerDataRequest, PlayerDTO } from "../../types-changeToNPM/shared-DTOs";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
 import { PlayerMapper } from "../mappers/player-mapper";
-import Player, { IPlayer } from "../models/player";
+import { IPlayerGamePerformance } from "../models/game";
+import Player from "../models/player";
 import ImageService from "./images-service";
 import TeamService from "./team-service";
 import { transactionService } from "./transaction-service";
@@ -44,7 +45,7 @@ export default class PlayerService {
   }
 
   async setPlayerImage(playerId: string, file: Express.Multer.File): Promise<string> {
-    logger.info(`PlayerService: setting  image for player with ${playerId}`);
+    logger.info(`PlayerService: setting image for player with ${playerId}`);
 
     const player = await Player.findById(playerId);
     if (!player) {
@@ -63,23 +64,92 @@ export default class PlayerService {
     return imageUrl;
   }
 
-  async updatePlayersGameStats(playersStats: PlayerGameStatsData[], session: ClientSession): Promise<void> {
-    // await Promise.all(
-    for (const playerStats of playersStats) {
-      logger.info(`update game stat for player with id ${playerStats.id}`);
-      const player = await Player.findById(playerStats.id, {}, { session });
-      if (!player) {
-        throw new NotFoundError(`Player with id ${playerStats.id} not found`);
+  async updatePlayersGamePerformance(playersStats: IPlayerGamePerformance[], session: ClientSession): Promise<void> {
+    const updateOperations = playersStats.map((playerStats) => {
+      const { playerId, goals, assists, rating, playerOfTheMatch, cleanSheet } = playerStats;
+      return this.createUpdatePlayerPerformanceQuery(playerId, goals || 0, assists || 0, rating, playerOfTheMatch || false, cleanSheet);
+    });
+
+    try {
+      const result = await Player.bulkWrite(updateOperations, { session });
+      if (result.modifiedCount !== playersStats.length) {
+        throw new Error("Failed to update all player stats");
       }
-      const { goals, assists, rating, playerOfTheMatch } = playerStats;
-      player.stats.goals += goals || 0;
-      player.stats.assists += assists || 0;
-      player.stats.games = player.stats.games + 1;
-      if (playerOfTheMatch) {
-        player.stats.playerOfTheMatch = player.stats.playerOfTheMatch + 1;
+      logger.info("Successfully updated player stats");
+    } catch (error: any) {
+      logger.error(`Failed to update player stats: ${error.message}`);
+      throw error;
+    }
+  }
+
+  private createUpdatePlayerPerformanceQuery(playerId: string, goals: number, assists: number, rating: number, playerOfTheMatch: boolean, cleanSheet: boolean) {
+    return {
+      updateOne: {
+        filter: { _id: new Types.ObjectId(playerId) },
+        update: [
+          {
+            $set: {
+              "stats.goals": { $add: ["$stats.goals", goals || 0] },
+              "stats.assists": { $add: ["$stats.assists", assists || 0] },
+              "stats.games": { $add: ["$stats.games", 1] },
+              "stats.playerOfTheMatch": { $add: ["$stats.playerOfTheMatch", playerOfTheMatch ? 1 : 0] },
+              "stats.cleanSheets": { $add: ["$stats.cleanSheets", cleanSheet ? 1 : 0] },
+              "stats.avgRating": {
+                $cond: [
+                  { $eq: ["$stats.games", 0] },
+                  { $ifNull: [rating, 0] },
+                  {
+                    $divide: [{ $add: [{ $multiply: ["$stats.avgRating", "$stats.games"] }, rating || 0] }, { $add: ["$stats.games", 1] }],
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      },
+    };
+  }
+
+  async revertPlayersGamePerformance(playersStats: IPlayerGamePerformance[], session: ClientSession): Promise<void> {
+    logger.info(`reverting players game performance..`);
+
+    const revertOperations = playersStats.map((playerStats) => {
+      const { playerId, goals, assists, rating, playerOfTheMatch, cleanSheet } = playerStats;
+      return {
+        updateOne: {
+          filter: { _id: new Types.ObjectId(playerId) },
+          update: {
+            $set: {
+              "stats.goals": { $subtract: ["$stats.goals", goals || 0] },
+              "stats.assists": { $subtract: ["$stats.assists", assists || 0] },
+              "stats.games": { $subtract: ["$stats.games", 1] },
+              "stats.playerOfTheMatch": { $subtract: ["$stats.playerOfTheMatch", playerOfTheMatch ? 1 : 0] },
+              "stats.cleanSheets": { $subtract: ["$stats.cleanSheets", cleanSheet ? 1 : 0] },
+              "stats.avgRating": {
+                $cond: [
+                  { $eq: ["$stats.games", 1] }, // Check if this is the first game
+                  0, // If it's the first game, set avgRating to 0
+                  {
+                    $divide: [{ $subtract: [{ $multiply: ["$stats.avgRating", "$stats.games"] }, rating || 0] }, { $subtract: ["$stats.games", 1] }],
+                  },
+                ],
+              },
+            },
+          },
+          upsert: false,
+        },
+      };
+    });
+
+    try {
+      const result = await Player.bulkWrite(revertOperations, { session });
+      if (result.modifiedCount !== playersStats.length) {
+        throw new Error("Failed to revert all player stats");
       }
-      player.stats.avgRating = (player.stats.avgRating * player.stats.games + rating) / player.stats.games;
-      player.save({ session });
+      logger.info("Successfully reverted player stats");
+    } catch (error: any) {
+      logger.error(`Failed to revert player stats: ${error.message}`);
+      throw error;
     }
   }
 
@@ -96,7 +166,7 @@ export default class PlayerService {
 
   async getAllPlayers(): Promise<PlayerDTO[]> {
     const players = await Player.find();
-    return PlayerMapper.mapToDtos(players);
+    return await PlayerMapper.mapToDtos(players);
   }
 
   async deletePlayer(id: string): Promise<void> {

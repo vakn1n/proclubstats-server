@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
-import { GAME_STATUS } from "../../types-changeToNPM/shared-DTOs";
+import { GAME_STATUS, GameDTO, PlayerPerformanceDTO } from "../../types-changeToNPM/shared-DTOs";
+import logger from "../logger";
 
 export type AddGameData = {
   homeTeam: mongoose.Types.ObjectId;
@@ -7,24 +8,26 @@ export type AddGameData = {
   date?: Date;
 };
 
-export interface IGoal {
-  scorerId: string;
-  minute?: number;
-  assisterId?: string;
-  isOwnGoal?: boolean;
-}
-
-export type IPlayerGameStats = {
+export type IPlayerGamePerformance = {
   playerId: string;
-  rating?: number;
+  rating: number;
   playerOfTheMatch?: boolean;
+  goals?: number;
+  assists?: number;
+  cleanSheet: boolean;
   // add other player stats
 };
 
-export type ITeamGameStats = {
-  goals?: IGoal[];
-  playersStats?: IPlayerGameStats[];
-  // add other teams stats
+type PopulatedGamePerformance = {
+  playerId: {
+    id: string;
+    name: string;
+    imgUrl?: string;
+  };
+  goals?: number;
+  assists?: number;
+  rating: number;
+  playerOfTheMatch?: boolean;
 };
 
 export interface IGame extends Document {
@@ -38,27 +41,19 @@ export interface IGame extends Document {
     homeTeamGoals: number;
     awayTeamGoals: number;
   };
-  homeTeamStats?: ITeamGameStats;
-  awayTeamStats?: ITeamGameStats;
-}
+  homeTeamPlayersPerformance?: IPlayerGamePerformance[];
+  awayTeamPlayersPerformance?: IPlayerGamePerformance[];
 
-const goalSchema = new Schema({
-  scorerId: { type: mongoose.Schema.Types.ObjectId, ref: "Player", required: true },
-  minute: { type: Number, required: false },
-  assisterId: { type: mongoose.Schema.Types.ObjectId, ref: "Player", required: false },
-  isOwnGoal: { type: Boolean, required: false },
-});
+  toDTO(): Promise<GameDTO>;
+}
 
 const playerGameStatsSchema = new Schema({
   playerId: { type: mongoose.Schema.Types.ObjectId, ref: "Player", required: true },
   rating: { type: Number, required: false },
   redCard: { type: Boolean, required: false },
+  goals: { type: Number, required: false },
+  assists: { type: Number, required: false },
   // add other player stats
-});
-
-const teamStatsSchema = new Schema({
-  goals: [goalSchema],
-  playerStats: [playerGameStatsSchema],
 });
 
 const gameSchema = new Schema<IGame>(
@@ -75,8 +70,8 @@ const gameSchema = new Schema<IGame>(
       },
       required: false,
     },
-    homeTeamStats: teamStatsSchema,
-    awayTeamStats: teamStatsSchema,
+    homeTeamPlayersPerformance: [playerGameStatsSchema],
+    awayTeamPlayersPerformance: [playerGameStatsSchema],
   },
   {
     toJSON: { virtuals: true },
@@ -85,5 +80,64 @@ const gameSchema = new Schema<IGame>(
 );
 
 const Game = mongoose.model<IGame>("Game", gameSchema);
+
+// Implementation of toDTO method
+Game.prototype.toDTO = async function (): Promise<GameDTO> {
+  logger.info(`Mapping game with id ${this.id} to dto`);
+
+  await this.populate([
+    {
+      path: "homeTeam",
+      select: "name imgUrl",
+    },
+    {
+      path: "awayTeam",
+      select: "name imgUrl",
+    },
+    {
+      path: "homeTeamPlayersPerformance.playerId awayTeamPlayersPerformance.playerId",
+      select: "id name imgUrl",
+    },
+  ]);
+
+  return {
+    id: this.id,
+    fixtureId: this.fixture.toString(),
+    status: this.status,
+    result: this.result
+      ? {
+          homeTeamGoals: this.result.homeTeamGoals,
+          awayTeamGoals: this.result.awayTeamGoals,
+        }
+      : undefined,
+    homeTeam: {
+      id: this.homeTeam.id,
+      name: this.homeTeam.name,
+      imgUrl: this.homeTeam.imgUrl,
+      playersPerformance: this.mapPlayersPerformanceToDTO(this.homeTeamPlayersPerformance),
+    },
+    awayTeam: {
+      id: this.awayTeam.id,
+      name: this.awayTeam.name,
+      imgUrl: this.awayTeam.imgUrl,
+      playersPerformance: this.mapPlayersPerformanceToDTO(this.awayTeamPlayersPerformance),
+    },
+  };
+};
+
+// Helper method for mapping player performance
+Game.prototype.mapPlayersPerformanceToDTO = function (playersPerformance?: PopulatedGamePerformance[]): PlayerPerformanceDTO[] | undefined {
+  return (
+    playersPerformance?.map((playerPerformance) => ({
+      playerId: playerPerformance.playerId.id,
+      name: playerPerformance.playerId.name,
+      imgUrl: playerPerformance.playerId.imgUrl,
+      goals: playerPerformance.goals,
+      assists: playerPerformance.assists,
+      rating: playerPerformance.rating,
+      playerOfTheMatch: playerPerformance.playerOfTheMatch,
+    })) || undefined
+  );
+};
 
 export default Game;
