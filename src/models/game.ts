@@ -44,8 +44,6 @@ export interface IGame extends Document {
   };
   homeTeamPlayersPerformance?: IPlayerGamePerformance[];
   awayTeamPlayersPerformance?: IPlayerGamePerformance[];
-
-  toDTO(): Promise<GameDTO>;
 }
 
 const playerGameStatsSchema = new Schema({
@@ -82,64 +80,5 @@ const gameSchema = new Schema<IGame>(
 );
 
 const Game = mongoose.model<IGame>("Game", gameSchema);
-
-// Implementation of toDTO method
-Game.prototype.toDTO = async function (): Promise<GameDTO> {
-  logger.info(`Mapping game with id ${this.id} to dto`);
-
-  await this.populate([
-    {
-      path: "homeTeam",
-      select: "name imgUrl",
-    },
-    {
-      path: "awayTeam",
-      select: "name imgUrl",
-    },
-    {
-      path: "homeTeamPlayersPerformance.playerId awayTeamPlayersPerformance.playerId",
-      select: "id name imgUrl",
-    },
-  ]);
-
-  return {
-    id: this.id,
-    fixtureId: this.fixture.toString(),
-    status: this.status,
-    result: this.result
-      ? {
-          homeTeamGoals: this.result.homeTeamGoals,
-          awayTeamGoals: this.result.awayTeamGoals,
-        }
-      : undefined,
-    homeTeam: {
-      id: this.homeTeam.id,
-      name: this.homeTeam.name,
-      imgUrl: this.homeTeam.imgUrl,
-      playersPerformance: this.mapPlayersPerformanceToDTO(this.homeTeamPlayersPerformance),
-    },
-    awayTeam: {
-      id: this.awayTeam.id,
-      name: this.awayTeam.name,
-      imgUrl: this.awayTeam.imgUrl,
-      playersPerformance: this.mapPlayersPerformanceToDTO(this.awayTeamPlayersPerformance),
-    },
-  };
-};
-
-// Helper method for mapping player performance
-Game.prototype.mapPlayersPerformanceToDTO = function (playersPerformance?: PopulatedGamePerformance[]): PlayerPerformanceDTO[] | undefined {
-  return (
-    playersPerformance?.map((playerPerformance) => ({
-      playerId: playerPerformance.playerId.id,
-      name: playerPerformance.playerId.name,
-      imgUrl: playerPerformance.playerId.imgUrl,
-      goals: playerPerformance.goals,
-      assists: playerPerformance.assists,
-      rating: playerPerformance.rating,
-      playerOfTheMatch: playerPerformance.playerOfTheMatch,
-    })) || undefined
-  );
-};
 
 export default Game;

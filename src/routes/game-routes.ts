@@ -4,7 +4,6 @@ import GameController from "../controllers/game-controller";
 const router = Router();
 const gameController = GameController.getInstance();
 
-router.get("/", gameController.getAllGames.bind(gameController));
 router.get("/:id", gameController.getGameById.bind(gameController));
 
 router.put("/:id/updateResult", gameController.updateGameResult.bind(gameController));

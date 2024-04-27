@@ -7,6 +7,7 @@ import Game, { AddGameData, IGame, IPlayerGamePerformance } from "../models/game
 import PlayerService from "./player-service";
 import TeamService from "./team-service";
 import { transactionService } from "./transaction-service";
+import { GameMapper } from "../mappers/game-mapper";
 
 class GameService {
   private static instance: GameService;
@@ -18,6 +19,26 @@ class GameService {
       this.instance = new GameService();
     }
     return this.instance;
+  }
+
+  async getGamesByIds(gamesIds: Types.ObjectId[]): Promise<GameDTO[]> {
+    logger.info(`GameService: fetching ${gamesIds.length} games`);
+
+    const games = await Game.find({ _id: { $in: gamesIds } });
+    if (games.length !== gamesIds.length) {
+      throw new BadRequestError(`Some requested games does not exist`);
+    }
+    return await GameMapper.mapToDtos(games);
+  }
+
+  async getGameById(id: string): Promise<GameDTO> {
+    logger.info(`getting game ${id}`);
+
+    const game = await Game.findById(id);
+    if (!game) {
+      throw new NotFoundError(`game with id ${id} not found`);
+    }
+    return await GameMapper.mapToDto(game);
   }
 
   async createGame(gameData: AddGameData, fixtureId: Types.ObjectId, session: ClientSession): Promise<IGame> {
@@ -58,17 +79,15 @@ class GameService {
     }
 
     return await transactionService.withTransaction(async (session) => {
-      if (game.status === GAME_STATUS.PLAYED || game.status === GAME_STATUS.COMPLETED) {
-        // TODO: remove prev result from teams stats
+      if (game.status !== GAME_STATUS.SCHEDULED) {
+        await TeamService.getInstance().revertTeamGameData(game.homeTeam, game.result!.homeTeamGoals, game.result!.awayTeamGoals, session);
+
+        await TeamService.getInstance().revertTeamGameData(game.awayTeam, game.result!.awayTeamGoals, game.result!.homeTeamGoals, session);
       }
       game.result = {
         homeTeamGoals,
         awayTeamGoals,
       };
-
-      if (game.status !== GAME_STATUS.SCHEDULED) {
-        // TODO: revert prev result from teams stats
-      }
 
       game.status = GAME_STATUS.PLAYED;
 
@@ -137,21 +156,6 @@ class GameService {
       throw new NotFoundError(`game with id ${id} not found`);
     }
     return game;
-  }
-
-  async getGameById(id: string): Promise<GameDTO> {
-    logger.info(`getting game ${id}`);
-
-    const game = await Game.findById(id);
-    if (!game) {
-      throw new NotFoundError(`game with id ${id} not found`);
-    }
-    return await game.toDTO();
-  }
-
-  async getAllGames(): Promise<IGame[]> {
-    logger.info(`getting all games`);
-    return await Game.find();
   }
 }
 

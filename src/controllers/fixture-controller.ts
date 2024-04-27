@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import FixtureService from "../services/fixture-service";
+import { FixtureDTO, GameDTO } from "../../types-changeToNPM/shared-DTOs";
 
 export default class FixtureController {
   private fixtureService: FixtureService;
@@ -14,5 +15,25 @@ export default class FixtureController {
       this.instance = new FixtureController();
     }
     return this.instance;
+  }
+
+  async getFixtureById(req: Request, res: Response, next: NextFunction) {
+    const { id } = req.params;
+    try {
+      const fixture = await this.fixtureService.getFixtureById(id);
+      res.json(fixture);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  async getFixtureGames(req: Request, res: Response, next: NextFunction) {
+    const { id } = req.params;
+    try {
+      const fixture = await this.fixtureService.getFixtureGames(id);
+      res.json(fixture);
+    } catch (error: any) {
+      next(error);
+    }
   }
 }

@@ -32,15 +32,6 @@ export default class GameController {
     }
   }
 
-  async getAllGames(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const games = await this.gameService.getAllGames();
-      res.json(games);
-    } catch (error: any) {
-      next(error);
-    }
-  }
-
   async updateGameResult(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
     const { homeTeamGoals, awayTeamGoals } = req.body;

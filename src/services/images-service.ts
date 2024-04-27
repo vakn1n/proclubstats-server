@@ -46,7 +46,6 @@ export default class ImageService {
 
     try {
       const publicId = extractPublicId(imageUrl);
-      console.log(publicId);
 
       if (!publicId) {
         throw new Error(`Could not find public id in ${imageUrl}`);

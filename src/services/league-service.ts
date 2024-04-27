@@ -330,7 +330,6 @@ class LeagueService {
     let topScorers = await this.getTopScorersFromCache(leagueId);
     if (!topScorers) {
       topScorers = await this.calculateTopScorers(leagueId, limit);
-      console.log(topScorers);
 
       await this.setTopScorersInCache(leagueId, topScorers);
     }

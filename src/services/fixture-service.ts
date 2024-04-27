@@ -4,6 +4,7 @@ import logger from "../logger";
 import { FixtureMapper } from "../mappers/fixture-mapper";
 import Fixture, { AddFixtureData, IFixture } from "../models/fixture";
 import GameService from "./game-service";
+import NotFoundError from "../errors/not-found-error";
 
 export default class FixtureService {
   private static instance: FixtureService;
@@ -18,6 +19,25 @@ export default class FixtureService {
       this.instance = new FixtureService();
     }
     return this.instance;
+  }
+
+  async getFixtureById(id: string) {
+    logger.info(`FixtureService: getting fixture with id ${id}`);
+
+    const fixture = await Fixture.findById(id);
+    if (!fixture) {
+      throw new NotFoundError(`cant find fixture with id ${id}`);
+    }
+
+    return await FixtureMapper.mapToDto(fixture);
+  }
+
+  async getFixtureGames(id: string) {
+    const fixture = await Fixture.findById(id);
+    if (!fixture) {
+      throw new NotFoundError(`cant find fixture with id ${id}`);
+    }
+    return await this.gameService.getGamesByIds(fixture.games);
   }
 
   async generateFixture(fixtureData: AddFixtureData, session: ClientSession): Promise<IFixture> {
