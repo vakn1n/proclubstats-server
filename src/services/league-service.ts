@@ -114,15 +114,6 @@ class LeagueService {
     });
   }
 
-  async getLeagueFixtures(leagueId: string, limit: number): Promise<FixtureDTO[]> {
-    const league = await League.findById(leagueId);
-    if (!league) {
-      throw new NotFoundError(`League with id ${leagueId} not found`);
-    }
-
-    return await this.fixtureService.getLeagueFixtures(league._id, limit);
-  }
-
   async generateFixtures(leagueId: string, leagueStartDate: string, fixturesPerWeek: number): Promise<IFixture[]> {
     logger.info(`LeagueService: Generating fixtures for league with id ${leagueId}`);
 

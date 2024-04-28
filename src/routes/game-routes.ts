@@ -5,6 +5,7 @@ const router = Router();
 const gameController = GameController.getInstance();
 
 router.get("/:id", gameController.getGameById.bind(gameController));
+router.get("/team/:teamId", gameController.getTeamGames.bind(gameController));
 
 router.put("/:id/updateResult", gameController.updateGameResult.bind(gameController));
 router.put("/:id/teamPlayersPerformance", gameController.updateTeamPlayersPerformance.bind(gameController));

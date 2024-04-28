@@ -32,6 +32,22 @@ export default class GameController {
     }
   }
 
+  async getTeamGames(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { teamId } = req.params;
+
+    if (!teamId) {
+      res.status(400).send({ message: "No teamId provided" });
+      return;
+    }
+
+    try {
+      const games = await this.gameService.getTeamGames(teamId);
+      res.json(games);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
   async updateGameResult(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
     const { homeTeamGoals, awayTeamGoals } = req.body;

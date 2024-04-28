@@ -27,13 +27,33 @@ export default class FixtureController {
     }
   }
 
-  async getFixtureGames(req: Request, res: Response, next: NextFunction) {
-    const { id } = req.params;
+  async getPaginatedLeagueFixturesGames(req: Request, res: Response, next: NextFunction) {
+    const { leagueId } = req.params;
+    const { page = 1, pageSize = 1 } = req.query;
+
     try {
-      const fixture = await this.fixtureService.getFixtureGames(id);
-      res.json(fixture);
+      const games = await this.fixtureService.getPaginatedLeagueFixturesGames(leagueId, +page, +pageSize);
+      res.json(games); // TODO: change to specific type of
     } catch (error: any) {
       next(error);
     }
   }
+
+  async getLeagueFixtureGames(req: Request, res: Response, next: NextFunction) {
+    const { leagueId, round } = req.params;
+
+    if (!leagueId || !round) {
+      res.status(400).send({ message: "No leagueId or round provided" });
+      return;
+    }
+
+    try {
+      const fixtureGames = await this.fixtureService.getLeagueFixtureGames(leagueId, +round);
+      res.json(fixtureGames);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  async deleteAllLeagueFixtures(req: Request, res: Response, next: NextFunction) {}
 }

@@ -10,13 +10,11 @@ router.post("/:id/generateFixtures", leagueController.generateLeagueFixtures.bin
 router.post("/:id/createFixture", leagueController.createLeagueFixture.bind(leagueController));
 
 router.delete("/:id", leagueController.removeLeague.bind(leagueController));
-router.delete("/:id/allFixtures", leagueController.deleteAllLeagueFixtures.bind(leagueController));
 
 router.get("/:id", leagueController.getLeagueById.bind(leagueController));
 router.get("/", leagueController.getAllLeagues.bind(leagueController));
 router.get("/:id/topScorers", leagueController.getTopScorers.bind(leagueController));
 router.get("/:id/topAssists", leagueController.getTopAssists.bind(leagueController));
 router.get("/:id/table", leagueController.getLeagueTable.bind(leagueController));
-router.get("/:id/fixtures", leagueController.getLeagueFixtures.bind(leagueController));
 
 export default router;

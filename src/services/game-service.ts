@@ -32,13 +32,21 @@ class GameService {
   }
 
   async getGameById(id: string): Promise<GameDTO> {
-    logger.info(`getting game ${id}`);
+    logger.info(`GameService: getting game ${id}`);
 
     const game = await Game.findById(id);
     if (!game) {
       throw new NotFoundError(`game with id ${id} not found`);
     }
     return await GameMapper.mapToDto(game);
+  }
+
+  async getTeamGames(teamId: string) {
+    logger.info(`GameService: getting games for team ${teamId}`);
+    const games = await Game.find({ $or: [{ homeTeam: teamId }, { awayTeam: teamId }] });
+    console.log(games.length);
+
+    return await GameMapper.mapToDtos(games);
   }
 
   async createGame(gameData: AddGameData, fixtureId: Types.ObjectId, session: ClientSession): Promise<IGame> {

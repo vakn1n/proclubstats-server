@@ -21,7 +21,7 @@ export default class FixtureService {
     return this.instance;
   }
 
-  async getFixtureById(id: string) {
+  async getFixtureById(id: string): Promise<FixtureDTO> {
     logger.info(`FixtureService: getting fixture with id ${id}`);
 
     const fixture = await Fixture.findById(id);
@@ -32,12 +32,18 @@ export default class FixtureService {
     return await FixtureMapper.mapToDto(fixture);
   }
 
-  async getFixtureGames(id: string) {
-    const fixture = await Fixture.findById(id);
-    if (!fixture) {
-      throw new NotFoundError(`cant find fixture with id ${id}`);
+  async getPaginatedLeagueFixturesGames(leagueId: string, page: number, pageSize: number): Promise<FixtureDTO[]> {
+    logger.info(`FixtureService: getting fixture with league with id ${leagueId} for page ${page} and page size ${pageSize}`);
+
+    const fixtures = await Fixture.find({ league: leagueId })
+      .skip((page - 1) * pageSize)
+      .limit(pageSize);
+
+    if (!fixtures?.length) {
+      throw new NotFoundError(`cant find fixtures`);
     }
-    return await this.gameService.getGamesByIds(fixture.games);
+
+    return await FixtureMapper.mapToDtos(fixtures);
   }
 
   async generateFixture(fixtureData: AddFixtureData, session: ClientSession): Promise<IFixture> {
@@ -54,12 +60,14 @@ export default class FixtureService {
     return fixture;
   }
 
-  async getLeagueFixtures(leagueId: Types.ObjectId, limit: number): Promise<FixtureDTO[]> {
-    logger.info(`FixtureService: getting fixtures for league ${leagueId}`);
+  async getLeagueFixtureGames(leagueId: string, round: number) {
+    logger.info(`FixtureService: getting fixture games for league ${leagueId} for round ${round}`);
 
-    const fixtures = await Fixture.find({ league: leagueId }, {}, { sort: { round: 1 }, limit });
-
-    return await FixtureMapper.mapToDtos(fixtures);
+    const fixture = await Fixture.findOne({ league: leagueId, round });
+    if (!fixture) {
+      throw new NotFoundError(`cant find fixture`);
+    }
+    return await this.gameService.getGamesByIds(fixture.games);
   }
 
   async deleteFixtures(fixturesIds: Types.ObjectId[], session: ClientSession) {
