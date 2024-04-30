@@ -1,24 +1,23 @@
 import { ClientSession, Types } from "mongoose";
-import { GAME_STATUS, GameDTO, PlayerPerformanceDTO, UpdatePlayerPerformanceDataRequest } from "../../types-changeToNPM/shared-DTOs";
+import { GAME_STATUS, GameDTO, UpdatePlayerPerformanceDataRequest } from "../../types-changeToNPM/shared-DTOs";
 import BadRequestError from "../errors/bad-request-error";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
+import { GameMapper } from "../mappers/game-mapper";
 import Game, { AddGameData, IGame, IPlayerGamePerformance } from "../models/game";
 import PlayerService from "./player-service";
 import TeamService from "./team-service";
 import { transactionService } from "./transaction-service";
-import { GameMapper } from "../mappers/game-mapper";
+import { autoInjectable } from "tsyringe";
 
+@autoInjectable()
 class GameService {
-  private static instance: GameService;
+  private teamService: TeamService;
+  private playerService: PlayerService;
 
-  private constructor() {}
-
-  static getInstance(): GameService {
-    if (!this.instance) {
-      this.instance = new GameService();
-    }
-    return this.instance;
+  constructor(teamService: TeamService, playerService: PlayerService) {
+    this.teamService = teamService;
+    this.playerService = playerService;
   }
 
   async getGamesByIds(gamesIds: Types.ObjectId[]): Promise<GameDTO[]> {
@@ -88,9 +87,9 @@ class GameService {
 
     return await transactionService.withTransaction(async (session) => {
       if (game.status !== GAME_STATUS.SCHEDULED) {
-        await TeamService.getInstance().revertTeamGameData(game.homeTeam, game.result!.homeTeamGoals, game.result!.awayTeamGoals, session);
+        await this.teamService.revertTeamGameData(game.homeTeam, game.result!.homeTeamGoals, game.result!.awayTeamGoals, session);
 
-        await TeamService.getInstance().revertTeamGameData(game.awayTeam, game.result!.awayTeamGoals, game.result!.homeTeamGoals, session);
+        await this.teamService.revertTeamGameData(game.awayTeam, game.result!.awayTeamGoals, game.result!.homeTeamGoals, session);
       }
       game.result = {
         homeTeamGoals,
@@ -99,8 +98,8 @@ class GameService {
 
       game.status = GAME_STATUS.PLAYED;
 
-      await TeamService.getInstance().updateTeamGameStats(game.homeTeam, homeTeamGoals, awayTeamGoals, session);
-      await TeamService.getInstance().updateTeamGameStats(game.awayTeam, awayTeamGoals, homeTeamGoals, session);
+      await this.teamService.updateTeamGameStats(game.homeTeam, homeTeamGoals, awayTeamGoals, session);
+      await this.teamService.updateTeamGameStats(game.awayTeam, awayTeamGoals, homeTeamGoals, session);
       await game.save({ session });
     });
   }
@@ -128,7 +127,7 @@ class GameService {
         game.status = GAME_STATUS.COMPLETED;
       }
 
-      await PlayerService.getInstance().updatePlayersGamePerformance(playersStats, session);
+      await this.playerService.updatePlayersGamePerformance(playersStats, session);
 
       await game.save({ session });
     });
@@ -137,12 +136,12 @@ class GameService {
   private async setGamePlayersPerformance(game: IGame, isHomeTeam: boolean, playersStats: IPlayerGamePerformance[], session: ClientSession) {
     if (isHomeTeam) {
       if (game.homeTeamPlayersPerformance?.length) {
-        await PlayerService.getInstance().revertPlayersGamePerformance(game.homeTeamPlayersPerformance, session);
+        await this.playerService.revertPlayersGamePerformance(game.homeTeamPlayersPerformance, session);
       }
       game.homeTeamPlayersPerformance = playersStats;
     } else {
       if (game.awayTeamPlayersPerformance?.length) {
-        await PlayerService.getInstance().revertPlayersGamePerformance(game.awayTeamPlayersPerformance, session);
+        await this.playerService.revertPlayersGamePerformance(game.awayTeamPlayersPerformance, session);
       }
       game.awayTeamPlayersPerformance = playersStats;
     }

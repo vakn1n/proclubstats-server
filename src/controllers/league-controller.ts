@@ -3,23 +3,19 @@ import LeagueService from "../services/league-service";
 import logger from "../logger";
 import ImageService from "../services/images-service";
 import { AddSingleFixtureData } from "../../types-changeToNPM/shared-DTOs";
+import { autoInjectable } from "tsyringe";
+import { TeamLeagueService } from "../services";
 
+@autoInjectable()
 class LeagueController {
   private leagueService: LeagueService;
-  private static instance: LeagueController;
-
+  private teamLeagueService: TeamLeagueService;
   private imageService: ImageService;
 
-  private constructor() {
-    this.leagueService = LeagueService.getInstance();
-    this.imageService = ImageService.getInstance();
-  }
-
-  static getInstance(): LeagueController {
-    if (!LeagueController.instance) {
-      LeagueController.instance = new LeagueController();
-    }
-    return LeagueController.instance;
+  constructor(leagueService: LeagueService, teamLeagueService: TeamLeagueService, imageService: ImageService) {
+    this.leagueService = leagueService;
+    this.imageService = imageService;
+    this.teamLeagueService = teamLeagueService;
   }
 
   async addLeague(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -120,6 +116,23 @@ class LeagueController {
       const topAssists = await this.leagueService.getTopAssists(leagueId);
       res.json(topAssists);
     } catch (error) {
+      next(error);
+    }
+  }
+
+  async addTeamToLeague(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: leagueId } = req.params;
+    const { teamId } = req.body;
+
+    if (!leagueId || !teamId) {
+      res.status(404).send({ message: "Missing data" });
+      return;
+    }
+
+    try {
+      await this.teamLeagueService.addTeamToLeague(leagueId, teamId);
+      res.sendStatus(204);
+    } catch (error: any) {
       next(error);
     }
   }

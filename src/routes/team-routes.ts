@@ -1,18 +1,21 @@
 import { Router } from "express";
 import TeamController from "../controllers/team-controller";
 import upload from "../multer-config";
+import { container } from "tsyringe";
 
 const router = Router();
-const teamController = TeamController.getInstance();
+const teamController = container.resolve(TeamController);
 
-router.post("/", upload.single("file"), teamController.createAndAddTeamToLeague.bind(teamController));
+router.post("/", upload.single("file"), teamController.createTeam);
 
-router.patch("/:id/setImage", upload.single("file"), teamController.setTeamImage.bind(teamController));
-router.patch("/:id/setCaptain", teamController.setTeamCaptain.bind(teamController));
+router.put("/:id/addPlayer", teamController.addPlayerToTeam);
 
-router.get("/:id/players", teamController.getTeamPlayers.bind(teamController));
-router.get("/:id", teamController.getTeamById.bind(teamController));
+router.patch("/:id/setImage", upload.single("file"), teamController.setTeamImage);
+router.patch("/:id/setCaptain", teamController.setTeamCaptain);
 
-router.delete("/:id", teamController.deleteTeam.bind(teamController));
+router.get("/:id/players", teamController.getTeamPlayers);
+router.get("/:id", teamController.getTeamById);
+
+router.delete("/:id", teamController.deleteTeam);
 
 export default router;

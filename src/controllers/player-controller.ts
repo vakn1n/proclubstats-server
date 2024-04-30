@@ -1,30 +1,27 @@
 import { NextFunction, Request, Response } from "express";
-import { AddPlayerDataRequest } from "../../types-changeToNPM/shared-DTOs";
+import { CreatePlayerDataRequest } from "../../types-changeToNPM/shared-DTOs";
 import PlayerService from "../services/player-service";
+import { autoInjectable } from "tsyringe";
+import PlayerTeamService from "../services/player-team-service";
 
+@autoInjectable()
 export default class PlayerController {
-  private static instance: PlayerController;
   private playerService: PlayerService;
+  private playerTeamService: PlayerTeamService;
 
-  private constructor() {
-    this.playerService = PlayerService.getInstance();
+  constructor(playerService: PlayerService, playerTeamService: PlayerTeamService) {
+    this.playerService = playerService;
+    this.playerTeamService = playerTeamService;
   }
 
-  static getInstance(): PlayerController {
-    if (!this.instance) {
-      this.instance = new PlayerController();
-    }
-    return this.instance;
-  }
-
-  async addPlayer(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async createPlayer(req: Request, res: Response, next: NextFunction): Promise<void> {
     // TODO: add validation
-    const playerData = req.body as AddPlayerDataRequest;
+    const playerData = req.body as CreatePlayerDataRequest;
 
     const file = req.file;
 
     try {
-      const player = await this.playerService.addPlayer(playerData);
+      const player = await this.playerService.createPlayer(playerData);
       if (file) {
         const imgUrl = await this.playerService.setPlayerImage(player.id, file);
         player.imgUrl = imgUrl;
@@ -87,7 +84,7 @@ export default class PlayerController {
       return;
     }
     try {
-      await this.playerService.deletePlayer(id);
+      await this.playerTeamService.deletePlayer(id);
       res.sendStatus(204);
     } catch (error: any) {
       next(error);

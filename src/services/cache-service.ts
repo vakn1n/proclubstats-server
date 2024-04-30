@@ -2,11 +2,10 @@ import { RedisClientType, createClient } from "redis";
 import logger from "../logger";
 
 export default class CacheService {
-  private static instance: CacheService;
   private client: RedisClientType;
   private isConnected: boolean = false;
 
-  private constructor() {
+  public constructor() {
     this.client = createClient({
       password: "YJ8pXa4U8DSKa6vavT5ppMvTrRLqSVVC",
       socket: {
@@ -24,13 +23,6 @@ export default class CacheService {
       this.isConnected = true;
       console.log("Redis is running");
     }
-  }
-
-  public static getInstance(): CacheService {
-    if (!CacheService.instance) {
-      CacheService.instance = new CacheService();
-    }
-    return CacheService.instance;
   }
 
   async set(key: string, value: any, expiresIn?: number): Promise<void> {

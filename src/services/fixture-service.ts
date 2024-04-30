@@ -5,20 +5,14 @@ import { FixtureMapper } from "../mappers/fixture-mapper";
 import Fixture, { AddFixtureData, IFixture } from "../models/fixture";
 import GameService from "./game-service";
 import NotFoundError from "../errors/not-found-error";
+import { autoInjectable } from "tsyringe";
 
+@autoInjectable()
 export default class FixtureService {
-  private static instance: FixtureService;
   private gameService: GameService;
 
-  private constructor() {
-    this.gameService = GameService.getInstance();
-  }
-
-  static getInstance(): FixtureService {
-    if (!this.instance) {
-      this.instance = new FixtureService();
-    }
-    return this.instance;
+  constructor(gameService: GameService) {
+    this.gameService = gameService;
   }
 
   async getFixtureById(id: string): Promise<FixtureDTO> {

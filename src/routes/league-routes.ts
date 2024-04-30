@@ -1,20 +1,23 @@
 import { Router } from "express";
 import LeagueController from "../controllers/league-controller";
 import upload from "../multer-config";
+import { container } from "tsyringe";
 
 const router = Router();
-const leagueController = LeagueController.getInstance();
+const leagueController = container.resolve(LeagueController);
 
-router.post("/", upload.single("file"), leagueController.addLeague.bind(leagueController));
-router.post("/:id/generateFixtures", leagueController.generateLeagueFixtures.bind(leagueController));
-router.post("/:id/createFixture", leagueController.createLeagueFixture.bind(leagueController));
+router.post("/", upload.single("file"), leagueController.addLeague);
+router.post("/:id/generateFixtures", leagueController.generateLeagueFixtures);
+router.post("/:id/createFixture", leagueController.createLeagueFixture);
 
-router.delete("/:id", leagueController.removeLeague.bind(leagueController));
+router.put("/:id/addTeam", leagueController.addTeamToLeague);
 
-router.get("/:id", leagueController.getLeagueById.bind(leagueController));
-router.get("/", leagueController.getAllLeagues.bind(leagueController));
-router.get("/:id/topScorers", leagueController.getTopScorers.bind(leagueController));
-router.get("/:id/topAssists", leagueController.getTopAssists.bind(leagueController));
-router.get("/:id/table", leagueController.getLeagueTable.bind(leagueController));
+router.delete("/:id", leagueController.removeLeague);
+
+router.get("/:id", leagueController.getLeagueById);
+router.get("/", leagueController.getAllLeagues);
+router.get("/:id/topScorers", leagueController.getTopScorers);
+router.get("/:id/topAssists", leagueController.getTopAssists);
+router.get("/:id/table", leagueController.getLeagueTable);
 
 export default router;

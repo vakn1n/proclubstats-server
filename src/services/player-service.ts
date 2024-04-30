@@ -1,45 +1,36 @@
 import { ClientSession, Types } from "mongoose";
-import { AddPlayerDataRequest, PlayerDTO } from "../../types-changeToNPM/shared-DTOs";
+import { CreatePlayerDataRequest, PlayerDTO } from "../../types-changeToNPM/shared-DTOs";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
 import { PlayerMapper } from "../mappers/player-mapper";
 import { IPlayerGamePerformance } from "../models/game";
-import Player from "../models/player";
+import Player, { IPlayer } from "../models/player";
 import ImageService from "./images-service";
 import TeamService from "./team-service";
 import { transactionService } from "./transaction-service";
+import { autoInjectable } from "tsyringe";
 
+@autoInjectable()
 export default class PlayerService {
-  private static instance: PlayerService;
-  private teamService: TeamService;
   private imageService: ImageService;
 
-  constructor() {
-    this.teamService = TeamService.getInstance();
-    this.imageService = ImageService.getInstance();
+  constructor(imageService: ImageService) {
+    this.imageService = imageService;
   }
 
-  static getInstance(): PlayerService {
-    if (!this.instance) {
-      this.instance = new PlayerService();
-    }
-    return this.instance;
-  }
+  async createPlayer(playerData: CreatePlayerDataRequest): Promise<PlayerDTO> {
+    const { age, name, position, phone } = playerData;
 
-  async addPlayer(data: AddPlayerDataRequest): Promise<PlayerDTO> {
-    logger.info(`PlayerService: adding player with name ${data.name} to team with id ${data.teamId}`);
-
-    const { teamId, age, name, position, phone } = data;
+    logger.info(`PlayerService: creating player with name ${name}`);
 
     let playablePositions = [position];
 
-    if (data.playablePositions) {
-      playablePositions = data.playablePositions;
+    if (playerData.playablePositions) {
+      playablePositions = playerData.playablePositions;
     }
 
     return await transactionService.withTransaction(async (session) => {
-      const player = await Player.create({ name, team: teamId, age, playablePositions, position, phone, session });
-      await TeamService.getInstance().addPlayerToTeam(player._id, teamId, session);
+      const player = await Player.create({ name, age, playablePositions, position, phone, session });
       return PlayerMapper.mapToDto(player);
     });
   }
@@ -62,6 +53,15 @@ export default class PlayerService {
     await player.save();
 
     return imageUrl;
+  }
+
+  async removePlayersFromTeam(players: Types.ObjectId[], session: ClientSession): Promise<void> {
+    logger.info(`PlayerService: removing ${players.length} players from team`);
+
+    const updateRes = await Player.updateMany({ _id: { $in: players } }, { team: null }, { session });
+    if (updateRes.modifiedCount == players.length) {
+      throw new Error("Failed to remove players from team");
+    }
   }
 
   async updatePlayersGamePerformance(playersStats: IPlayerGamePerformance[], session: ClientSession): Promise<void> {
@@ -118,23 +118,14 @@ export default class PlayerService {
     return await PlayerMapper.mapToDtos(players);
   }
 
-  async deletePlayer(id: string): Promise<void> {
-    logger.info(`PlayerService:  deleting player with id ${id}`);
+  async deletePlayer(player: IPlayer, session: ClientSession): Promise<void> {
+    logger.info(`PlayerService: deleting player with id ${player.id}`);
 
-    await transactionService.withTransaction(async (session) => {
-      const player = await Player.findById(id, {}, { session });
-      if (!player) {
-        throw new NotFoundError(`Player with id ${id} not found.`);
-      }
+    await Player.findByIdAndDelete(player.id, { session });
 
-      await this.teamService.removePlayerFromTeam(player.team, player.id, session);
-
-      await Player.findByIdAndDelete(id, { session });
-
-      if (player.imgUrl) {
-        await this.imageService.deleteImageFromCloudinary(player.imgUrl);
-      }
-    });
+    if (player.imgUrl) {
+      await this.imageService.deleteImageFromCloudinary(player.imgUrl);
+    }
   }
 
   private createUpdatePlayerPerformanceQuery(playerId: string, goals: number, assists: number, rating: number, playerOfTheMatch: boolean, cleanSheet: boolean) {

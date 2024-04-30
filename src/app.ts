@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import { json } from "body-parser";
 import cors from "cors";
 import dotenv from "dotenv";
@@ -14,6 +15,8 @@ const app = express();
 app.use(cors()); // cross origin requests
 app.use(json()); // format
 app.use(morgan("dev")); // logger
+
+// const cacheService = new CacheService();
 
 app.use("/player", playerRoutes);
 app.use("/game", gameRoutes);

@@ -1,27 +1,29 @@
 import { NextFunction, Request, Response } from "express";
-import { AddTeamRequest } from "../../types-changeToNPM/shared-DTOs";
-import TeamService from "../services/team-service";
+import { autoInjectable } from "tsyringe";
+import { TeamService, PlayerTeamService, TeamLeagueService } from "../services";
 
+@autoInjectable()
 class TeamController {
   private teamService: TeamService;
-  private static instance: TeamController;
+  private teamLeagueService: TeamLeagueService;
+  private playerTeamService: PlayerTeamService;
 
-  private constructor() {
-    this.teamService = TeamService.getInstance();
+  constructor(teamService: TeamService, teamLeagueService: TeamLeagueService, playerTeamService: PlayerTeamService) {
+    this.teamService = teamService;
+    this.teamLeagueService = teamLeagueService;
+    this.playerTeamService = playerTeamService;
   }
 
-  static getInstance(): TeamController {
-    if (!this.instance) {
-      this.instance = new TeamController();
+  async createTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { name } = req.body;
+
+    if (!name) {
+      res.status(400).json({ error: "Team Name is required" });
+      return;
     }
-    return this.instance;
-  }
-
-  async createAndAddTeamToLeague(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const teamData = req.body as AddTeamRequest;
 
     try {
-      const team = await this.teamService.createAndAddTeamToLeague(teamData);
+      const team = await this.teamService.createTeam(name);
       const file = req.file;
 
       if (file) {
@@ -29,6 +31,23 @@ class TeamController {
         team.imgUrl = imgUrl;
       }
       res.status(201).json(team);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  async addPlayerToTeam(req: Request, res: Response, next: NextFunction) {
+    const { id: teamId } = req.params;
+    const { playerId } = req.body;
+
+    if (!teamId || !playerId) {
+      res.status(404).send({ message: "Missing data" });
+      return;
+    }
+
+    try {
+      await this.playerTeamService.addPlayerToTeam(teamId, playerId);
+      res.sendStatus(200);
     } catch (error: any) {
       next(error);
     }
@@ -56,7 +75,7 @@ class TeamController {
   async deleteTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id: teamId } = req.params;
     try {
-      await this.teamService.deleteTeam(teamId);
+      await this.teamLeagueService.deleteTeam(teamId);
       res.sendStatus(204);
     } catch (error: any) {
       next(error);

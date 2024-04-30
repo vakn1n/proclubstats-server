@@ -1,19 +1,13 @@
 import { NextFunction, Request, Response } from "express";
 import GameService from "../services/game-service";
+import { autoInjectable } from "tsyringe";
 
+@autoInjectable()
 export default class GameController {
   private gameService: GameService;
-  private static instance: GameController;
 
-  private constructor() {
-    this.gameService = GameService.getInstance();
-  }
-
-  static getInstance(): GameController {
-    if (!this.instance) {
-      this.instance = new GameController();
-    }
-    return this.instance;
+  constructor(gameService: GameService) {
+    this.gameService = gameService;
   }
 
   async getGameById(req: Request, res: Response, next: NextFunction): Promise<void> {

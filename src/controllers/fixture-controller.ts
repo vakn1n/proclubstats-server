@@ -1,20 +1,14 @@
 import { NextFunction, Request, Response } from "express";
 import FixtureService from "../services/fixture-service";
 import { FixtureDTO, GameDTO } from "../../types-changeToNPM/shared-DTOs";
+import { autoInjectable } from "tsyringe";
 
+@autoInjectable()
 export default class FixtureController {
   private fixtureService: FixtureService;
-  private static instance: FixtureController;
 
-  private constructor() {
-    this.fixtureService = FixtureService.getInstance();
-  }
-
-  static getInstance(): FixtureController {
-    if (!this.instance) {
-      this.instance = new FixtureController();
-    }
-    return this.instance;
+  constructor(fixtureService: FixtureService) {
+    this.fixtureService = fixtureService;
   }
 
   async getFixtureById(req: Request, res: Response, next: NextFunction) {

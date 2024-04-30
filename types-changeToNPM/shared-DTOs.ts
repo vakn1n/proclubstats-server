@@ -64,19 +64,13 @@ export interface LeagueTableRow {
   cleanSheets: number;
 }
 
-export type AddPlayerDataRequest = {
+export type CreatePlayerDataRequest = {
   name: string;
   phone?: string;
   age: number;
-  teamId: string;
   position: string;
   imgUrl?: string;
   playablePositions?: string[];
-};
-
-export type AddTeamRequest = {
-  name: string;
-  leagueId: string;
 };
 
 export type TopScorer = {

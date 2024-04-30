@@ -1,5 +1,6 @@
-import mongoose, { ClientSession, Types } from "mongoose";
-import { AddTeamRequest, PlayerDTO, TeamDTO } from "../../types-changeToNPM/shared-DTOs";
+import { ClientSession, Types } from "mongoose";
+import { autoInjectable } from "tsyringe";
+import { PlayerDTO, TeamDTO } from "../../types-changeToNPM/shared-DTOs";
 import BadRequestError from "../errors/bad-request-error";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
@@ -7,25 +8,16 @@ import { PlayerMapper } from "../mappers/player-mapper";
 import { TeamMapper } from "../mappers/team-mapper";
 import Player, { IPlayer } from "../models/player";
 import Team, { ITeam } from "../models/team";
-import LeagueService from "./league-service";
-import { transactionService } from "./transaction-service";
-import ImageService from "./images-service";
+import { ImageService, PlayerService } from "./";
 
+@autoInjectable()
 class TeamService {
-  private static instance: TeamService;
+  private playerService: PlayerService;
   private imageService: ImageService;
-  private leagueService: LeagueService;
 
-  private constructor() {
-    this.imageService = ImageService.getInstance();
-    this.leagueService = LeagueService.getInstance();
-  }
-
-  static getInstance(): TeamService {
-    if (!TeamService.instance) {
-      TeamService.instance = new TeamService();
-    }
-    return TeamService.instance;
+  constructor(imageService: ImageService, playerService: PlayerService) {
+    this.imageService = imageService;
+    this.playerService = playerService;
   }
 
   async getTeamPlayers(teamId: string): Promise<PlayerDTO[]> {
@@ -40,24 +32,16 @@ class TeamService {
     return await PlayerMapper.mapToDtos(team.players);
   }
 
-  async createAndAddTeamToLeague(teamData: AddTeamRequest): Promise<ITeam> {
-    const { name, leagueId } = teamData;
+  async createTeam(name: string): Promise<TeamDTO> {
+    logger.info(`TeamService: Creating team with name ${name} `);
+    const team = await Team.create({ name });
+    return await TeamMapper.mapToDto(team);
+  }
 
-    logger.info(`TeamService: Creating team with name ${name} for league with id ${leagueId}`);
+  async assignTeamToLeague(team: ITeam, leagueId: string, session: ClientSession) {
+    logger.info(`Adding team with id ${team.id} to league with id ${leagueId}`);
 
-    return await transactionService.withTransaction(async (session) => {
-      const leagueObjectId = new mongoose.Types.ObjectId(leagueId);
-
-      const existingTeam = await Team.findOne({ name, league: leagueObjectId });
-      if (existingTeam) {
-        throw new Error(`Team with name ${name} already exists in league with id ${leagueId}`);
-      }
-
-      const newTeam = await Team.create({ name, league: leagueId });
-
-      await LeagueService.getInstance().addTeamToLeague(newTeam._id, leagueId, session);
-      return newTeam;
-    });
+    throw new Error("Method not implemented.");
   }
 
   async setTeamLogoImage(teamId: string, file: Express.Multer.File): Promise<string> {
@@ -89,22 +73,18 @@ class TeamService {
     return await TeamMapper.mapToDto(team);
   }
 
-  async deleteTeam(id: string): Promise<void> {
-    logger.info(`deleting team with id ${id}`);
-    const team = await Team.findById(id);
-    if (!team) {
-      throw new NotFoundError(`Team with id ${id} not found.`);
+  async deleteTeam(team: ITeam, session: ClientSession): Promise<void> {
+    logger.info(`deleting team with id ${team.id}`);
+
+    if (team.imgUrl) {
+      await this.imageService.deleteImageFromCloudinary(team.imgUrl);
     }
 
-    await transactionService.withTransaction(async (session) => {
-      await this.leagueService.removeTeamFromLeague(team.league._id, team._id, session);
+    if (team.players.length) {
+      await this.playerService.removePlayersFromTeam(team.players, session);
+    }
 
-      await Team.findByIdAndDelete(id, { session });
-
-      if (team.imgUrl) {
-        await this.imageService.deleteImageFromCloudinary(team.imgUrl);
-      }
-    });
+    await Team.findByIdAndDelete(team.id, { session });
   }
 
   async addPlayerToTeam(playerId: Types.ObjectId, teamId: string, session: ClientSession): Promise<void> {

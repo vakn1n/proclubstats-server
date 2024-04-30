@@ -1,3 +1,4 @@
+import { autoInjectable } from "tsyringe";
 import { ClientSession } from "mongodb";
 import { Types } from "mongoose";
 import { AddSingleFixtureData, FixtureDTO, LeagueTableRow, TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
@@ -8,8 +9,7 @@ import Fixture, { AddFixtureData, IFixture } from "../models/fixture";
 import { AddGameData } from "../models/game";
 import League, { ILeague } from "../models/league";
 import Team, { ITeam } from "../models/team";
-import CacheService from "./cache-service";
-import FixtureService from "./fixture-service";
+import { FixtureService, CacheService } from "./";
 import { transactionService } from "./transaction-service";
 import { FixtureMapper } from "../mappers/fixture-mapper";
 
@@ -17,21 +17,14 @@ const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
 const TOP_SCORERS_CACHE_KEY = "topScorers";
 const TOP_ASSISTS_CACHE_KEY = "topAssists";
 
-class LeagueService {
-  private static instance: LeagueService;
+@autoInjectable()
+export default class LeagueService {
   private cacheService: CacheService;
   private fixtureService: FixtureService;
 
-  private constructor() {
-    this.cacheService = CacheService.getInstance();
-    this.fixtureService = FixtureService.getInstance();
-  }
-
-  static getInstance(): LeagueService {
-    if (!LeagueService.instance) {
-      LeagueService.instance = new LeagueService();
-    }
-    return LeagueService.instance;
+  constructor(cacheService: CacheService, fixtureService: FixtureService) {
+    this.cacheService = cacheService;
+    this.fixtureService = fixtureService;
   }
 
   async addLeague(name: string, imgUrl?: string): Promise<ILeague> {
@@ -47,20 +40,20 @@ class LeagueService {
     return league;
   }
 
-  async addTeamToLeague(teamId: Types.ObjectId, leagueId: string, session: ClientSession): Promise<void> {
-    logger.info(`Adding team with id ${teamId} to league with id ${leagueId}`);
+  // async addTeamToLeague(teamId: Types.ObjectId, leagueId: string, session: ClientSession): Promise<void> {
+  //   logger.info(`Adding team with id ${teamId} to league with id ${leagueId}`);
 
-    const league = await League.findById(leagueId);
-    if (!league) {
-      throw new NotFoundError(`League with id ${leagueId} not found`);
-    }
+  //   const league = await League.findById(leagueId);
+  //   if (!league) {
+  //     throw new NotFoundError(`League with id ${leagueId} not found`);
+  //   }
 
-    league.teams.push(teamId);
-    await league.save({ session });
+  //   league.teams.push(teamId);
+  //   await league.save({ session });
 
-    // invalidate cache for table when team is added to the league
-    await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`);
-  }
+  //   // invalidate cache for table when team is added to the league
+  //   await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`);
+  // }
 
   async removeTeamFromLeague(leagueId: Types.ObjectId, teamId: Types.ObjectId, session: ClientSession): Promise<void> {
     logger.info(`Removing team with id ${teamId} from league with id ${leagueId}`);
@@ -444,5 +437,3 @@ class LeagueService {
     await this.cacheService.set(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`, players, 10 * 60 * 60 * 1000);
   }
 }
-
-export default LeagueService;
