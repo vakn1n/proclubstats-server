@@ -9,6 +9,19 @@ import { connectToDatabase } from "./database";
 import { playerRoutes, fixtureRoutes, leagueRoutes, teamRoutes, gameRoutes } from "./routes";
 import errorHandlerMiddleware from "./middlewares/error-handler";
 import logger from "./logger";
+import { container } from "tsyringe";
+import { FixtureController, GameController, LeagueController, PlayerController, TeamController } from "./controllers";
+import {
+  CacheService,
+  FixtureService,
+  GameService,
+  ImageService,
+  LeagueService,
+  PlayerService,
+  PlayerTeamService,
+  TeamLeagueService,
+  TeamService,
+} from "./services";
 
 const app = express();
 
@@ -18,11 +31,27 @@ app.use(morgan("dev")); // logger
 
 // const cacheService = new CacheService();
 
-app.use("/player", playerRoutes);
-app.use("/game", gameRoutes);
+console.log("nsjad");
+
+container.registerSingleton(CacheService);
+container.registerSingleton(TeamService);
+
+container.registerSingleton(PlayerTeamService);
+
+container.registerSingleton(LeagueService);
+
+container.registerSingleton(TeamLeagueService);
+
+container.registerSingleton(GameService);
+
+container.registerSingleton(FixtureService);
+container.registerSingleton(ImageService);
+
 app.use("/league", leagueRoutes);
 app.use("/team", teamRoutes);
 app.use("/fixture", fixtureRoutes);
+app.use("/game", gameRoutes);
+app.use("/player", playerRoutes);
 
 app.use("*", (req: Request, res: Response) => {
   res.status(404).json({

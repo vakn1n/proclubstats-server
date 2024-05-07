@@ -12,8 +12,8 @@ import { ImageService, PlayerService } from "./";
 
 @autoInjectable()
 class TeamService {
-  private playerService: PlayerService;
   private imageService: ImageService;
+  private playerService: PlayerService;
 
   constructor(imageService: ImageService, playerService: PlayerService) {
     this.imageService = imageService;

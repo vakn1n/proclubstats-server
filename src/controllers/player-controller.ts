@@ -1,15 +1,15 @@
 import { NextFunction, Request, Response } from "express";
 import { CreatePlayerDataRequest } from "../../types-changeToNPM/shared-DTOs";
 import PlayerService from "../services/player-service";
-import { autoInjectable } from "tsyringe";
 import PlayerTeamService from "../services/player-team-service";
 
-@autoInjectable()
 export default class PlayerController {
   private playerService: PlayerService;
   private playerTeamService: PlayerTeamService;
 
   constructor(playerService: PlayerService, playerTeamService: PlayerTeamService) {
+    console.log("player controller initialized");
+
     this.playerService = playerService;
     this.playerTeamService = playerTeamService;
   }

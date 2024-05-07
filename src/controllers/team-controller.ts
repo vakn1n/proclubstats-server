@@ -1,14 +1,14 @@
 import { NextFunction, Request, Response } from "express";
-import { autoInjectable } from "tsyringe";
-import { TeamService, PlayerTeamService, TeamLeagueService } from "../services";
+import { PlayerTeamService, TeamLeagueService, TeamService } from "../services";
 
-@autoInjectable()
 class TeamController {
   private teamService: TeamService;
   private teamLeagueService: TeamLeagueService;
   private playerTeamService: PlayerTeamService;
 
   constructor(teamService: TeamService, teamLeagueService: TeamLeagueService, playerTeamService: PlayerTeamService) {
+    console.log(`team controller initialized`);
+
     this.teamService = teamService;
     this.teamLeagueService = teamLeagueService;
     this.playerTeamService = playerTeamService;

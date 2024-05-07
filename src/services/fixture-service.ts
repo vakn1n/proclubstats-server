@@ -12,6 +12,8 @@ export default class FixtureService {
   private gameService: GameService;
 
   constructor(gameService: GameService) {
+    console.log("game");
+
     this.gameService = gameService;
   }
 

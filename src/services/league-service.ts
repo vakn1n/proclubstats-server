@@ -23,6 +23,8 @@ export default class LeagueService {
   private fixtureService: FixtureService;
 
   constructor(cacheService: CacheService, fixtureService: FixtureService) {
+    console.log("league");
+
     this.cacheService = cacheService;
     this.fixtureService = fixtureService;
   }

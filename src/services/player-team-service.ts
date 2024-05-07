@@ -12,9 +12,9 @@ export default class PlayerTeamService {
   private playerService: PlayerService;
   private teamService: TeamService;
 
-  constructor(playerService: PlayerService, teamService: TeamService) {
-    this.playerService = playerService;
+  constructor(teamService: TeamService, playerService: PlayerService) {
     this.teamService = teamService;
+    this.playerService = playerService;
   }
 
   async addPlayerToTeam(playerId: string, teamId: string): Promise<void> {

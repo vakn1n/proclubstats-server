@@ -3,20 +3,13 @@ import fs from "fs";
 import { promisify } from "util";
 import logger from "../logger";
 import { extractPublicId } from "cloudinary-build-url";
+import { autoInjectable } from "tsyringe";
 
 const unlinkAsync = promisify(fs.unlink);
 
+@autoInjectable()
 export default class ImageService {
-  private static instance: ImageService;
-
-  static getInstance(): ImageService {
-    if (!ImageService.instance) {
-      ImageService.instance = new ImageService();
-    }
-    return ImageService.instance;
-  }
-
-  private constructor() {
+  constructor() {
     cloudinary.config({
       cloud_name: process.env.CLOUDINARY_NAME,
       api_key: process.env.CLOUDINARY_KEY,

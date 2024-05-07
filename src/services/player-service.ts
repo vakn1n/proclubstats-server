@@ -1,4 +1,5 @@
 import { ClientSession, Types } from "mongoose";
+import { autoInjectable } from "tsyringe";
 import { CreatePlayerDataRequest, PlayerDTO } from "../../types-changeToNPM/shared-DTOs";
 import NotFoundError from "../errors/not-found-error";
 import logger from "../logger";
@@ -6,9 +7,7 @@ import { PlayerMapper } from "../mappers/player-mapper";
 import { IPlayerGamePerformance } from "../models/game";
 import Player, { IPlayer } from "../models/player";
 import ImageService from "./images-service";
-import TeamService from "./team-service";
 import { transactionService } from "./transaction-service";
-import { autoInjectable } from "tsyringe";
 
 @autoInjectable()
 export default class PlayerService {
