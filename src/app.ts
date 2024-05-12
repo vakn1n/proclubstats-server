@@ -1,35 +1,22 @@
-import "reflect-metadata";
 import { json } from "body-parser";
 import cors from "cors";
 import dotenv from "dotenv";
-dotenv.config(); // set env variables
 import express, { Request, Response } from "express";
 import morgan from "morgan";
-import { connectToDatabase } from "./database";
-import { playerRoutes, fixtureRoutes, leagueRoutes, teamRoutes, gameRoutes } from "./routes";
-import errorHandlerMiddleware from "./middlewares/error-handler";
-import logger from "./logger";
+import "reflect-metadata";
 import { container } from "tsyringe";
-import { FixtureController, GameController, LeagueController, PlayerController, TeamController } from "./controllers";
-import {
-  CacheService,
-  FixtureService,
-  GameService,
-  ImageService,
-  LeagueService,
-  PlayerService,
-  PlayerTeamService,
-  TeamLeagueService,
-  TeamService,
-} from "./services";
+import { connectToDatabase } from "./database";
+import logger from "./logger";
+import errorHandlerMiddleware from "./middlewares/error-handler";
+import { fixtureRoutes, gameRoutes, leagueRoutes, playerRoutes, teamRoutes } from "./routes";
+import { CacheService, FixtureService, GameService, ImageService, LeagueService, PlayerTeamService, TeamLeagueService, TeamService } from "./services";
+dotenv.config(); // set env variables
 
 const app = express();
 
 app.use(cors()); // cross origin requests
 app.use(json()); // format
 app.use(morgan("dev")); // logger
-
-// const cacheService = new CacheService();
 
 console.log("nsjad");
 

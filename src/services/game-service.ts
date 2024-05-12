@@ -87,9 +87,9 @@ class GameService {
 
     return await transactionService.withTransaction(async (session) => {
       if (game.status !== GAME_STATUS.SCHEDULED) {
-        await this.teamService.revertTeamGameData(game.homeTeam, game.result!.homeTeamGoals, game.result!.awayTeamGoals, session);
+        await this.teamService.revertTeamGameStats(game.homeTeam, game.result!.homeTeamGoals, game.result!.awayTeamGoals, session);
 
-        await this.teamService.revertTeamGameData(game.awayTeam, game.result!.awayTeamGoals, game.result!.homeTeamGoals, session);
+        await this.teamService.revertTeamGameStats(game.awayTeam, game.result!.awayTeamGoals, game.result!.homeTeamGoals, session);
       }
       game.result = {
         homeTeamGoals,

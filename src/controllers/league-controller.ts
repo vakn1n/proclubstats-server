@@ -5,20 +5,32 @@ import ImageService from "../services/images-service";
 import { AddSingleFixtureData } from "../../types-changeToNPM/shared-DTOs";
 import { autoInjectable } from "tsyringe";
 import { TeamLeagueService } from "../services";
+import ILeagueController from "../interfaces/league/league-controller.interace";
+import { ParamsDictionary } from "express-serve-static-core";
+import { ParsedQs } from "qs";
+import ILeagueService from "../interfaces/league/league-service.interface";
 
 @autoInjectable()
-class LeagueController {
-  private leagueService: LeagueService;
+export default class LeagueController implements ILeagueController {
+  private leagueService: ILeagueService;
   private teamLeagueService: TeamLeagueService;
   private imageService: ImageService;
 
-  constructor(leagueService: LeagueService, teamLeagueService: TeamLeagueService, imageService: ImageService) {
+  constructor(leagueService: ILeagueService, teamLeagueService: TeamLeagueService, imageService: ImageService) {
     this.leagueService = leagueService;
     this.imageService = imageService;
     this.teamLeagueService = teamLeagueService;
   }
-
-  async addLeague(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async getTopPlayers(req: Request, res: Response, next: NextFunction) {
+    // const { leagueId } = req.params;
+    // try {
+    //   const topPlayers = await this.leagueService.getTopPlayers(leagueId);
+    //   res.json(topPlayers);
+    // } catch (error: any) {
+    //   next(error);
+    // }
+  }
+  async createLeague(req: Request, res: Response, next: NextFunction) {
     const { name } = req.body;
     if (!name) {
       res.status(400).json({ error: "Name is required" });
@@ -43,11 +55,11 @@ class LeagueController {
     }
   }
 
-  async removeLeague(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async deleteLeague(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
 
     try {
-      await this.leagueService.removeLeague(id);
+      await this.leagueService.deleteLeague(id);
       res.sendStatus(204);
     } catch (error: any) {
       next(error);
@@ -166,7 +178,7 @@ class LeagueController {
     }
 
     try {
-      const fixtures = await this.leagueService.generateFixtures(leagueId, startDate, fixturesPerWeek);
+      const fixtures = await this.leagueService.generateLeagueFixtures(leagueId, startDate, fixturesPerWeek);
       res.status(201).json(fixtures);
     } catch (error) {
       next(error);
@@ -182,12 +194,10 @@ class LeagueController {
     }
 
     try {
-      await this.leagueService.deleteAllFixtures(leagueId);
+      await this.leagueService.deleteAllLeagueFixtures(leagueId);
       res.sendStatus(204);
     } catch (error) {
       next(error);
     }
   }
 }
-
-export default LeagueController;

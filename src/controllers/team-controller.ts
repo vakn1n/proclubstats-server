@@ -1,14 +1,14 @@
 import { NextFunction, Request, Response } from "express";
-import { PlayerTeamService, TeamLeagueService, TeamService } from "../services";
+import ITeamController from "../interfaces/team/team-controller.interface";
+import ITeamService from "../interfaces/team/team-service.interface";
+import { PlayerTeamService, TeamLeagueService } from "../services";
 
-class TeamController {
-  private teamService: TeamService;
+export default class TeamController implements ITeamController {
+  private teamService: ITeamService;
   private teamLeagueService: TeamLeagueService;
   private playerTeamService: PlayerTeamService;
 
-  constructor(teamService: TeamService, teamLeagueService: TeamLeagueService, playerTeamService: PlayerTeamService) {
-    console.log(`team controller initialized`);
-
+  constructor(teamService: ITeamService, teamLeagueService: TeamLeagueService, playerTeamService: PlayerTeamService) {
     this.teamService = teamService;
     this.teamLeagueService = teamLeagueService;
     this.playerTeamService = playerTeamService;
@@ -27,7 +27,7 @@ class TeamController {
       const file = req.file;
 
       if (file) {
-        const imgUrl = await this.teamService.setTeamLogoImage(team.id, file);
+        const imgUrl = await this.teamService.setTeamImage(team.id, file);
         team.imgUrl = imgUrl;
       }
       res.status(201).json(team);
@@ -65,7 +65,7 @@ class TeamController {
     }
 
     try {
-      await this.teamService.setTeamLogoImage(teamId, file);
+      await this.teamService.setTeamImage(teamId, file);
       res.sendStatus(200);
     } catch (err) {
       next(err);
@@ -126,5 +126,3 @@ class TeamController {
     }
   }
 }
-
-export default TeamController;

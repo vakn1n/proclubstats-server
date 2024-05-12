@@ -6,13 +6,13 @@ import { container } from "tsyringe";
 const router = Router();
 const leagueController = container.resolve(LeagueController);
 
-router.post("/", upload.single("file"), leagueController.addLeague);
+router.post("/", upload.single("file"), leagueController.createLeague);
 router.post("/:id/generateFixtures", leagueController.generateLeagueFixtures);
 router.post("/:id/createFixture", leagueController.createLeagueFixture);
 
 router.put("/:id/addTeam", leagueController.addTeamToLeague);
 
-router.delete("/:id", leagueController.removeLeague);
+router.delete("/:id", leagueController.deleteLeague);
 
 router.get("/:id", leagueController.getLeagueById);
 router.get("/", leagueController.getAllLeagues);

@@ -9,15 +9,19 @@ import { TeamMapper } from "../mappers/team-mapper";
 import Player, { IPlayer } from "../models/player";
 import Team, { ITeam } from "../models/team";
 import { ImageService, PlayerService } from "./";
+import ITeamService from "../interfaces/team/team-service.interface";
 
 @autoInjectable()
-class TeamService {
+export default class TeamService implements ITeamService {
   private imageService: ImageService;
   private playerService: PlayerService;
 
   constructor(imageService: ImageService, playerService: PlayerService) {
     this.imageService = imageService;
     this.playerService = playerService;
+  }
+  getAllTeams(): Promise<TeamDTO[]> {
+    throw new Error("Method not implemented.");
   }
 
   async getTeamPlayers(teamId: string): Promise<PlayerDTO[]> {
@@ -38,13 +42,7 @@ class TeamService {
     return await TeamMapper.mapToDto(team);
   }
 
-  async assignTeamToLeague(team: ITeam, leagueId: string, session: ClientSession) {
-    logger.info(`Adding team with id ${team.id} to league with id ${leagueId}`);
-
-    throw new Error("Method not implemented.");
-  }
-
-  async setTeamLogoImage(teamId: string, file: Express.Multer.File): Promise<string> {
+  async setTeamImage(teamId: string, file: Express.Multer.File): Promise<string> {
     logger.info(`TeamService: setting logo image for team with ${teamId}`);
 
     const team = await Team.findById(teamId);
@@ -87,33 +85,6 @@ class TeamService {
     await Team.findByIdAndDelete(team.id, { session });
   }
 
-  async addPlayerToTeam(playerId: Types.ObjectId, teamId: string, session: ClientSession): Promise<void> {
-    logger.info(`Team Service: Adding player ${playerId} to team ${teamId}`);
-    const team = await Team.findById(teamId, {}, { session });
-
-    if (!team) {
-      throw new Error(`Team with id ${teamId} not found`);
-    }
-    team.players.push(playerId);
-    await team.save({ session });
-  }
-
-  async removePlayerFromTeam(teamId: Types.ObjectId, playerId: Types.ObjectId, session: ClientSession) {
-    logger.info(`Team Service: Removing player ${playerId} from team ${teamId}`);
-    const team = await Team.findById(teamId, {}, { session });
-    if (!team) {
-      throw new Error(`Team with id ${teamId} not found`);
-    }
-
-    const playerIndex = team.players.indexOf(playerId);
-    if (playerIndex === -1) {
-      throw new NotFoundError(`Player with id ${playerId} not found in team with id ${teamId}`);
-    }
-
-    team.players.splice(playerIndex, 1);
-    await team.save({ session });
-  }
-
   async updateTeamGameStats(teamId: Types.ObjectId, goalsScored: number, goalsConceded: number, session: ClientSession): Promise<void> {
     logger.info(`TeamService: Updating stats for team ${teamId}`);
 
@@ -122,9 +93,7 @@ class TeamService {
     if (!team) {
       throw new NotFoundError(`Team with id ${teamId} not found`);
     }
-    console.log(team.stats);
 
-    // Update team stats
     team.stats.goalsScored += goalsScored;
     team.stats.goalsConceded += goalsConceded;
 
@@ -143,13 +112,12 @@ class TeamService {
     await team.save({ session });
   }
 
-  async revertTeamGameData(teamId: Types.ObjectId, goalsScored: number, goalsConceded: number, session: ClientSession): Promise<void> {
+  async revertTeamGameStats(teamId: Types.ObjectId, goalsScored: number, goalsConceded: number, session: ClientSession): Promise<void> {
     logger.info(`TeamService: Reverting stats for team ${teamId}`);
     const team = await Team.findById(teamId, {}, { session });
     if (!team) {
       throw new NotFoundError(`Team with id ${teamId} not found`);
     }
-    console.log(team.stats);
 
     // Update team stats
     team.stats.goalsScored -= goalsScored;
@@ -189,6 +157,20 @@ class TeamService {
     team.captain = new Types.ObjectId(captainId);
     await team.save();
   }
-}
 
-export default TeamService;
+  async removePlayerFromTeam(teamId: Types.ObjectId, playerId: Types.ObjectId, session: ClientSession) {
+    logger.info(`Team Service: Removing player ${playerId} from team ${teamId}`);
+    const team = await Team.findById(teamId, {}, { session });
+    if (!team) {
+      throw new Error(`Team with id ${teamId} not found`);
+    }
+
+    const playerIndex = team.players.indexOf(playerId);
+    if (playerIndex === -1) {
+      throw new NotFoundError(`Player with id ${playerId} not found in team with id ${teamId}`);
+    }
+
+    team.players.splice(playerIndex, 1);
+    await team.save({ session });
+  }
+}

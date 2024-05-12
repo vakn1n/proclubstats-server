@@ -12,32 +12,34 @@ import Team, { ITeam } from "../models/team";
 import { FixtureService, CacheService } from "./";
 import { transactionService } from "./transaction-service";
 import { FixtureMapper } from "../mappers/fixture-mapper";
+import ILeagueService from "../interfaces/league/league-service.interface";
+import ILeagueRepository from "../interfaces/league/league-repository.interface";
 
 const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
 const TOP_SCORERS_CACHE_KEY = "topScorers";
 const TOP_ASSISTS_CACHE_KEY = "topAssists";
 
 @autoInjectable()
-export default class LeagueService {
+export default class LeagueService implements ILeagueService {
   private cacheService: CacheService;
   private fixtureService: FixtureService;
+  private leagueRepository: ILeagueRepository;
 
-  constructor(cacheService: CacheService, fixtureService: FixtureService) {
-    console.log("league");
-
+  constructor(leagueRepository: ILeagueRepository, cacheService: CacheService, fixtureService: FixtureService) {
+    this.leagueRepository = leagueRepository;
     this.cacheService = cacheService;
     this.fixtureService = fixtureService;
   }
 
   async addLeague(name: string, imgUrl?: string): Promise<ILeague> {
-    const isLeagueExists = !!(await League.exists({ name }));
+    const isLeagueExists = await this.leagueRepository.isLeagueNameExists(name);
     if (isLeagueExists) {
       throw new BadRequestError(`League ${name} already exists`);
     }
 
-    logger.info(`Adding league with name ${name}`);
+    logger.info(`LeagueService: Adding league with name ${name}`);
 
-    const league = await League.create({ name, imgUrl });
+    const league = await this.leagueRepository.createLeague(name, imgUrl);
 
     return league;
   }
@@ -109,7 +111,7 @@ export default class LeagueService {
     });
   }
 
-  async generateFixtures(leagueId: string, leagueStartDate: string, fixturesPerWeek: number): Promise<IFixture[]> {
+  async generateLeagueFixtures(leagueId: string, leagueStartDate: string, fixturesPerWeek: number): Promise<FixtureDTO[]> {
     logger.info(`LeagueService: Generating fixtures for league with id ${leagueId}`);
 
     const league = await League.findById(leagueId);
@@ -134,7 +136,7 @@ export default class LeagueService {
       }
       league.fixtures = fixtures.map((fixture) => fixture._id);
       await league.save({ session });
-      return fixtures;
+      return await FixtureMapper.mapToDtos(fixtures);
     });
   }
 
@@ -180,7 +182,7 @@ export default class LeagueService {
     return fixtures;
   }
 
-  async deleteAllFixtures(leagueId: string): Promise<void> {
+  async deleteAllLeagueFixtures(leagueId: string): Promise<void> {
     logger.info(`LeagueService: removing all fixtures for league with id ${leagueId}`);
 
     const league = await League.findById(leagueId);
@@ -200,15 +202,13 @@ export default class LeagueService {
     });
   }
 
-  async removeLeague(id: string): Promise<ILeague> {
+  async deleteLeague(id: string): Promise<void> {
     const league = await League.findByIdAndDelete(id);
     if (!league) {
       throw new NotFoundError(`League with id ${id} not found`);
     }
 
     await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${id}`);
-
-    return league;
   }
 
   async getLeagueById(id: string): Promise<ILeague> {

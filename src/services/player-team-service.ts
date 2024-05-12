@@ -1,18 +1,19 @@
-import { autoInjectable } from "tsyringe";
-import { PlayerService, TeamService } from ".";
-import NotFoundError from "../errors/not-found-error";
-import Player from "../models/player";
-import { transactionService } from "./transaction-service";
-import logger from "../logger";
-import Team from "../models/team";
+import { autoInjectable, inject } from "tsyringe";
+import { PlayerService } from ".";
 import BadRequestError from "../errors/bad-request-error";
+import NotFoundError from "../errors/not-found-error";
+import ITeamService from "../interfaces/team/team-service.interface";
+import logger from "../logger";
+import Player from "../models/player";
+import Team from "../models/team";
+import { transactionService } from "./transaction-service";
 
 @autoInjectable()
 export default class PlayerTeamService {
   private playerService: PlayerService;
-  private teamService: TeamService;
+  private teamService: ITeamService;
 
-  constructor(teamService: TeamService, playerService: PlayerService) {
+  constructor(teamService: ITeamService, @inject(PlayerService) playerService: PlayerService) {
     this.teamService = teamService;
     this.playerService = playerService;
   }
