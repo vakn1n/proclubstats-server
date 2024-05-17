@@ -1,25 +1,26 @@
-import { autoInjectable } from "tsyringe";
 import { ClientSession } from "mongodb";
 import { Types } from "mongoose";
-import { AddSingleFixtureData, FixtureDTO, LeagueTableRow, TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
+import { injectable } from "tsyringe";
+import { AddSingleFixtureData, FixtureDTO, LeagueDTO, LeagueTableRow, TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
 import BadRequestError from "../errors/bad-request-error";
 import NotFoundError from "../errors/not-found-error";
+import ILeagueRepository from "../interfaces/league/league-repository.interface";
+import ILeagueService from "../interfaces/league/league-service.interface";
 import logger from "../logger";
-import Fixture, { AddFixtureData, IFixture } from "../models/fixture";
+import { FixtureMapper } from "../mappers/fixture-mapper";
+import Fixture, { AddFixtureData } from "../models/fixture";
 import { AddGameData } from "../models/game";
 import League, { ILeague } from "../models/league";
 import Team, { ITeam } from "../models/team";
-import { FixtureService, CacheService } from "./";
+import { CacheService, FixtureService } from "./";
 import { transactionService } from "./transaction-service";
-import { FixtureMapper } from "../mappers/fixture-mapper";
-import ILeagueService from "../interfaces/league/league-service.interface";
-import ILeagueRepository from "../interfaces/league/league-repository.interface";
+import LeagueMapper from "../mappers/league-mapper";
 
 const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
 const TOP_SCORERS_CACHE_KEY = "topScorers";
 const TOP_ASSISTS_CACHE_KEY = "topAssists";
 
-@autoInjectable()
+@injectable()
 export default class LeagueService implements ILeagueService {
   private cacheService: CacheService;
   private fixtureService: FixtureService;
@@ -62,10 +63,7 @@ export default class LeagueService implements ILeagueService {
   async removeTeamFromLeague(leagueId: Types.ObjectId, teamId: Types.ObjectId, session: ClientSession): Promise<void> {
     logger.info(`Removing team with id ${teamId} from league with id ${leagueId}`);
 
-    const league = await League.findById(leagueId);
-    if (!league) {
-      throw new NotFoundError(`League with id ${leagueId} not found`);
-    }
+    const league = await this.leagueRepository.getLeagueById(leagueId);
 
     const teamIndex = league.teams.indexOf(teamId);
     if (teamIndex === -1) {
@@ -74,7 +72,6 @@ export default class LeagueService implements ILeagueService {
 
     league.teams.splice(teamIndex, 1);
     await league.save({ session });
-
     await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`);
   }
 
@@ -83,10 +80,7 @@ export default class LeagueService implements ILeagueService {
 
     logger.info(`LeagueService: adding fixture ${round} for league ${leagueId}`);
 
-    const league = await League.findById(leagueId);
-    if (!league) {
-      throw new NotFoundError(`League with id ${leagueId} not found`);
-    }
+    const league = await this.leagueRepository.getLeagueById(leagueId);
 
     const isFixtureRoundExists = await Fixture.exists({ round, league: league._id });
 
@@ -107,6 +101,7 @@ export default class LeagueService implements ILeagueService {
       league.fixtures.push(fixture._id);
       const fixtureDto = await FixtureMapper.mapToDto(fixture);
       await league.save({ session });
+
       return fixtureDto;
     });
   }
@@ -114,11 +109,7 @@ export default class LeagueService implements ILeagueService {
   async generateLeagueFixtures(leagueId: string, leagueStartDate: string, fixturesPerWeek: number): Promise<FixtureDTO[]> {
     logger.info(`LeagueService: Generating fixtures for league with id ${leagueId}`);
 
-    const league = await League.findById(leagueId);
-
-    if (!league) {
-      throw new NotFoundError(`League with id ${leagueId} not found`);
-    }
+    const league = await this.leagueRepository.getLeagueById(leagueId);
 
     if (league.teams.length < 2) {
       throw new BadRequestError(`League with id ${leagueId} must have at least 2 teams`);
@@ -185,10 +176,7 @@ export default class LeagueService implements ILeagueService {
   async deleteAllLeagueFixtures(leagueId: string): Promise<void> {
     logger.info(`LeagueService: removing all fixtures for league with id ${leagueId}`);
 
-    const league = await League.findById(leagueId);
-    if (!league) {
-      throw new NotFoundError(`League with id ${leagueId} not found`);
-    }
+    const league = await this.leagueRepository.getLeagueById(leagueId);
 
     await transactionService.withTransaction(async (session) => {
       await this.fixtureService.deleteFixtures(league.fixtures, session);
@@ -203,25 +191,22 @@ export default class LeagueService implements ILeagueService {
   }
 
   async deleteLeague(id: string): Promise<void> {
-    const league = await League.findByIdAndDelete(id);
-    if (!league) {
-      throw new NotFoundError(`League with id ${id} not found`);
-    }
+    await this.leagueRepository.deleteLeague(id);
 
     await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${id}`);
   }
 
-  async getLeagueById(id: string): Promise<ILeague> {
-    const league = await League.findById(id);
-    if (!league) {
-      throw new NotFoundError(`cant find league with id ${id}`);
-    }
+  async getLeagueById(id: string): Promise<LeagueDTO> {
+    logger.info(`LeagueService: getting league with id ${id}`);
+    const league = await this.leagueRepository.getLeagueById(id);
 
-    return league;
+    return await LeagueMapper.toDto(league);
   }
 
-  async getAllLeagues(): Promise<ILeague[]> {
-    return await League.find();
+  async getAllLeagues(): Promise<LeagueDTO[]> {
+    logger.info(`LeagueService: getting all leagues`);
+    const leagues = await this.leagueRepository.getAllLeagues();
+    return await LeagueMapper.toDtos(leagues);
   }
 
   async getLeagueTable(leagueId: string): Promise<LeagueTableRow[]> {
@@ -258,9 +243,11 @@ export default class LeagueService implements ILeagueService {
   }
 
   private async calculateLeagueTable(leagueId: string): Promise<LeagueTableRow[]> {
-    const league = await League.findById(leagueId).populate<{ teams: ITeam[] }>({
+    const league = await (
+      await this.leagueRepository.getLeagueById(leagueId)
+    ).populate<{ teams: ITeam[] }>({
       path: "teams",
-      select: "name stats id imgUrl",
+      select: `${}`,
     });
 
     if (!league) {

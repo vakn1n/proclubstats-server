@@ -1,11 +1,11 @@
-import { autoInjectable } from "tsyringe";
+import { injectable } from "tsyringe";
 import { LeagueService, TeamService } from ".";
 import BadRequestError from "../errors/bad-request-error";
 import League from "../models/league";
 import Team from "../models/team";
 import { transactionService } from "./transaction-service";
 
-@autoInjectable()
+@injectable()
 export default class TeamLeagueService {
   private teamService: TeamService;
   private leagueService: LeagueService;

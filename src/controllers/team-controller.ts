@@ -2,7 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import ITeamController from "../interfaces/team/team-controller.interface";
 import ITeamService from "../interfaces/team/team-service.interface";
 import { PlayerTeamService, TeamLeagueService } from "../services";
+import { injectable } from "tsyringe";
 
+@injectable()
 export default class TeamController implements ITeamController {
   private teamService: ITeamService;
   private teamLeagueService: TeamLeagueService;

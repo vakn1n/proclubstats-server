@@ -1,6 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
-import { GAME_STATUS, GameDTO, PlayerPerformanceDTO } from "../../types-changeToNPM/shared-DTOs";
-import logger from "../logger";
+import { GAME_STATUS } from "../../types-changeToNPM/shared-DTOs";
 
 export type AddGameData = {
   homeTeam: mongoose.Types.ObjectId;

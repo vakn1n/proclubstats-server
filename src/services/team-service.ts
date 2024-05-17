@@ -1,54 +1,53 @@
 import { ClientSession, Types } from "mongoose";
-import { autoInjectable } from "tsyringe";
+import { injectable } from "tsyringe";
 import { PlayerDTO, TeamDTO } from "../../types-changeToNPM/shared-DTOs";
 import BadRequestError from "../errors/bad-request-error";
 import NotFoundError from "../errors/not-found-error";
+import ITeamRepository from "../interfaces/team/team-repository.interface";
+import ITeamService from "../interfaces/team/team-service.interface";
 import logger from "../logger";
 import { PlayerMapper } from "../mappers/player-mapper";
 import { TeamMapper } from "../mappers/team-mapper";
-import Player, { IPlayer } from "../models/player";
-import Team, { ITeam } from "../models/team";
+import Player from "../models/player";
+import { ITeam } from "../models/team";
 import { ImageService, PlayerService } from "./";
-import ITeamService from "../interfaces/team/team-service.interface";
 
-@autoInjectable()
+@injectable()
 export default class TeamService implements ITeamService {
   private imageService: ImageService;
   private playerService: PlayerService;
+  private teamRepository: ITeamRepository;
 
-  constructor(imageService: ImageService, playerService: PlayerService) {
+  constructor(teamRepository: ITeamRepository, imageService: ImageService, playerService: PlayerService) {
+    this.teamRepository = teamRepository;
     this.imageService = imageService;
     this.playerService = playerService;
   }
-  getAllTeams(): Promise<TeamDTO[]> {
-    throw new Error("Method not implemented.");
+
+  async getAllTeams(): Promise<TeamDTO[]> {
+    const teams = await this.teamRepository.getTeams();
+    return await TeamMapper.mapToDtos(teams);
   }
 
   async getTeamPlayers(teamId: string): Promise<PlayerDTO[]> {
     logger.info(`TeamService: getting players for team ${teamId}`);
 
-    const team = await Team.findById(teamId).populate<{ players: IPlayer[] }>("players");
-
-    if (!team) {
-      throw new NotFoundError(`Team ${teamId} not found`);
-    }
+    const team = await this.teamRepository.getTeamWithPlayers(teamId);
 
     return await PlayerMapper.mapToDtos(team.players);
   }
 
   async createTeam(name: string): Promise<TeamDTO> {
     logger.info(`TeamService: Creating team with name ${name} `);
-    const team = await Team.create({ name });
+
+    const team = await this.teamRepository.createTeam(name);
     return await TeamMapper.mapToDto(team);
   }
 
   async setTeamImage(teamId: string, file: Express.Multer.File): Promise<string> {
     logger.info(`TeamService: setting logo image for team with ${teamId}`);
 
-    const team = await Team.findById(teamId);
-    if (!team) {
-      throw new NotFoundError(`Team with id ${teamId} not found`);
-    }
+    const team = await this.teamRepository.getTeamById(teamId);
 
     if (team.imgUrl) {
       // remove current image from cloud
@@ -64,10 +63,7 @@ export default class TeamService implements ITeamService {
   async getTeamById(id: string): Promise<TeamDTO> {
     logger.info(`TeamService: getting team ${id}`);
 
-    const team = await Team.findById(id);
-    if (!team) {
-      throw new NotFoundError(`Team with id of: ${id} not found`);
-    }
+    const team = await this.teamRepository.getTeamById(id);
     return await TeamMapper.mapToDto(team);
   }
 
@@ -82,17 +78,13 @@ export default class TeamService implements ITeamService {
       await this.playerService.removePlayersFromTeam(team.players, session);
     }
 
-    await Team.findByIdAndDelete(team.id, { session });
+    await this.teamRepository.deleteTeamById(team.id, session);
   }
 
   async updateTeamGameStats(teamId: Types.ObjectId, goalsScored: number, goalsConceded: number, session: ClientSession): Promise<void> {
     logger.info(`TeamService: Updating stats for team ${teamId}`);
 
-    const team = await Team.findById(teamId, {}, { session });
-
-    if (!team) {
-      throw new NotFoundError(`Team with id ${teamId} not found`);
-    }
+    const team = await this.teamRepository.getTeamById(teamId, session);
 
     team.stats.goalsScored += goalsScored;
     team.stats.goalsConceded += goalsConceded;
@@ -114,10 +106,8 @@ export default class TeamService implements ITeamService {
 
   async revertTeamGameStats(teamId: Types.ObjectId, goalsScored: number, goalsConceded: number, session: ClientSession): Promise<void> {
     logger.info(`TeamService: Reverting stats for team ${teamId}`);
-    const team = await Team.findById(teamId, {}, { session });
-    if (!team) {
-      throw new NotFoundError(`Team with id ${teamId} not found`);
-    }
+
+    const team = await this.teamRepository.getTeamById(teamId, session);
 
     // Update team stats
     team.stats.goalsScored -= goalsScored;
@@ -138,11 +128,7 @@ export default class TeamService implements ITeamService {
   async setTeamCaptain(teamId: string, captainId: string): Promise<void> {
     logger.info(`Team Service: Setting team captain to captain with id ${captainId} for team with id ${teamId}`);
 
-    const team = await Team.findById(teamId);
-
-    if (!team) {
-      throw new NotFoundError(`Team with id ${teamId} not found `);
-    }
+    const team = await this.teamRepository.getTeamById(teamId);
 
     const captain = await Player.findById(captainId);
 
@@ -160,7 +146,7 @@ export default class TeamService implements ITeamService {
 
   async removePlayerFromTeam(teamId: Types.ObjectId, playerId: Types.ObjectId, session: ClientSession) {
     logger.info(`Team Service: Removing player ${playerId} from team ${teamId}`);
-    const team = await Team.findById(teamId, {}, { session });
+    const team = await this.teamRepository.getTeamById(teamId, session);
     if (!team) {
       throw new Error(`Team with id ${teamId} not found`);
     }

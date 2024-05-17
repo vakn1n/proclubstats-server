@@ -3,14 +3,14 @@ import LeagueService from "../services/league-service";
 import logger from "../logger";
 import ImageService from "../services/images-service";
 import { AddSingleFixtureData } from "../../types-changeToNPM/shared-DTOs";
-import { autoInjectable } from "tsyringe";
+import { injectable } from "tsyringe";
 import { TeamLeagueService } from "../services";
 import ILeagueController from "../interfaces/league/league-controller.interace";
 import { ParamsDictionary } from "express-serve-static-core";
 import { ParsedQs } from "qs";
 import ILeagueService from "../interfaces/league/league-service.interface";
 
-@autoInjectable()
+@injectable()
 export default class LeagueController implements ILeagueController {
   private leagueService: ILeagueService;
   private teamLeagueService: TeamLeagueService;

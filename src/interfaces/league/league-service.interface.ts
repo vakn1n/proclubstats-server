@@ -1,16 +1,15 @@
-import { AddSingleFixtureData, FixtureDTO, LeagueTableRow, TopAssister, TopScorer } from "../../../types-changeToNPM/shared-DTOs";
-import { ILeague } from "../../models/league";
+import { AddSingleFixtureData, FixtureDTO, LeagueDTO, LeagueTableRow, TopAssister, TopScorer } from "../../../types-changeToNPM/shared-DTOs";
 
 export default interface ILeagueService {
-  getAllLeagues(): Promise<ILeague[]>;
-  getLeagueById(leagueId: string): Promise<ILeague>;
+  getAllLeagues(): Promise<LeagueDTO[]>;
+  getLeagueById(leagueId: string): Promise<LeagueDTO>;
 
   getLeagueTable(leagueId: string): Promise<LeagueTableRow[]>;
 
   getTopScorers(leagueId: string): Promise<TopScorer[]>;
   getTopAssists(leagueId: string): Promise<TopAssister[]>;
 
-  addLeague(name: string, imgUrl?: string): Promise<ILeague>;
+  addLeague(name: string, imgUrl?: string): Promise<LeagueDTO>;
   deleteLeague(leagueId: string): Promise<void>;
 
   createFixture(leagueId: string, fixtureData: AddSingleFixtureData): Promise<FixtureDTO>;

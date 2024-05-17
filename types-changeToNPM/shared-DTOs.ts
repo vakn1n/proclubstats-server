@@ -1,4 +1,4 @@
-export interface PlayerDTO {
+export type PlayerDTO = {
   id: string;
   team: {
     id: string;
@@ -20,9 +20,15 @@ export interface PlayerDTO {
     playerOfTheMatch: number;
     avgRating: number;
   };
-}
+};
 
-export interface TeamDTO {
+export type LeagueDTO = {
+  id: string;
+  name: string;
+  imgUrl?: string;
+};
+
+export type TeamDTO = {
   id: string;
   name: string;
   leagueId: string;
@@ -47,9 +53,9 @@ export interface TeamDTO {
     goalsConceded: number;
     cleanSheets: number;
   };
-}
+};
 
-export interface LeagueTableRow {
+export type LeagueTableRow = {
   teamId: string;
   teamName: string;
   imgUrl?: string;
@@ -62,7 +68,7 @@ export interface LeagueTableRow {
   goalsConceded: number;
   goalsScored: number;
   cleanSheets: number;
-}
+};
 
 export type CreatePlayerDataRequest = {
   name: string;

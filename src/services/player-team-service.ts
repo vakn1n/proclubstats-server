@@ -1,4 +1,4 @@
-import { autoInjectable, inject } from "tsyringe";
+import { injectable, inject } from "tsyringe";
 import { PlayerService } from ".";
 import BadRequestError from "../errors/bad-request-error";
 import NotFoundError from "../errors/not-found-error";
@@ -8,7 +8,7 @@ import Player from "../models/player";
 import Team from "../models/team";
 import { transactionService } from "./transaction-service";
 
-@autoInjectable()
+@injectable()
 export default class PlayerTeamService {
   private playerService: PlayerService;
   private teamService: ITeamService;
@@ -75,10 +75,9 @@ export default class PlayerTeamService {
     }
     await transactionService.withTransaction(async (session) => {
       if (player.team) {
+        await this.playerService.deletePlayer(player, session);
         await this.teamService.removePlayerFromTeam(player.team, player.id, session);
       }
-
-      await this.playerService.deletePlayer(player, session);
     });
   }
 }

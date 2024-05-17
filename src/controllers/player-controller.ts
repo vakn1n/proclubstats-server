@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import { autoInjectable } from "tsyringe";
+import { injectable } from "tsyringe";
 import { CreatePlayerDataRequest } from "../../types-changeToNPM/shared-DTOs";
 import PlayerService from "../services/player-service";
 import PlayerTeamService from "../services/player-team-service";
 
-@autoInjectable()
+@injectable()
 export default class PlayerController {
   private playerService: PlayerService;
   private playerTeamService: PlayerTeamService;

@@ -38,4 +38,11 @@ export class TeamMapper {
       },
     };
   }
+
+  static async mapToDtos(teams: ITeam[]): Promise<TeamDTO[]> {
+    if (!teams) {
+      throw new Error("teams array is null or undefined");
+    }
+    return await Promise.all(teams.map((team) => this.mapToDto(team)));
+  }
 }

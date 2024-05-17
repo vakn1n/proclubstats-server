@@ -5,9 +5,9 @@ import { FixtureMapper } from "../mappers/fixture-mapper";
 import Fixture, { AddFixtureData, IFixture } from "../models/fixture";
 import GameService from "./game-service";
 import NotFoundError from "../errors/not-found-error";
-import { autoInjectable } from "tsyringe";
+import { injectable } from "tsyringe";
 
-@autoInjectable()
+@injectable()
 export default class FixtureService {
   private gameService: GameService;
 

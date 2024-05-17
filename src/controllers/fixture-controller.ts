@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import FixtureService from "../services/fixture-service";
 import { FixtureDTO, GameDTO } from "../../types-changeToNPM/shared-DTOs";
-import { autoInjectable } from "tsyringe";
+import { injectable } from "tsyringe";
 
-@autoInjectable()
+@injectable()
 export default class FixtureController {
   private fixtureService: FixtureService;
 

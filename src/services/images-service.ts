@@ -3,11 +3,11 @@ import fs from "fs";
 import { promisify } from "util";
 import logger from "../logger";
 import { extractPublicId } from "cloudinary-build-url";
-import { autoInjectable } from "tsyringe";
+import { injectable } from "tsyringe";
 
 const unlinkAsync = promisify(fs.unlink);
 
-@autoInjectable()
+@injectable()
 export default class ImageService {
   constructor() {
     cloudinary.config({

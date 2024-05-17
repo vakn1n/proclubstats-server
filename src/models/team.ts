@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { IPlayer } from "./player";
 
 export interface ITeamStats {
   wins: number;
@@ -8,6 +9,16 @@ export interface ITeamStats {
   goalsConceded: number;
   cleanSheets: number;
 }
+
+export type TeamWithPlayers = {
+  id: string;
+  name: string;
+  league: mongoose.Types.ObjectId;
+  imgUrl: string;
+  players: IPlayer[];
+  captain: mongoose.Types.ObjectId;
+  stats: ITeamStats;
+};
 
 export interface ITeam extends Document {
   id: string;

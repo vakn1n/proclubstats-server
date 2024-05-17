@@ -8,9 +8,9 @@ import Game, { AddGameData, IGame, IPlayerGamePerformance } from "../models/game
 import PlayerService from "./player-service";
 import TeamService from "./team-service";
 import { transactionService } from "./transaction-service";
-import { autoInjectable } from "tsyringe";
+import { injectable } from "tsyringe";
 
-@autoInjectable()
+@injectable()
 class GameService {
   private teamService: TeamService;
   private playerService: PlayerService;

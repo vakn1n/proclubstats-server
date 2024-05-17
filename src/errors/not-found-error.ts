@@ -1,7 +1,8 @@
+import { ReasonPhrases, StatusCodes } from "http-status-codes";
 import CustomError from "./custom-error";
 
 export default class NotFoundError extends CustomError {
-  constructor(message: string = "Not Found") {
-    super(message, 404);
+  constructor(message: string = ReasonPhrases.NOT_FOUND) {
+    super(message, StatusCodes.NOT_FOUND);
   }
 }
