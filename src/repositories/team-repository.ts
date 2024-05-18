@@ -19,6 +19,15 @@ export default class TeamRepository implements ITeamRepository {
     return team;
   }
 
+  async getTeamsByLeagueId(leagueId: string | Types.ObjectId, session?: ClientSession): Promise<ITeam[]> {
+    try {
+      return await Team.find({ league: leagueId }, {}, { session });
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`Couldn't find team with leagueId: ${leagueId}`);
+    }
+  }
+
   async deleteTeamById(id: string | Types.ObjectId, session?: ClientSession): Promise<void> {
     try {
       await Team.findByIdAndDelete(id, { session });

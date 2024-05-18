@@ -1,6 +1,6 @@
 import { ClientSession, Types } from "mongoose";
 import { injectable } from "tsyringe";
-import { PlayerDTO, TeamDTO } from "../../types-changeToNPM/shared-DTOs";
+import { LeagueTableRow, PlayerDTO, TeamDTO } from "../../types-changeToNPM/shared-DTOs";
 import BadRequestError from "../errors/bad-request-error";
 import NotFoundError from "../errors/not-found-error";
 import ITeamRepository from "../interfaces/team/team-repository.interface";
@@ -158,5 +158,36 @@ export default class TeamService implements ITeamService {
 
     team.players.splice(playerIndex, 1);
     await team.save({ session });
+  }
+
+  async getTeamsStatsByLeague(leagueId: string): Promise<LeagueTableRow[]> {
+    const teams = await this.teamRepository.getTeamsByLeagueId(leagueId);
+    if (!teams) {
+      throw new NotFoundError(`No teams found for league with id ${leagueId}`);
+    }
+
+    return teams.map(this.calculateTeamTableRow);
+  }
+
+  private calculateTeamTableRow(team: ITeam): LeagueTableRow {
+    const stats = team.stats;
+    const gamesPlayed = stats.wins + stats.losses + stats.draws;
+    const goalDifference = stats.goalsScored - stats.goalsConceded;
+    const points = stats.wins * 3 + stats.draws;
+
+    return {
+      teamId: team.id,
+      teamName: team.name,
+      imgUrl: team.imgUrl,
+      gamesPlayed,
+      gamesWon: stats.wins,
+      gamesLost: stats.losses,
+      draws: stats.draws,
+      goalDifference,
+      points,
+      goalsConceded: stats.goalsConceded,
+      goalsScored: stats.goalsScored,
+      cleanSheets: stats.cleanSheets,
+    };
   }
 }

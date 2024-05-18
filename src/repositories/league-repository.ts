@@ -1,10 +1,10 @@
-// league-repository.ts
 import { ClientSession, Types } from "mongoose";
 import NotFoundError from "../errors/not-found-error";
 import QueryFailedError from "../errors/query-failed-error";
 import ILeagueRepository from "../interfaces/league/league-repository.interface";
 import logger from "../logger";
 import League, { ILeague } from "../models/league";
+import { TopScorer, TopAssister } from "../../types-changeToNPM/shared-DTOs";
 
 export default class LeagueRepository implements ILeagueRepository {
   async getAllLeagues(): Promise<ILeague[]> {
@@ -67,6 +67,94 @@ export default class LeagueRepository implements ILeagueRepository {
         logger.error(e.message);
         throw new QueryFailedError(`Failed to delete league with id ${id}`);
       }
+    }
+  }
+
+  async calculateLeagueTopScorers(leagueId: string, limit: number, session?: ClientSession): Promise<TopScorer[]> {
+    try {
+      return await League.aggregate<TopScorer>(
+        [
+          { $match: { _id: new Types.ObjectId(leagueId) } },
+          { $lookup: { from: "teams", localField: "teams", foreignField: "_id", as: "teams" } },
+          { $unwind: "$teams" },
+          { $lookup: { from: "players", localField: "teams.players", foreignField: "_id", as: "players" } },
+          { $unwind: "$players" },
+          {
+            $addFields: {
+              goalsPerGame: {
+                $cond: {
+                  if: { $eq: ["$players.stats.games", 0] },
+                  then: 0,
+                  else: { $divide: ["$players.stats.goals", "$players.stats.games"] },
+                },
+              },
+            },
+          },
+          {
+            $project: {
+              playerId: "$players._id",
+              playerName: "$players.name",
+              teamId: "$teams._id",
+              teamName: "$teams.name",
+              position: "$players.position",
+              playerImgUrl: "$players.imgUrl",
+              games: "$players.stats.games",
+              goals: "$players.stats.goals",
+              goalsPerGame: 1,
+            },
+          },
+          { $sort: { goals: -1 } },
+          { $limit: limit },
+        ],
+        { session }
+      );
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`failed to calculate top scorers for league with id ${leagueId}`);
+    }
+  }
+
+  async calculateLeagueTopAssisters(leagueId: string, limit: number, session?: ClientSession): Promise<TopAssister[]> {
+    try {
+      return await League.aggregate<TopAssister>(
+        [
+          { $match: { _id: new Types.ObjectId(leagueId) } },
+          { $lookup: { from: "teams", localField: "teams", foreignField: "_id", as: "teams" } },
+          { $unwind: "$teams" },
+          { $lookup: { from: "players", localField: "teams.players", foreignField: "_id", as: "players" } },
+          { $unwind: "$players" },
+          {
+            $addFields: {
+              assistsPerGame: {
+                $cond: {
+                  if: { $eq: ["$players.stats.games", 0] },
+                  then: 0,
+                  else: { $divide: ["$players.stats.assists", "$players.stats.games"] },
+                },
+              },
+            },
+          },
+          {
+            $project: {
+              playerId: "$players._id",
+              playerName: "$players.name",
+              teamId: "$teams._id",
+              teamName: "$teams.name",
+              position: "$players.position",
+              playerImgUrl: "$players.imgUrl",
+              games: "$players.stats.games",
+              assists: "$players.stats.assists",
+              assistsPerGame: 1,
+            },
+          },
+          { $sort: { assists: -1 } },
+          { $limit: limit },
+        ],
+        { session }
+      );
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`Failed To Calculate top assisters for league with id ${leagueId}`);
     }
   }
 }

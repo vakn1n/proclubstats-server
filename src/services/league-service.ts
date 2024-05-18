@@ -2,19 +2,18 @@ import { ClientSession } from "mongodb";
 import { Types } from "mongoose";
 import { injectable } from "tsyringe";
 import { AddSingleFixtureData, FixtureDTO, LeagueDTO, LeagueTableRow, TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
-import BadRequestError from "../errors/bad-request-error";
-import NotFoundError from "../errors/not-found-error";
+import { BadRequestError, NotFoundError } from "../errors";
 import ILeagueRepository from "../interfaces/league/league-repository.interface";
 import ILeagueService from "../interfaces/league/league-service.interface";
+import ITeamService from "../interfaces/team/team-service.interface";
 import logger from "../logger";
 import { FixtureMapper } from "../mappers/fixture-mapper";
+import LeagueMapper from "../mappers/league-mapper";
 import Fixture, { AddFixtureData } from "../models/fixture";
 import { AddGameData } from "../models/game";
-import League, { ILeague } from "../models/league";
-import Team, { ITeam } from "../models/team";
+import { ILeague } from "../models/league";
 import { CacheService, FixtureService } from "./";
 import { transactionService } from "./transaction-service";
-import LeagueMapper from "../mappers/league-mapper";
 
 const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
 const TOP_SCORERS_CACHE_KEY = "topScorers";
@@ -24,11 +23,13 @@ const TOP_ASSISTS_CACHE_KEY = "topAssists";
 export default class LeagueService implements ILeagueService {
   private cacheService: CacheService;
   private fixtureService: FixtureService;
+  private teamService: ITeamService;
   private leagueRepository: ILeagueRepository;
 
-  constructor(leagueRepository: ILeagueRepository, cacheService: CacheService, fixtureService: FixtureService) {
+  constructor(leagueRepository: ILeagueRepository, teamService: ITeamService, cacheService: CacheService, fixtureService: FixtureService) {
     this.leagueRepository = leagueRepository;
     this.cacheService = cacheService;
+    this.teamService = teamService;
     this.fixtureService = fixtureService;
   }
 
@@ -44,21 +45,6 @@ export default class LeagueService implements ILeagueService {
 
     return league;
   }
-
-  // async addTeamToLeague(teamId: Types.ObjectId, leagueId: string, session: ClientSession): Promise<void> {
-  //   logger.info(`Adding team with id ${teamId} to league with id ${leagueId}`);
-
-  //   const league = await League.findById(leagueId);
-  //   if (!league) {
-  //     throw new NotFoundError(`League with id ${leagueId} not found`);
-  //   }
-
-  //   league.teams.push(teamId);
-  //   await league.save({ session });
-
-  //   // invalidate cache for table when team is added to the league
-  //   await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`);
-  // }
 
   async removeTeamFromLeague(leagueId: Types.ObjectId, teamId: Types.ObjectId, session: ClientSession): Promise<void> {
     logger.info(`Removing team with id ${teamId} from league with id ${leagueId}`);
@@ -243,44 +229,11 @@ export default class LeagueService implements ILeagueService {
   }
 
   private async calculateLeagueTable(leagueId: string): Promise<LeagueTableRow[]> {
-    const league = await (
-      await this.leagueRepository.getLeagueById(leagueId)
-    ).populate<{ teams: ITeam[] }>({
-      path: "teams",
-      select: `${}`,
-    });
-
-    if (!league) {
-      throw new NotFoundError(`league with id ${leagueId} not found`);
-    }
-
-    const tableRows: LeagueTableRow[] = league.teams.map((team) => this.calculateTableRow(team));
+    const tableRows = await this.teamService.getTeamsStatsByLeague(leagueId);
 
     this.sortTableRows(tableRows);
 
     return tableRows;
-  }
-
-  private calculateTableRow(team: ITeam): LeagueTableRow {
-    const stats = team.stats;
-    const gamesPlayed = stats.wins + stats.losses + stats.draws;
-    const goalDifference = stats.goalsScored - stats.goalsConceded;
-    const points = stats.wins * 3 + stats.draws;
-
-    return {
-      teamId: team.id,
-      teamName: team.name,
-      imgUrl: team.imgUrl,
-      gamesPlayed,
-      gamesWon: stats.wins,
-      gamesLost: stats.losses,
-      draws: stats.draws,
-      goalDifference,
-      points,
-      goalsConceded: stats.goalsConceded,
-      goalsScored: stats.goalsScored,
-      cleanSheets: stats.cleanSheets,
-    };
   }
 
   private sortTableRows(tableRows: LeagueTableRow[]) {
@@ -299,10 +252,11 @@ export default class LeagueService implements ILeagueService {
   }
 
   async getTopScorers(leagueId: string, limit: number = 10): Promise<TopScorer[]> {
-    logger.info(`getting top scorers for ${leagueId}`);
+    logger.info(`LeagueService: getting top scorers for ${leagueId}`);
     let topScorers = await this.getTopScorersFromCache(leagueId);
     if (!topScorers) {
-      topScorers = await this.calculateTopScorers(leagueId, limit);
+      logger.info(`calculating top scorers for league with id ${leagueId}`);
+      topScorers = await this.leagueRepository.calculateLeagueTopScorers(leagueId, limit);
 
       await this.setTopScorersInCache(leagueId, topScorers);
     }
@@ -310,97 +264,17 @@ export default class LeagueService implements ILeagueService {
     return topScorers;
   }
 
-  private async calculateTopScorers(leagueId: string, limit: number): Promise<TopScorer[]> {
-    logger.info(`calculating top scorers for league with id ${leagueId}`);
-
-    try {
-      return await Team.aggregate<TopScorer>([
-        { $match: { league: new Types.ObjectId(leagueId) } },
-        { $lookup: { from: "players", localField: "players", foreignField: "_id", as: "players" } },
-        { $unwind: "$players" },
-        {
-          $addFields: {
-            goalsPerGame: {
-              $cond: {
-                if: { $eq: ["$players.stats.games", 0] },
-                then: 0,
-                else: { $divide: ["$players.stats.goals", "$players.stats.games"] },
-              },
-            },
-          },
-        },
-        {
-          $project: {
-            playerId: "$players._id",
-            playerName: "$players.name",
-            teamId: "$_id",
-            teamName: "$name",
-            position: "$players.position",
-            playerImgUrl: "$players.imgUrl",
-            games: "$players.stats.games",
-            goals: "$players.stats.goals",
-            goalsPerGame: 1,
-          },
-        },
-        { $sort: { goals: -1 } },
-        { $limit: limit },
-      ]);
-    } catch (e) {
-      logger.error(e);
-      throw new Error(`failed to calculate top scorers for league with id ${leagueId}`);
-    }
-  }
-
   async getTopAssists(leagueId: string, limit: number = 10): Promise<TopAssister[]> {
+    logger.info(`LeagueService: getting top assists for league with id ${leagueId}`);
+
     let topAssists = await this.getTopAssistsFromCache(leagueId);
     if (!topAssists) {
-      // Perform the aggregation if the data is not in the cache
-      topAssists = await this.calculateTopAssists(leagueId, limit);
+      logger.info(`calculating top assists for league with id ${leagueId}`);
+      topAssists = await this.leagueRepository.calculateLeagueTopAssisters(leagueId, limit);
       await this.setTopAssistsInCache(leagueId, topAssists);
     }
 
     return topAssists;
-  }
-
-  private async calculateTopAssists(leagueId: string, limit: number): Promise<TopAssister[]> {
-    logger.info(`calculating top assists for league with id ${leagueId}`);
-
-    try {
-      return await Team.aggregate<TopAssister>([
-        { $match: { league: new Types.ObjectId(leagueId) } },
-        { $lookup: { from: "players", localField: "players", foreignField: "_id", as: "players" } },
-        { $unwind: "$players" },
-        {
-          $addFields: {
-            assistsPerGame: {
-              $cond: {
-                if: { $eq: ["$players.stats.games", 0] },
-                then: 0,
-                else: { $divide: ["$players.stats.assists", "$players.stats.games"] },
-              },
-            },
-          },
-        },
-        {
-          $project: {
-            playerId: "$players._id",
-            playerName: "$players.name",
-            teamId: "$_id",
-            teamName: "$name",
-            position: "$players.position",
-            playerImgUrl: "$players.imgUrl",
-            games: "$players.stats.games",
-            assists: "$players.stats.assists",
-            assistsPerGame: 1,
-          },
-        },
-        { $sort: { assists: -1 } },
-        { $limit: limit },
-      ]);
-    } catch (e) {
-      logger.error(e);
-      throw new Error(`failed to calculate top assists for league with id ${leagueId}`);
-    }
   }
 
   private async getTopScorersFromCache(leagueId: string): Promise<TopScorer[] | null> {
