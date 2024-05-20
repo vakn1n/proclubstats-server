@@ -1,45 +1,56 @@
 import { ClientSession, Types } from "mongoose";
-import { FixtureDTO } from "../../types-changeToNPM/shared-DTOs";
+import { injectable } from "tsyringe";
+import { FixtureDTO, PaginatedFixtureDTO } from "../../types-changeToNPM/shared-DTOs";
+import { BadRequestError } from "../errors";
+import NotFoundError from "../errors/not-found-error";
+import IFixtureRepository from "../interfaces/fixture/fixture-repository.interface";
+import IFixtureService from "../interfaces/fixture/fixture-service.interface";
 import logger from "../logger";
 import { FixtureMapper } from "../mappers/fixture-mapper";
-import Fixture, { AddFixtureData, IFixture } from "../models/fixture";
+import { AddFixtureData, IFixture } from "../models/fixture";
 import GameService from "./game-service";
-import NotFoundError from "../errors/not-found-error";
-import { injectable } from "tsyringe";
 
 @injectable()
-export default class FixtureService {
+export default class FixtureService implements IFixtureService {
+  private fixtureRepository: IFixtureRepository;
   private gameService: GameService;
 
-  constructor(gameService: GameService) {
-    console.log("game");
-
+  constructor(fixtureRepository: IFixtureRepository, gameService: GameService) {
+    this.fixtureRepository = fixtureRepository;
     this.gameService = gameService;
   }
 
   async getFixtureById(id: string): Promise<FixtureDTO> {
     logger.info(`FixtureService: getting fixture with id ${id}`);
 
-    const fixture = await Fixture.findById(id);
-    if (!fixture) {
-      throw new NotFoundError(`cant find fixture with id ${id}`);
-    }
+    const fixture = await this.fixtureRepository.getFixtureById(id);
 
     return await FixtureMapper.mapToDto(fixture);
   }
 
-  async getPaginatedLeagueFixturesGames(leagueId: string, page: number, pageSize: number): Promise<FixtureDTO[]> {
+  async getPaginatedLeagueFixturesGames(leagueId: string, page: number, pageSize: number): Promise<PaginatedFixtureDTO> {
     logger.info(`FixtureService: getting fixture with league with id ${leagueId} for page ${page} and page size ${pageSize}`);
-
-    const fixtures = await Fixture.find({ league: leagueId })
-      .skip((page - 1) * pageSize)
-      .limit(pageSize);
-
-    if (!fixtures?.length) {
-      throw new NotFoundError(`cant find fixtures`);
+    if (page < 1 || pageSize < 1) {
+      throw new BadRequestError("Page and page size must be positive integers.");
     }
 
-    return await FixtureMapper.mapToDtos(fixtures);
+    const totalFixtures = await this.fixtureRepository.countFixturesByLeague(leagueId);
+    const totalPages = Math.ceil(totalFixtures / pageSize);
+
+    if (page > totalPages) {
+      throw new NotFoundError(`Page ${page} exceeds total pages ${totalPages}`);
+    }
+
+    const fixtures = await this.fixtureRepository.getFixturesByLeagueWithPagination(leagueId, page, pageSize);
+
+    const fixtureDTOs = await FixtureMapper.mapToDtos(fixtures);
+
+    return {
+      fixtures: fixtureDTOs,
+      currentPage: page,
+      totalPages: totalPages,
+      totalFixtures: totalFixtures,
+    };
   }
 
   async generateFixture(fixtureData: AddFixtureData, session: ClientSession): Promise<IFixture> {
@@ -47,7 +58,7 @@ export default class FixtureService {
 
     logger.info(`FixtureService: generating fixture for round ${round} `);
 
-    const fixture = new Fixture({ league: leagueId, startDate, endDate, round });
+    const fixture = await this.fixtureRepository.createFixture(leagueId, startDate, endDate, round);
 
     const games = await this.gameService.createFixtureGames(gamesData, fixture._id, session);
 
@@ -59,10 +70,8 @@ export default class FixtureService {
   async getLeagueFixtureGames(leagueId: string, round: number) {
     logger.info(`FixtureService: getting fixture games for league ${leagueId} for round ${round}`);
 
-    const fixture = await Fixture.findOne({ league: leagueId, round });
-    if (!fixture) {
-      throw new NotFoundError(`cant find fixture`);
-    }
+    const fixture = await this.fixtureRepository.getLeagueFixture(leagueId, round);
+
     return await this.gameService.getGamesByIds(fixture.games);
   }
 
@@ -70,12 +79,6 @@ export default class FixtureService {
     logger.info(`FixtureService: deleting ${fixturesIds.length} fixtures`);
 
     await this.gameService.deleteFixturesGames(fixturesIds, session);
-
-    try {
-      await Fixture.deleteMany({ _id: { $in: fixturesIds } }, { session });
-    } catch (e) {
-      logger.error(e);
-      throw new Error(`Failed to delete fixtures`);
-    }
+    await this.fixtureRepository.deleteFixtures(fixturesIds, session);
   }
 }

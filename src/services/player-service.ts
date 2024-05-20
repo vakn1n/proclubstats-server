@@ -8,7 +8,6 @@ import { PlayerMapper } from "../mappers/player-mapper";
 import { IPlayerGamePerformance } from "../models/game";
 import { IPlayer } from "../models/player";
 import ImageService from "./images-service";
-import { transactionService } from "./transaction-service";
 
 @injectable()
 export default class PlayerService implements IPlayerService {
@@ -18,6 +17,14 @@ export default class PlayerService implements IPlayerService {
   constructor(playerRepository: IPlayerRepository, imageService: ImageService) {
     this.playerRepository = playerRepository;
     this.imageService = imageService;
+  }
+
+  async getPlayerById(id: string): Promise<PlayerDTO> {
+    logger.info(`PlayerService: getting player with id ${id}`);
+
+    const player = await this.playerRepository.getPlayerById(id);
+
+    return await PlayerMapper.mapToDto(player);
   }
 
   async createPlayer(playerData: CreatePlayerDataRequest): Promise<PlayerDTO> {
@@ -31,10 +38,8 @@ export default class PlayerService implements IPlayerService {
       playablePositions = playerData.playablePositions;
     }
 
-    return await transactionService.withTransaction(async (session) => {
-      const player = await this.playerRepository.createPlayer({ name, age, playablePositions, position, phone }, session);
-      return PlayerMapper.mapToDto(player);
-    });
+    const player = await this.playerRepository.createPlayer({ name, age, playablePositions, position, phone });
+    return PlayerMapper.mapToDto(player);
   }
 
   async setPlayerImage(playerId: string, file: Express.Multer.File): Promise<string> {
@@ -67,19 +72,6 @@ export default class PlayerService implements IPlayerService {
   async revertPlayersGamePerformance(playersStats: IPlayerGamePerformance[], session: ClientSession): Promise<void> {
     logger.info(`PlayerService: reverting players game performance..`);
     return await this.playerRepository.revertPlayersGamePerformance(playersStats, session);
-  }
-
-  async getPlayerById(id: string): Promise<PlayerDTO> {
-    logger.info(`PlayerService: getting player with id ${id}`);
-
-    const player = await this.playerRepository.getPlayerById(id);
-
-    return await PlayerMapper.mapToDto(player);
-  }
-
-  async getAllPlayers(): Promise<PlayerDTO[]> {
-    const players = await this.playerRepository.getAllPlayers();
-    return await PlayerMapper.mapToDtos(players);
   }
 
   async deletePlayer(player: IPlayer, session: ClientSession): Promise<void> {

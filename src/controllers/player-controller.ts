@@ -1,15 +1,15 @@
 import { NextFunction, Request, Response } from "express";
 import { injectable } from "tsyringe";
 import { CreatePlayerDataRequest } from "../../types-changeToNPM/shared-DTOs";
-import PlayerService from "../services/player-service";
+import IPlayerService from "../interfaces/player/player-service.interface";
 import PlayerTeamService from "../services/player-team-service";
 
 @injectable()
 export default class PlayerController {
-  private playerService: PlayerService;
+  private playerService: IPlayerService;
   private playerTeamService: PlayerTeamService;
 
-  constructor(playerService: PlayerService, playerTeamService: PlayerTeamService) {
+  constructor(playerService: IPlayerService, playerTeamService: PlayerTeamService) {
     this.playerService = playerService;
     this.playerTeamService = playerTeamService;
   }
@@ -62,15 +62,6 @@ export default class PlayerController {
     try {
       const player = await this.playerService.getPlayerById(id);
       res.json(player);
-    } catch (error: any) {
-      next(error);
-    }
-  }
-
-  async getAllPlayers(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const players = await this.playerService.getAllPlayers();
-      res.json(players);
     } catch (error: any) {
       next(error);
     }

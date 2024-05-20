@@ -13,7 +13,6 @@ router.post("/", upload.single("file"), playerController.createPlayer);
 router.patch("/:id/setImage", upload.single("file"), playerController.setPlayerImage);
 
 router.get("/:id", playerController.getPlayerById);
-router.get("/", playerController.getAllPlayers);
 router.delete("/:id", playerController.deletePlayer);
 
 export default router;

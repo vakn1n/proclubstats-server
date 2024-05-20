@@ -6,7 +6,6 @@ import { IPlayerGamePerformance } from "../../models/game";
 
 export default interface IPlayerRepository {
   getPlayerById(id: string | Types.ObjectId, session?: ClientSession): Promise<IPlayer>;
-  getAllPlayers(session?: ClientSession): Promise<IPlayer[]>;
 
   createPlayer(playerData: CreatePlayerDataRequest, session?: ClientSession): Promise<IPlayer>;
 

@@ -147,9 +147,6 @@ export default class TeamService implements ITeamService {
   async removePlayerFromTeam(teamId: Types.ObjectId, playerId: Types.ObjectId, session: ClientSession) {
     logger.info(`Team Service: Removing player ${playerId} from team ${teamId}`);
     const team = await this.teamRepository.getTeamById(teamId, session);
-    if (!team) {
-      throw new Error(`Team with id ${teamId} not found`);
-    }
 
     const playerIndex = team.players.indexOf(playerId);
     if (playerIndex === -1) {

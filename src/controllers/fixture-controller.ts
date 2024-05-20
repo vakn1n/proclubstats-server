@@ -1,13 +1,13 @@
 import { NextFunction, Request, Response } from "express";
-import FixtureService from "../services/fixture-service";
-import { FixtureDTO, GameDTO } from "../../types-changeToNPM/shared-DTOs";
 import { injectable } from "tsyringe";
+import IFixtureController from "../interfaces/fixture/fixture-controller.interace";
+import IFixtureService from "../interfaces/fixture/fixture-service.interface";
 
 @injectable()
-export default class FixtureController {
-  private fixtureService: FixtureService;
+export default class FixtureController implements IFixtureController {
+  private fixtureService: IFixtureService;
 
-  constructor(fixtureService: FixtureService) {
+  constructor(fixtureService: IFixtureService) {
     this.fixtureService = fixtureService;
   }
 

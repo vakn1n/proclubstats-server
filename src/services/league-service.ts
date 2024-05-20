@@ -3,6 +3,7 @@ import { Types } from "mongoose";
 import { injectable } from "tsyringe";
 import { AddSingleFixtureData, FixtureDTO, LeagueDTO, LeagueTableRow, TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
 import { BadRequestError, NotFoundError } from "../errors";
+import IFixtureService from "../interfaces/fixture/fixture-service.interface";
 import ILeagueRepository from "../interfaces/league/league-repository.interface";
 import ILeagueService from "../interfaces/league/league-service.interface";
 import ITeamService from "../interfaces/team/team-service.interface";
@@ -12,7 +13,7 @@ import LeagueMapper from "../mappers/league-mapper";
 import Fixture, { AddFixtureData } from "../models/fixture";
 import { AddGameData } from "../models/game";
 import { ILeague } from "../models/league";
-import { CacheService, FixtureService } from "./";
+import { CacheService } from "./";
 import { transactionService } from "./transaction-service";
 
 const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
@@ -22,11 +23,11 @@ const TOP_ASSISTS_CACHE_KEY = "topAssists";
 @injectable()
 export default class LeagueService implements ILeagueService {
   private cacheService: CacheService;
-  private fixtureService: FixtureService;
+  private fixtureService: IFixtureService;
   private teamService: ITeamService;
   private leagueRepository: ILeagueRepository;
 
-  constructor(leagueRepository: ILeagueRepository, teamService: ITeamService, cacheService: CacheService, fixtureService: FixtureService) {
+  constructor(leagueRepository: ILeagueRepository, teamService: ITeamService, cacheService: CacheService, fixtureService: IFixtureService) {
     this.leagueRepository = leagueRepository;
     this.cacheService = cacheService;
     this.teamService = teamService;
