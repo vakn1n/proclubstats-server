@@ -60,7 +60,7 @@ export default class FixtureService implements IFixtureService {
 
     const fixture = await this.fixtureRepository.createFixture(leagueId, startDate, endDate, round);
 
-    const games = await this.gameService.createFixtureGames(gamesData, fixture._id, session);
+    const games = await this.gameService.createFixtureGames(fixture._id, gamesData, session);
 
     fixture.games = games.map((game) => game._id);
     await fixture.save({ session });
@@ -78,7 +78,9 @@ export default class FixtureService implements IFixtureService {
   async deleteFixtures(fixturesIds: Types.ObjectId[], session: ClientSession) {
     logger.info(`FixtureService: deleting ${fixturesIds.length} fixtures`);
 
-    await this.gameService.deleteFixturesGames(fixturesIds, session);
-    await this.fixtureRepository.deleteFixtures(fixturesIds, session);
+    // await this.gameService.deleteFixturesGames(fixturesIds, session);
+    // await this.fixtureRepository.deleteFixtures(fixturesIds, session);
+
+    // TODO: implement this
   }
 }

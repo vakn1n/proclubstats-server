@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import GameService from "../services/game-service";
+import IGameService from "../interfaces/game/game-service.interface";
 
 export default class GameController {
-  private gameService: GameService;
+  private gameService: IGameService;
 
-  constructor(gameService: GameService) {
+  constructor(gameService: IGameService) {
     this.gameService = gameService;
   }
 
@@ -75,14 +75,14 @@ export default class GameController {
   }
 
   async deleteGame(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { id: leagueId } = req.params;
+    const { id: gameId } = req.params;
 
-    if (!leagueId) {
-      res.status(400).send({ message: "No leagueId provided" });
+    if (!gameId) {
+      res.status(400).send({ message: "No gameId provided" });
       return;
     }
     try {
-      await this.gameService.deleteGame(leagueId);
+      await this.gameService.deleteGame(gameId);
       res.sendStatus(204);
     } catch (error: any) {
       next(error);

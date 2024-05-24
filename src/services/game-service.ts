@@ -9,13 +9,19 @@ import PlayerService from "./player-service";
 import TeamService from "./team-service";
 import { transactionService } from "./transaction-service";
 import { injectable } from "tsyringe";
+import IGameService from "../interfaces/game/game-service.interface";
+import ITeamService from "../interfaces/team/team-service.interface";
+import IPlayerService from "../interfaces/player/player-service.interface";
+import IGameRepository from "../interfaces/game/game-repository.interface";
 
 @injectable()
-class GameService {
-  private teamService: TeamService;
-  private playerService: PlayerService;
+class GameService implements IGameService {
+  private gameRepository: IGameRepository;
+  private teamService: ITeamService;
+  private playerService: IPlayerService;
 
-  constructor(teamService: TeamService, playerService: PlayerService) {
+  constructor(gameRepository: IGameRepository, teamService: ITeamService, playerService: IPlayerService) {
+    this.gameRepository = gameRepository;
     this.teamService = teamService;
     this.playerService = playerService;
   }
@@ -23,67 +29,45 @@ class GameService {
   async getGamesByIds(gamesIds: Types.ObjectId[]): Promise<GameDTO[]> {
     logger.info(`GameService: fetching ${gamesIds.length} games`);
 
-    const games = await Game.find({ _id: { $in: gamesIds } });
-    if (games.length !== gamesIds.length) {
-      throw new BadRequestError(`Some requested games does not exist`);
-    }
+    const games = await this.gameRepository.getGamesByIds(gamesIds);
+
     return await GameMapper.mapToDtos(games);
   }
 
   async getGameById(id: string): Promise<GameDTO> {
     logger.info(`GameService: getting game ${id}`);
 
-    const game = await Game.findById(id);
-    if (!game) {
-      throw new NotFoundError(`game with id ${id} not found`);
-    }
+    const game = await this.gameRepository.getGameById(id);
+
     return await GameMapper.mapToDto(game);
   }
 
   async getTeamGames(teamId: string) {
     logger.info(`GameService: getting games for team ${teamId}`);
-    const games = await Game.find({ $or: [{ homeTeam: teamId }, { awayTeam: teamId }] });
-    console.log(games.length);
 
-    return await GameMapper.mapToDtos(games);
+    const teamGames = await this.gameRepository.getTeamGames(teamId);
+
+    return await GameMapper.mapToDtos(teamGames);
   }
 
-  async createGame(gameData: AddGameData, fixtureId: Types.ObjectId, session: ClientSession): Promise<IGame> {
-    const { homeTeam, awayTeam, date } = gameData;
+  async createGame(gameData: AddGameData, fixtureId: Types.ObjectId, session: ClientSession): Promise<GameDTO> {
+    logger.info(`GameService: creating game, home team ${gameData.homeTeam} and away team ${gameData.awayTeam}`);
 
-    logger.info(`GameService: creating game, home team ${homeTeam} and away team ${awayTeam}`);
+    const game = await this.gameRepository.createGame(fixtureId, gameData, session);
 
-    const game = new Game({
-      homeTeam,
-      awayTeam,
-      fixture: fixtureId,
-      date,
-    });
-
-    await game.save({ session });
-
-    return game;
+    return await GameMapper.mapToDto(game);
   }
 
-  async createFixtureGames(gamesData: AddGameData[], fixtureId: Types.ObjectId, session: ClientSession): Promise<IGame[]> {
+  async createFixtureGames(fixtureId: Types.ObjectId, gamesData: AddGameData[], session: ClientSession): Promise<IGame[]> {
     logger.info(`GameService: creating games for fixture with id ${fixtureId}`);
 
-    const gamesWithFixtureId = gamesData.map((game) => ({
-      ...game,
-      fixture: fixtureId,
-    }));
-
-    return await Game.insertMany(gamesWithFixtureId, { session });
+    return await this.gameRepository.createGames(fixtureId, gamesData, session);
   }
 
   async updateGameResult(gameId: string, homeTeamGoals: number, awayTeamGoals: number): Promise<void> {
     logger.info(`GameService: updating game ${gameId} result`);
 
-    const game = await Game.findById(gameId);
-
-    if (!game) {
-      throw new NotFoundError(`game ${gameId} not found`);
-    }
+    const game = await this.gameRepository.getGameById(gameId);
 
     return await transactionService.withTransaction(async (session) => {
       if (game.status !== GAME_STATUS.SCHEDULED) {
@@ -106,10 +90,8 @@ class GameService {
 
   async updateTeamPlayersPerformance(gameId: string, isHomeTeam: boolean, playersPerformance: UpdatePlayerPerformanceDataRequest[]) {
     logger.info(`GameService: updating game ${gameId} team stats`);
-    const game = await Game.findById(gameId);
-    if (!game) {
-      throw new NotFoundError(`game ${gameId} not found`);
-    }
+    const game = await this.gameRepository.getGameById(gameId);
+
     if (game.status !== GAME_STATUS.PLAYED && game.status !== GAME_STATUS.COMPLETED) {
       throw new BadRequestError(`can't update game team stats before updating its result`);
     }
@@ -147,22 +129,9 @@ class GameService {
     }
   }
 
-  async deleteFixturesGames(fixturesIds: Types.ObjectId[], session: ClientSession) {
-    logger.info(`GameService: deleting games for fixtures with ids ${fixturesIds}`);
-
-    // TODO: remove results data from the team and players
-
-    await Game.deleteMany({ fixtureId: { $in: fixturesIds } }, { session });
-  }
-
-  async deleteGame(id: string): Promise<IGame> {
+  async deleteGame(id: string): Promise<void> {
     logger.info(`deleting game ${id}`);
-
-    const game = await Game.findByIdAndDelete(id);
-    if (!game) {
-      throw new NotFoundError(`game with id ${id} not found`);
-    }
-    return game;
+    await this.gameRepository.deleteGameById(id);
   }
 }
 
