@@ -1,20 +1,19 @@
 import { ClientSession, Types } from "mongoose";
-import { injectable } from "tsyringe";
+import { inject, injectable } from "tsyringe";
 import { CreatePlayerDataRequest, PlayerDTO } from "../../types-changeToNPM/shared-DTOs";
-import IPlayerRepository from "../interfaces/player/player-repository.interface";
-import IPlayerService from "../interfaces/player/player-service.interface";
-import logger from "../logger";
+import logger from "../config/logger";
 import { PlayerMapper } from "../mappers/player-mapper";
 import { IPlayerGamePerformance } from "../models/game";
 import { IPlayer } from "../models/player";
-import ImageService from "./images-service";
+import { IPlayerService, IPlayerRepository } from "../interfaces/player";
+import { ImageService } from "../interfaces/util-services/image-service.interface";
 
 @injectable()
 export default class PlayerService implements IPlayerService {
   private imageService: ImageService;
   private playerRepository: IPlayerRepository;
 
-  constructor(playerRepository: IPlayerRepository, imageService: ImageService) {
+  constructor(@inject("IPlayerRepository") playerRepository: IPlayerRepository, @inject("ImageService") imageService: ImageService) {
     this.playerRepository = playerRepository;
     this.imageService = imageService;
   }
@@ -49,7 +48,7 @@ export default class PlayerService implements IPlayerService {
 
     if (player.imgUrl) {
       // remove current image from cloud
-      await this.imageService.deleteImageFromCloudinary(player.imgUrl);
+      await this.imageService.removeImage(player.imgUrl);
     }
     const imageUrl = await this.imageService.uploadImage(file);
 
@@ -80,7 +79,7 @@ export default class PlayerService implements IPlayerService {
     await this.playerRepository.deletePlayer(player.id, session);
 
     if (player.imgUrl) {
-      await this.imageService.deleteImageFromCloudinary(player.imgUrl);
+      await this.imageService.removeImage(player.imgUrl);
     }
   }
 }

@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import CustomError from "../errors/custom-error";
-import logger from "../logger";
+import logger from "../config/logger";
 
 export default function errorHandlerMiddleware(err: Error, req: Request, res: Response, next: NextFunction) {
   let statusCode = 500;

@@ -1,7 +1,7 @@
 import { Types, ClientSession } from "mongoose";
 import { AddGameData, IGame } from "../../models/game";
 
-export default interface IGameRepository {
+export interface IGameRepository {
   createGame(fixtureId: string | Types.ObjectId, addGameData: AddGameData, session?: ClientSession): Promise<IGame>;
   createGames(fixtureId: string | Types.ObjectId, addGameData: AddGameData[], session?: ClientSession): Promise<IGame[]>;
 

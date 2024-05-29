@@ -1,8 +1,7 @@
 import { Router } from "express";
 import PlayerController from "../controllers/player-controller";
-import upload from "../multer-config";
-import { container } from "tsyringe";
-import { PlayerService } from "../services";
+import upload from "../config/multer-config";
+import { container } from "../config/container.config";
 
 const router = Router();
 

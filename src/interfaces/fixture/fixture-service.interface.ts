@@ -2,7 +2,7 @@ import { ClientSession, Types } from "mongoose";
 import { FixtureDTO, GameDTO, PaginatedFixtureDTO } from "../../../types-changeToNPM/shared-DTOs";
 import { AddFixtureData, IFixture } from "../../models/fixture";
 
-export default interface IFixtureService {
+export interface IFixtureService {
   getFixtureById(id: string): Promise<FixtureDTO>;
 
   getPaginatedLeagueFixturesGames(leagueId: string, page: number, pageSize: number): Promise<PaginatedFixtureDTO>;

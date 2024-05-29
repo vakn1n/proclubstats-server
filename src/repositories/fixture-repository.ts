@@ -1,10 +1,10 @@
 import { ClientSession, Types } from "mongoose";
-import IFixtureRepository from "../interfaces/fixture/fixture-repository.interface";
+import { IFixtureRepository } from "../interfaces/fixture/fixture-repository.interface";
 import Fixture, { IFixture } from "../models/fixture";
 import { BadRequestError, NotFoundError, QueryFailedError } from "../errors";
-import logger from "../logger";
+import logger from "../config/logger";
 
-export default class FixtureRepository implements IFixtureRepository {
+export class FixtureRepository implements IFixtureRepository {
   async getFixtureById(id: string | Types.ObjectId, session?: ClientSession): Promise<IFixture> {
     try {
       const fixture = await Fixture.findById(id, {}, { session });

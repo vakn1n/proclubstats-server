@@ -1,32 +1,24 @@
-import { injectable } from "tsyringe";
-import { LeagueService, TeamService } from ".";
-import BadRequestError from "../errors/bad-request-error";
-import League from "../models/league";
-import Team from "../models/team";
+import { inject, injectable } from "tsyringe";
+import { BadRequestError } from "../errors";
+import { ILeagueRepository } from "../interfaces/league";
+import { ITeamRepository } from "../interfaces/team";
+import { ITeamLeagueService } from "../interfaces/wrapper-services/team-league-service.interface";
 import { transactionService } from "./transaction-service";
 
 @injectable()
-export default class TeamLeagueService {
-  private teamService: TeamService;
-  private leagueService: LeagueService;
+export default class TeamLeagueService implements ITeamLeagueService {
+  private teamRepository: ITeamRepository;
+  private leagueRepository: ILeagueRepository;
 
-  constructor(teamService: TeamService, leagueService: LeagueService) {
-    this.teamService = teamService;
-    this.leagueService = leagueService;
+  constructor(@inject("ITeamRepository") teamRepository: ITeamRepository, @inject("ILeagueRepository") leagueRepository: ILeagueRepository) {
+    this.teamRepository = teamRepository;
+    this.leagueRepository = leagueRepository;
   }
 
   async addTeamToLeague(leagueId: string, teamId: string): Promise<void> {
-    const league = await League.findById(leagueId);
+    const league = await this.leagueRepository.getLeagueById(leagueId);
 
-    if (!league) {
-      throw new BadRequestError(`Cant find league ${leagueId}`);
-    }
-
-    const team = await Team.findById(teamId);
-
-    if (!team) {
-      throw new BadRequestError(`Cant find team ${teamId}`);
-    }
+    const team = await this.teamRepository.getTeamById(teamId);
 
     if (league.teams.includes(team._id)) {
       throw new BadRequestError(`Team ${teamId} is already in league ${leagueId}`);
@@ -41,17 +33,17 @@ export default class TeamLeagueService {
     });
   }
 
-  async deleteTeam(teamId: string): Promise<void> {
-    const team = await Team.findById(teamId);
+  async removeTeamFromLeague(leagueId: string, teamId: string): Promise<void> {
+    const league = await this.leagueRepository.getLeagueById(leagueId);
+    const team = await this.teamRepository.getTeamById(teamId);
 
-    if (!team) {
-      throw new BadRequestError(`Cant find team ${teamId} to delete`);
+    if (!league.teams.includes(team._id)) {
+      throw new BadRequestError(`Team ${teamId} is not in league ${leagueId}`);
     }
-    return await transactionService.withTransaction(async (session) => {
-      if (team.league) {
-        await this.leagueService.removeTeamFromLeague(team.league, team._id, session);
-      }
-      await this.teamService.deleteTeam(team, session);
+
+    await transactionService.withTransaction(async (session) => {
+      await this.leagueRepository.removeTeamFromLeague(league._id, team._id, session);
+      await this.teamRepository.setTeamLeague(team._id, null, session);
     });
   }
 }

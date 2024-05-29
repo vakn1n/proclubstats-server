@@ -1,18 +1,15 @@
 import { NextFunction, Request, Response } from "express";
-import ITeamController from "../interfaces/team/team-controller.interface";
-import ITeamService from "../interfaces/team/team-service.interface";
-import { PlayerTeamService, TeamLeagueService } from "../services";
-import { injectable } from "tsyringe";
+import { inject, injectable } from "tsyringe";
+import { ITeamController, ITeamService } from "../interfaces/team/";
+import { IPlayerTeamService } from "../interfaces/wrapper-services/player-team-service.interface";
 
 @injectable()
 export default class TeamController implements ITeamController {
   private teamService: ITeamService;
-  private teamLeagueService: TeamLeagueService;
-  private playerTeamService: PlayerTeamService;
+  private playerTeamService: IPlayerTeamService;
 
-  constructor(teamService: ITeamService, teamLeagueService: TeamLeagueService, playerTeamService: PlayerTeamService) {
+  constructor(@inject("ITeamService") teamService: ITeamService, @inject("IPlayerTeamService") playerTeamService: IPlayerTeamService) {
     this.teamService = teamService;
-    this.teamLeagueService = teamLeagueService;
     this.playerTeamService = playerTeamService;
   }
 
@@ -71,16 +68,6 @@ export default class TeamController implements ITeamController {
       res.sendStatus(200);
     } catch (err) {
       next(err);
-    }
-  }
-
-  async deleteTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { id: teamId } = req.params;
-    try {
-      await this.teamLeagueService.deleteTeam(teamId);
-      res.sendStatus(204);
-    } catch (error: any) {
-      next(error);
     }
   }
 

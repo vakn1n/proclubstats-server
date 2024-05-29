@@ -1,15 +1,15 @@
 // player-repository.ts
 import { ClientSession, Types } from "mongoose";
 import { NotFoundError, QueryFailedError } from "../errors";
-import IPlayerRepository from "../interfaces/player/player-repository.interface";
+import { IPlayerRepository } from "../interfaces/player/player-repository.interface";
 import Player, { IPlayer } from "../models/player";
-import logger from "../logger";
+import logger from "../config/logger";
 import { CreatePlayerDataRequest } from "../../types-changeToNPM/shared-DTOs";
 import { injectable } from "tsyringe";
 import { IPlayerGamePerformance } from "../models/game";
 
 @injectable()
-export default class PlayerRepository implements IPlayerRepository {
+export class PlayerRepository implements IPlayerRepository {
   async getPlayerById(id: string | Types.ObjectId, session?: ClientSession): Promise<IPlayer> {
     const player = await Player.findById(id, {}, { session });
     if (!player) {
@@ -41,6 +41,15 @@ export default class PlayerRepository implements IPlayerRepository {
         logger.error(error.message);
         throw new QueryFailedError(`Failed to delete player`);
       }
+    }
+  }
+
+  async setPlayerTeam(playerId: string | Types.ObjectId, teamId: string | Types.ObjectId | null, session?: ClientSession | undefined): Promise<void> {
+    try {
+      await Player.updateOne({ _id: playerId }, { team: teamId }, { session });
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`Failed to set team ${teamId} to player ${playerId}`);
     }
   }
 

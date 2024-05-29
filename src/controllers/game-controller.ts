@@ -1,10 +1,12 @@
 import { NextFunction, Request, Response } from "express";
-import IGameService from "../interfaces/game/game-service.interface";
+import { IGameController, IGameService } from "../interfaces/game";
+import { inject, injectable } from "tsyringe";
 
-export default class GameController {
+@injectable()
+export default class GameController implements IGameController {
   private gameService: IGameService;
 
-  constructor(gameService: IGameService) {
+  constructor(@inject("IGameService") gameService: IGameService) {
     this.gameService = gameService;
   }
 
@@ -57,7 +59,7 @@ export default class GameController {
     }
   }
 
-  async updateTeamPlayersPerformance(req: Request, res: Response, next: NextFunction) {
+  async updateTeamPlayersPerformance(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id: gameId } = req.params;
     const { playersPerformace, isHomeTeam } = req.body;
 

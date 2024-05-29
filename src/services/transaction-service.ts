@@ -1,5 +1,5 @@
 import { startSession, ClientSession } from "mongoose";
-import logger from "../logger";
+import logger from "../config/logger";
 
 class TransactionService {
   async withTransaction<T>(fn: (session: ClientSession) => Promise<T>): Promise<T> {

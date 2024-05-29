@@ -1,11 +1,11 @@
 import { ClientSession, Types } from "mongoose";
 import { NotFoundError, QueryFailedError } from "../errors";
-import ITeamRepository from "../interfaces/team/team-repository.interface";
+import { ITeamRepository } from "../interfaces/team/team-repository.interface";
 import Team, { ITeam, TeamWithPlayers } from "../models/team";
-import logger from "../logger";
+import logger from "../config/logger";
 import { IPlayer } from "../models/player";
 
-export default class TeamRepository implements ITeamRepository {
+export class TeamRepository implements ITeamRepository {
   getTeams(): Promise<ITeam[]> {
     return Team.find();
   }
@@ -58,6 +58,24 @@ export default class TeamRepository implements ITeamRepository {
     } catch (e: any) {
       logger.error(e.message);
       throw new QueryFailedError(`Failed to get team with id ${teamId} with players`);
+    }
+  }
+
+  async removePlayerFromTeam(teamId: string | Types.ObjectId, playerId: string | Types.ObjectId, session?: ClientSession | undefined): Promise<void> {
+    try {
+      await Team.updateOne({ _id: teamId }, { $pull: { players: playerId } }, { session });
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`Failed to remove player ${playerId} from team ${teamId}`);
+    }
+  }
+
+  async setTeamLeague(teamId: Types.ObjectId, leagueId: Types.ObjectId | null, session?: ClientSession | undefined): Promise<void> {
+    try {
+      await Team.updateOne({ _id: teamId }, { league: leagueId }, { session });
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`Failed to set team ${teamId} league to ${leagueId}`);
     }
   }
 }

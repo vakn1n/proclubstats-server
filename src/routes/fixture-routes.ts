@@ -1,6 +1,6 @@
 import { Router } from "express";
 import FixtureController from "../controllers/fixture-controller";
-import { container } from "tsyringe";
+import { container } from "../config/container.config";
 
 const router = Router();
 const fixtureController = container.resolve(FixtureController);

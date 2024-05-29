@@ -1,15 +1,15 @@
+import "reflect-metadata";
 import { json } from "body-parser";
 import cors from "cors";
 import dotenv from "dotenv";
 import express, { Request, Response } from "express";
 import morgan from "morgan";
-import "reflect-metadata";
-import { container } from "tsyringe";
-import { connectToDatabase } from "./database";
-import logger from "./logger";
+import { connectToDatabase } from "./config/database";
+import logger from "./config/logger";
 import errorHandlerMiddleware from "./middlewares/error-handler";
 import { fixtureRoutes, gameRoutes, leagueRoutes, playerRoutes, teamRoutes } from "./routes";
-import { CacheService, FixtureService, GameService, ImageService, LeagueService, PlayerTeamService, TeamLeagueService, TeamService } from "./services";
+import "./config/container.config"; // runs the container configuration
+
 dotenv.config(); // set env variables
 
 const app = express();
@@ -17,22 +17,6 @@ const app = express();
 app.use(cors()); // cross origin requests
 app.use(json()); // format
 app.use(morgan("dev")); // logger
-
-console.log("nsjad");
-
-container.registerSingleton(CacheService);
-container.registerSingleton(TeamService);
-
-container.registerSingleton(PlayerTeamService);
-
-container.registerSingleton(LeagueService);
-
-container.registerSingleton(TeamLeagueService);
-
-container.registerSingleton(GameService);
-
-container.registerSingleton(FixtureService);
-container.registerSingleton(ImageService);
 
 app.use("/league", leagueRoutes);
 app.use("/team", teamRoutes);

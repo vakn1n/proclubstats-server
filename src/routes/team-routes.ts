@@ -1,7 +1,7 @@
 import { Router } from "express";
 import TeamController from "../controllers/team-controller";
-import upload from "../multer-config";
-import { container } from "tsyringe";
+import upload from "../config/multer-config";
+import { container } from "../config/container.config";
 
 const router = Router();
 const teamController = container.resolve(TeamController);
@@ -16,6 +16,6 @@ router.patch("/:id/setCaptain", teamController.setTeamCaptain);
 router.get("/:id/players", teamController.getTeamPlayers);
 router.get("/:id", teamController.getTeamById);
 
-router.delete("/:id", teamController.deleteTeam);
+// router.delete("/:id", teamController.deleteTeam);
 
 export default router;

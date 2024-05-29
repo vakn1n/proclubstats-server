@@ -1,6 +1,7 @@
 import { Router } from "express";
 import GameController from "../controllers/game-controller";
-import { container } from "tsyringe";
+
+import { container } from "../config/container.config";
 
 const router = Router();
 const gameController = container.resolve(GameController);

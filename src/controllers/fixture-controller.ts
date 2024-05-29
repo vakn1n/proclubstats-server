@@ -1,13 +1,12 @@
 import { NextFunction, Request, Response } from "express";
-import { injectable } from "tsyringe";
-import IFixtureController from "../interfaces/fixture/fixture-controller.interace";
-import IFixtureService from "../interfaces/fixture/fixture-service.interface";
+import { inject, injectable } from "tsyringe";
+import { IFixtureController, IFixtureService } from "../interfaces/fixture";
 
 @injectable()
 export default class FixtureController implements IFixtureController {
   private fixtureService: IFixtureService;
 
-  constructor(fixtureService: IFixtureService) {
+  constructor(@inject("IFixtureService") fixtureService: IFixtureService) {
     this.fixtureService = fixtureService;
   }
 

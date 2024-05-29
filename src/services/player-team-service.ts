@@ -1,37 +1,29 @@
-import { injectable, inject } from "tsyringe";
-import { PlayerService } from ".";
-import BadRequestError from "../errors/bad-request-error";
-import NotFoundError from "../errors/not-found-error";
-import ITeamService from "../interfaces/team/team-service.interface";
-import logger from "../logger";
-import Player from "../models/player";
-import Team from "../models/team";
+import { inject, injectable } from "tsyringe";
+import logger from "../config/logger";
+import { BadRequestError } from "../errors";
+import { IPlayerRepository } from "../interfaces/player";
+import { ITeamRepository } from "../interfaces/team/";
+import { IPlayerTeamService } from "../interfaces/wrapper-services/player-team-service.interface";
 import { transactionService } from "./transaction-service";
 
 @injectable()
-export default class PlayerTeamService {
-  private playerService: PlayerService;
-  private teamService: ITeamService;
+export default class PlayerTeamService implements IPlayerTeamService {
+  private playerRepository: IPlayerRepository;
+  private teamRepository: ITeamRepository;
 
-  constructor(teamService: ITeamService, @inject(PlayerService) playerService: PlayerService) {
-    this.teamService = teamService;
-    this.playerService = playerService;
+  constructor(@inject("ITeamRepository") teamService: ITeamRepository, @inject("IPlayerRepository") playerRepository: IPlayerRepository) {
+    this.teamRepository = teamService;
+    this.playerRepository = playerRepository;
   }
 
   async addPlayerToTeam(playerId: string, teamId: string): Promise<void> {
-    const player = await Player.findById(playerId);
-    if (!player) {
-      throw new NotFoundError(`Player with id ${playerId} not found.`);
-    }
+    const player = await this.playerRepository.getPlayerById(playerId);
 
     if (player.team) {
       throw new BadRequestError(`Player is already in team ${player.team}`);
     }
 
-    const team = await Team.findById(teamId);
-    if (!team) {
-      throw new NotFoundError(`Team with id ${teamId} not found.`);
-    }
+    const team = await this.teamRepository.getTeamById(teamId);
 
     if (team.players.includes(player._id)) {
       throw new BadRequestError(`Player ${player.id} is already in team ${teamId}`);
@@ -47,14 +39,7 @@ export default class PlayerTeamService {
   }
 
   async removePlayerFromTeam(playerId: string, teamId: string): Promise<void> {
-    const player = await Player.findById(playerId);
-    if (!player) {
-      throw new NotFoundError(`Player with id ${playerId} not found.`);
-    }
-    const team = await Team.findById(teamId);
-    if (!team) {
-      throw new NotFoundError(`Team with id ${teamId} not found.`);
-    }
+    const [player, team] = await Promise.all([this.playerRepository.getPlayerById(playerId), this.teamRepository.getTeamById(teamId)]);
 
     if (player.team !== team._id) {
       throw new BadRequestError(`Player ${player.id} is not in team ${teamId}`);
@@ -62,22 +47,22 @@ export default class PlayerTeamService {
 
     await transactionService.withTransaction(async (session) => {
       logger.info(`PlayerTeamService:  removing player ${playerId} from team ${teamId}`);
-      await Player.updateOne({ _id: player._id }, { $set: { team: null } }, { session });
-      await Team.updateOne({ _id: team._id }, { $pull: { players: player._id } }, { session });
+
+      // TODO: implement in repositories
+      await this.teamRepository.removePlayerFromTeam(player.team, player.id, session);
+      await this.playerRepository.setPlayerTeam(player.id, null, session);
       logger.info(`Successfully removed player ${player.id} from team ${team.id}`);
     });
   }
 
   async deletePlayer(playerId: string) {
-    const player = await Player.findById(playerId);
-    if (!player) {
-      throw new NotFoundError(`Player with id ${playerId} not found.`);
-    }
+    const player = await this.playerRepository.getPlayerById(playerId);
     await transactionService.withTransaction(async (session) => {
+      logger.info(`PlayerTeamService: deleting player ${playerId}`);
       if (player.team) {
-        await this.playerService.deletePlayer(player, session);
-        await this.teamService.removePlayerFromTeam(player.team, player.id, session);
+        await this.teamRepository.removePlayerFromTeam(player.team, player.id, session);
       }
+      await this.playerRepository.deletePlayer(player.id, session);
     });
   }
 }

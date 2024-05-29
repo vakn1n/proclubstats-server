@@ -1,18 +1,14 @@
 import { ClientSession, Types } from "mongoose";
+import { inject, injectable } from "tsyringe";
 import { GAME_STATUS, GameDTO, UpdatePlayerPerformanceDataRequest } from "../../types-changeToNPM/shared-DTOs";
-import BadRequestError from "../errors/bad-request-error";
-import NotFoundError from "../errors/not-found-error";
-import logger from "../logger";
+import logger from "../config/logger";
+import { BadRequestError } from "../errors";
+import { IGameRepository, IGameService } from "../interfaces/game";
+import { IPlayerService } from "../interfaces/player";
+import { ITeamService } from "../interfaces/team";
 import { GameMapper } from "../mappers/game-mapper";
-import Game, { AddGameData, IGame, IPlayerGamePerformance } from "../models/game";
-import PlayerService from "./player-service";
-import TeamService from "./team-service";
+import { AddGameData, IGame, IPlayerGamePerformance } from "../models/game";
 import { transactionService } from "./transaction-service";
-import { injectable } from "tsyringe";
-import IGameService from "../interfaces/game/game-service.interface";
-import ITeamService from "../interfaces/team/team-service.interface";
-import IPlayerService from "../interfaces/player/player-service.interface";
-import IGameRepository from "../interfaces/game/game-repository.interface";
 
 @injectable()
 class GameService implements IGameService {
@@ -20,7 +16,11 @@ class GameService implements IGameService {
   private teamService: ITeamService;
   private playerService: IPlayerService;
 
-  constructor(gameRepository: IGameRepository, teamService: ITeamService, playerService: IPlayerService) {
+  constructor(
+    @inject("IGameRepository") gameRepository: IGameRepository,
+    @inject("ITeamService") teamService: ITeamService,
+    @inject("IPlayerService") playerService: IPlayerService
+  ) {
     this.gameRepository = gameRepository;
     this.teamService = teamService;
     this.playerService = playerService;

@@ -2,7 +2,7 @@ import { ClientSession, Types } from "mongoose";
 import { LeagueTableRow, PlayerDTO, TeamDTO } from "../../../types-changeToNPM/shared-DTOs";
 import { ITeam } from "../../models/team";
 
-export default interface ITeamService {
+export interface ITeamService {
   getTeamById(teamId: string): Promise<TeamDTO>;
   getAllTeams(): Promise<TeamDTO[]>;
 

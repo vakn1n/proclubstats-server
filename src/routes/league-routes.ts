@@ -1,7 +1,7 @@
 import { Router } from "express";
 import LeagueController from "../controllers/league-controller";
-import upload from "../multer-config";
-import { container } from "tsyringe";
+import upload from "../config/multer-config";
+import { container } from "../config/container.config";
 
 const router = Router();
 const leagueController = container.resolve(LeagueController);

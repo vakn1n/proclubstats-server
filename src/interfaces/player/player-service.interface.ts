@@ -3,7 +3,7 @@ import { CreatePlayerDataRequest, PlayerDTO } from "../../../types-changeToNPM/s
 import { IPlayer } from "../../models/player";
 import { IPlayerGamePerformance } from "../../models/game";
 
-export default interface IPlayerService {
+export interface IPlayerService {
   getPlayerById(id: string | Types.ObjectId, session?: ClientSession): Promise<PlayerDTO>;
 
   createPlayer(playerData: CreatePlayerDataRequest): Promise<PlayerDTO>;

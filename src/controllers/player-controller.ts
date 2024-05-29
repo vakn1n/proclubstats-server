@@ -1,15 +1,16 @@
 import { NextFunction, Request, Response } from "express";
-import { injectable } from "tsyringe";
+import { inject, injectable } from "tsyringe";
 import { CreatePlayerDataRequest } from "../../types-changeToNPM/shared-DTOs";
-import IPlayerService from "../interfaces/player/player-service.interface";
-import PlayerTeamService from "../services/player-team-service";
+import { IPlayerController } from "../interfaces/player";
+import { IPlayerService } from "../interfaces/player/player-service.interface";
+import { IPlayerTeamService } from "../interfaces/wrapper-services/player-team-service.interface";
 
 @injectable()
-export default class PlayerController {
+export default class PlayerController implements IPlayerController {
   private playerService: IPlayerService;
-  private playerTeamService: PlayerTeamService;
+  private playerTeamService: IPlayerTeamService;
 
-  constructor(playerService: IPlayerService, playerTeamService: PlayerTeamService) {
+  constructor(@inject("IPlayerService") playerService: IPlayerService, @inject("IPlayerTeamService") playerTeamService: IPlayerTeamService) {
     this.playerService = playerService;
     this.playerTeamService = playerTeamService;
   }
@@ -33,14 +34,15 @@ export default class PlayerController {
     }
   }
 
-  async setPlayerImage(req: Request, res: Response, next: NextFunction) {
+  async setPlayerImage(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
     const file = req.file;
 
     if (!file || !id) {
-      return res.status(400).json({
+      res.status(400).json({
         message: "Bad request",
       });
+      return;
     }
 
     try {

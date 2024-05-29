@@ -1,21 +1,19 @@
 import { ClientSession, Types } from "mongoose";
-import { injectable } from "tsyringe";
+import { inject, injectable } from "tsyringe";
 import { FixtureDTO, PaginatedFixtureDTO } from "../../types-changeToNPM/shared-DTOs";
-import { BadRequestError } from "../errors";
-import NotFoundError from "../errors/not-found-error";
-import IFixtureRepository from "../interfaces/fixture/fixture-repository.interface";
-import IFixtureService from "../interfaces/fixture/fixture-service.interface";
-import logger from "../logger";
+import logger from "../config/logger";
+import { BadRequestError, NotFoundError } from "../errors";
+import { IFixtureRepository, IFixtureService } from "../interfaces/fixture";
+import { IGameService } from "../interfaces/game";
 import { FixtureMapper } from "../mappers/fixture-mapper";
 import { AddFixtureData, IFixture } from "../models/fixture";
-import GameService from "./game-service";
 
 @injectable()
 export default class FixtureService implements IFixtureService {
   private fixtureRepository: IFixtureRepository;
-  private gameService: GameService;
+  private gameService: IGameService;
 
-  constructor(fixtureRepository: IFixtureRepository, gameService: GameService) {
+  constructor(@inject("IFixtureRepository") fixtureRepository: IFixtureRepository, @inject("IGameService") gameService: IGameService) {
     this.fixtureRepository = fixtureRepository;
     this.gameService = gameService;
   }

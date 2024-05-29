@@ -1,24 +1,27 @@
 import { ClientSession, Types } from "mongoose";
-import { injectable } from "tsyringe";
+import { inject, injectable } from "tsyringe";
 import { LeagueTableRow, PlayerDTO, TeamDTO } from "../../types-changeToNPM/shared-DTOs";
-import BadRequestError from "../errors/bad-request-error";
-import NotFoundError from "../errors/not-found-error";
-import ITeamRepository from "../interfaces/team/team-repository.interface";
-import ITeamService from "../interfaces/team/team-service.interface";
-import logger from "../logger";
+import logger from "../config/logger";
+import { BadRequestError, NotFoundError } from "../errors";
+import { IPlayerService } from "../interfaces/player";
+import { ImageService } from "../interfaces/util-services/image-service.interface";
 import { PlayerMapper } from "../mappers/player-mapper";
 import { TeamMapper } from "../mappers/team-mapper";
 import Player from "../models/player";
 import { ITeam } from "../models/team";
-import { ImageService, PlayerService } from "./";
+import { ITeamService, ITeamRepository } from "../interfaces/team";
 
 @injectable()
 export default class TeamService implements ITeamService {
   private imageService: ImageService;
-  private playerService: PlayerService;
+  private playerService: IPlayerService;
   private teamRepository: ITeamRepository;
 
-  constructor(teamRepository: ITeamRepository, imageService: ImageService, playerService: PlayerService) {
+  constructor(
+    @inject("ITeamRepository") teamRepository: ITeamRepository,
+    @inject("ImageService") imageService: ImageService,
+    @inject("IPlayerService") playerService: IPlayerService
+  ) {
     this.teamRepository = teamRepository;
     this.imageService = imageService;
     this.playerService = playerService;
@@ -51,7 +54,7 @@ export default class TeamService implements ITeamService {
 
     if (team.imgUrl) {
       // remove current image from cloud
-      await this.imageService.deleteImageFromCloudinary(team.imgUrl);
+      await this.imageService.removeImage(team.imgUrl);
     }
     const imageUrl = await this.imageService.uploadImage(file);
 
@@ -71,7 +74,7 @@ export default class TeamService implements ITeamService {
     logger.info(`deleting team with id ${team.id}`);
 
     if (team.imgUrl) {
-      await this.imageService.deleteImageFromCloudinary(team.imgUrl);
+      await this.imageService.removeImage(team.imgUrl);
     }
 
     if (team.players.length) {

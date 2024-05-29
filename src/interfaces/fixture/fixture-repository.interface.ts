@@ -1,7 +1,7 @@
 import { Types, ClientSession } from "mongoose";
 import { IFixture } from "../../models/fixture";
 
-export default interface IFixtureRepository {
+export interface IFixtureRepository {
   createFixture(leagueId: string | Types.ObjectId, startDate: Date, endDate: Date, round: number, session?: ClientSession): Promise<IFixture>;
 
   deleteFixtureById(id: string | Types.ObjectId, session?: ClientSession): Promise<void>;

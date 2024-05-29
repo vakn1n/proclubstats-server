@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 
-export default interface ILeagueController {
+export interface ILeagueController {
   getLeagueById: (req: Request, res: Response, next: NextFunction) => void;
   getAllLeagues: (req: Request, res: Response, next: NextFunction) => void;
   getTopScorers: (req: Request, res: Response, next: NextFunction) => void;

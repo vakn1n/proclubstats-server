@@ -1,22 +1,21 @@
 import { NextFunction, Request, Response } from "express";
-import LeagueService from "../services/league-service";
-import logger from "../logger";
-import ImageService from "../services/images-service";
+import { inject, injectable } from "tsyringe";
 import { AddSingleFixtureData } from "../../types-changeToNPM/shared-DTOs";
-import { injectable } from "tsyringe";
-import { TeamLeagueService } from "../services";
-import ILeagueController from "../interfaces/league/league-controller.interace";
-import { ParamsDictionary } from "express-serve-static-core";
-import { ParsedQs } from "qs";
-import ILeagueService from "../interfaces/league/league-service.interface";
+import { ImageService } from "../interfaces/util-services/image-service.interface";
+import { ITeamLeagueService } from "../interfaces/wrapper-services/team-league-service.interface";
+import { ILeagueController, ILeagueService } from "../interfaces/league";
 
 @injectable()
 export default class LeagueController implements ILeagueController {
   private leagueService: ILeagueService;
-  private teamLeagueService: TeamLeagueService;
+  private teamLeagueService: ITeamLeagueService;
   private imageService: ImageService;
 
-  constructor(leagueService: ILeagueService, teamLeagueService: TeamLeagueService, imageService: ImageService) {
+  constructor(
+    @inject("ILeagueService") leagueService: ILeagueService,
+    @inject("ITeamLeagueService") teamLeagueService: ITeamLeagueService,
+    @inject("ImageService") imageService: ImageService
+  ) {
     this.leagueService = leagueService;
     this.imageService = imageService;
     this.teamLeagueService = teamLeagueService;

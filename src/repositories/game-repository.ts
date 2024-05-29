@@ -1,10 +1,10 @@
 import { ClientSession, Types } from "mongoose";
-import IGameRepository from "../interfaces/game/game-repository.interface";
+import { IGameRepository } from "../interfaces/game/game-repository.interface";
 import Game, { AddGameData, IGame } from "../models/game";
 import { BadRequestError, NotFoundError, QueryFailedError } from "../errors";
-import logger from "../logger";
+import logger from "../config/logger";
 
-export default class GameRepository implements IGameRepository {
+export class GameRepository implements IGameRepository {
   async createGame(fixtureId: string | Types.ObjectId, addGameData: AddGameData, session?: ClientSession): Promise<IGame> {
     const { homeTeam, awayTeam, date } = addGameData;
     try {

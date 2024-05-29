@@ -1,20 +1,18 @@
-import { ClientSession } from "mongodb";
-import { Types } from "mongoose";
-import { injectable } from "tsyringe";
+import { Types, ClientSession } from "mongoose";
+import { inject, injectable } from "tsyringe";
 import { AddSingleFixtureData, FixtureDTO, LeagueDTO, LeagueTableRow, TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
 import { BadRequestError, NotFoundError } from "../errors";
-import IFixtureService from "../interfaces/fixture/fixture-service.interface";
-import ILeagueRepository from "../interfaces/league/league-repository.interface";
-import ILeagueService from "../interfaces/league/league-service.interface";
-import ITeamService from "../interfaces/team/team-service.interface";
-import logger from "../logger";
+import logger from "../config/logger";
 import { FixtureMapper } from "../mappers/fixture-mapper";
 import LeagueMapper from "../mappers/league-mapper";
 import Fixture, { AddFixtureData } from "../models/fixture";
 import { AddGameData } from "../models/game";
 import { ILeague } from "../models/league";
-import { CacheService } from "./";
 import { transactionService } from "./transaction-service";
+import { IFixtureService } from "../interfaces/fixture";
+import { ILeagueService, ILeagueRepository } from "../interfaces/league";
+import { ITeamService } from "../interfaces/team";
+import { CacheService } from "../interfaces/util-services/cache-service.interface";
 
 const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
 const TOP_SCORERS_CACHE_KEY = "topScorers";
@@ -27,7 +25,12 @@ export default class LeagueService implements ILeagueService {
   private teamService: ITeamService;
   private leagueRepository: ILeagueRepository;
 
-  constructor(leagueRepository: ILeagueRepository, teamService: ITeamService, cacheService: CacheService, fixtureService: IFixtureService) {
+  constructor(
+    @inject("ILeagueRepository") leagueRepository: ILeagueRepository,
+    @inject("ITeamService") teamService: ITeamService,
+    @inject("CacheService") cacheService: CacheService,
+    @inject("IFixtureService") fixtureService: IFixtureService
+  ) {
     this.leagueRepository = leagueRepository;
     this.cacheService = cacheService;
     this.teamService = teamService;

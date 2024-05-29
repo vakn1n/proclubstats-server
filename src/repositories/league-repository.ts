@@ -1,12 +1,11 @@
 import { ClientSession, Types } from "mongoose";
-import NotFoundError from "../errors/not-found-error";
-import QueryFailedError from "../errors/query-failed-error";
-import ILeagueRepository from "../interfaces/league/league-repository.interface";
-import logger from "../logger";
+import { NotFoundError, QueryFailedError } from "../errors";
+import { ILeagueRepository } from "../interfaces/league/league-repository.interface";
+import logger from "../config/logger";
 import League, { ILeague } from "../models/league";
 import { TopScorer, TopAssister } from "../../types-changeToNPM/shared-DTOs";
 
-export default class LeagueRepository implements ILeagueRepository {
+export class LeagueRepository implements ILeagueRepository {
   async getAllLeagues(): Promise<ILeague[]> {
     try {
       const leagues = await League.find();
@@ -66,6 +65,21 @@ export default class LeagueRepository implements ILeagueRepository {
       } else {
         logger.error(e.message);
         throw new QueryFailedError(`Failed to delete league with id ${id}`);
+      }
+    }
+  }
+  async removeTeamFromLeague(leagueId: Types.ObjectId, teamId: Types.ObjectId, session?: ClientSession | undefined): Promise<void> {
+    try {
+      const league = await League.updateOne({ _id: leagueId }, { $pull: { teams: teamId } }, { session });
+      if (!league) {
+        throw new NotFoundError(`League with id ${leagueId} not found`);
+      }
+    } catch (e: any) {
+      if (e instanceof NotFoundError) {
+        throw e;
+      } else {
+        logger.error(e.message);
+        throw new QueryFailedError(`Failed to remove team from league with id ${leagueId}`);
       }
     }
   }
