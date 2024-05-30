@@ -6,7 +6,7 @@ import { ITeamLeagueService } from "../interfaces/wrapper-services/team-league-s
 import { transactionService } from "./transaction-service";
 
 @injectable()
-export default class TeamLeagueService implements ITeamLeagueService {
+export class TeamLeagueService implements ITeamLeagueService {
   private teamRepository: ITeamRepository;
   private leagueRepository: ILeagueRepository;
 

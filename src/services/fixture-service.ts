@@ -9,7 +9,7 @@ import { FixtureMapper } from "../mappers/fixture-mapper";
 import { AddFixtureData, IFixture } from "../models/fixture";
 
 @injectable()
-export default class FixtureService implements IFixtureService {
+export class FixtureService implements IFixtureService {
   private fixtureRepository: IFixtureRepository;
   private gameService: IGameService;
 

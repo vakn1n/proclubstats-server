@@ -9,7 +9,7 @@ import { ImageService } from "../interfaces/util-services/image-service.interfac
 const unlinkAsync = promisify(fs.unlink);
 
 @injectable()
-export default class CloudinaryImageService implements ImageService {
+export class CloudinaryImageService implements ImageService {
   constructor() {
     cloudinary.config({
       cloud_name: process.env.CLOUDINARY_NAME,

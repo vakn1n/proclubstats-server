@@ -12,7 +12,7 @@ import { ITeam } from "../models/team";
 import { ITeamService, ITeamRepository } from "../interfaces/team";
 
 @injectable()
-export default class TeamService implements ITeamService {
+export class TeamService implements ITeamService {
   private imageService: ImageService;
   private playerService: IPlayerService;
   private teamRepository: ITeamRepository;

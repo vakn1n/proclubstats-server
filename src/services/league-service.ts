@@ -19,7 +19,7 @@ const TOP_SCORERS_CACHE_KEY = "topScorers";
 const TOP_ASSISTS_CACHE_KEY = "topAssists";
 
 @injectable()
-export default class LeagueService implements ILeagueService {
+export class LeagueService implements ILeagueService {
   private cacheService: CacheService;
   private fixtureService: IFixtureService;
   private teamService: ITeamService;

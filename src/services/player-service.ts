@@ -9,7 +9,7 @@ import { IPlayerService, IPlayerRepository } from "../interfaces/player";
 import { ImageService } from "../interfaces/util-services/image-service.interface";
 
 @injectable()
-export default class PlayerService implements IPlayerService {
+export class PlayerService implements IPlayerService {
   private imageService: ImageService;
   private playerRepository: IPlayerRepository;
 

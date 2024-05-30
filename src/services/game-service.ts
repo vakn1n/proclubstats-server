@@ -11,7 +11,7 @@ import { AddGameData, IGame, IPlayerGamePerformance } from "../models/game";
 import { transactionService } from "./transaction-service";
 
 @injectable()
-class GameService implements IGameService {
+export class GameService implements IGameService {
   private gameRepository: IGameRepository;
   private teamService: ITeamService;
   private playerService: IPlayerService;
@@ -134,5 +134,3 @@ class GameService implements IGameService {
     await this.gameRepository.deleteGameById(id);
   }
 }
-
-export default GameService;

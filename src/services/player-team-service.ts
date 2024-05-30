@@ -7,7 +7,7 @@ import { IPlayerTeamService } from "../interfaces/wrapper-services/player-team-s
 import { transactionService } from "./transaction-service";
 
 @injectable()
-export default class PlayerTeamService implements IPlayerTeamService {
+export class PlayerTeamService implements IPlayerTeamService {
   private playerRepository: IPlayerRepository;
   private teamRepository: ITeamRepository;
 
