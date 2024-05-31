@@ -41,7 +41,7 @@ const teamStatsSchema = new Schema({
 
 const teamSchema: Schema = new Schema<ITeam>(
   {
-    name: { type: String, required: true },
+    name: { type: String, required: true, unique: true },
     players: [{ type: mongoose.Schema.Types.ObjectId, ref: "Player" }],
     captain: { type: mongoose.Schema.Types.ObjectId, ref: "Player" },
     league: { type: mongoose.Schema.Types.ObjectId, ref: "League", required: true },

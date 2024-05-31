@@ -5,14 +5,8 @@ import { ILeagueRepository } from "../../interfaces/league";
 import League, { ILeague } from "../../models/league";
 
 export class MockLeagueRepository implements ILeagueRepository {
-  private leagues: ILeague[];
-
-  constructor() {
-    this.leagues = [];
-  }
-
   async getAllLeagues(): Promise<ILeague[]> {
-    return this.leagues;
+    return await League.find({});
   }
   async getLeagueById(id: string | Types.ObjectId): Promise<ILeague> {
     const league = await League.findById(id);
@@ -26,7 +20,6 @@ export class MockLeagueRepository implements ILeagueRepository {
   }
   async createLeague(name: string, imgUrl?: string): Promise<ILeague> {
     const newLeague = await League.create({ name, imgUrl });
-    this.leagues.push(newLeague);
     return newLeague;
   }
 

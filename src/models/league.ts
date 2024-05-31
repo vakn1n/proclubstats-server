@@ -23,7 +23,7 @@ export interface ILeague extends Document {
 
 const leagueSchema: Schema = new Schema<ILeague>(
   {
-    name: { type: String, required: true },
+    name: { type: String, required: true, unique: true },
     imgUrl: { type: String },
     teams: [{ type: mongoose.Schema.Types.ObjectId, ref: "Team" }],
     currentTitleHolder: {
