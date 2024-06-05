@@ -1,7 +1,7 @@
 import { RedisClientType, createClient } from "redis";
-import logger from "../config/logger";
 import { injectable } from "tsyringe";
-import { CacheService } from "../interfaces/util-services/cache-service.interface";
+import logger from "../../config/logger";
+import { CacheService } from "../../interfaces/util-services/cache-service.interface";
 
 @injectable()
 export class RedisCacheService implements CacheService {

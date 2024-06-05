@@ -7,11 +7,11 @@ const router = Router();
 
 const playerController = container.resolve(PlayerController);
 
-router.post("/", upload.single("file"), playerController.createPlayer);
+router.post("/", upload.single("file"), (req, res, next) => playerController.createPlayer(req, res, next));
 
-router.patch("/:id/setImage", upload.single("file"), playerController.setPlayerImage);
+router.patch("/:id/setImage", upload.single("file"), (req, res, next) => playerController.setPlayerImage(req, res, next));
 
-router.get("/:id", playerController.getPlayerById);
-router.delete("/:id", playerController.deletePlayer);
+router.get("/:id", (req, res, next) => playerController.getPlayerById(req, res, next));
+router.delete("/:id", (req, res, next) => playerController.deletePlayer(req, res, next));
 
 export default router;

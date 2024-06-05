@@ -11,7 +11,6 @@ export interface AddFixtureData {
 
 export interface IFixture extends Document {
   id: string;
-  _id: mongoose.Types.ObjectId;
   league: mongoose.Types.ObjectId;
   round: number;
   startDate: Date;

@@ -45,6 +45,8 @@ export class GameMapper {
     return {
       id: game.id,
       fixtureId: game.fixture.toString(),
+      round: game.round,
+      date: game.date,
       status: game.status,
       result: game.result
         ? {
@@ -74,9 +76,9 @@ export class GameMapper {
   private static mapPlayersPerformanceToDTO(playersPerformance?: PopulatedPlayerPerformance[]): PlayerPerformanceDTO[] | undefined {
     return playersPerformance?.length
       ? playersPerformance!.map((playerPerformance) => ({
-          playerId: playerPerformance.playerId.id,
-          name: playerPerformance.playerId.name,
-          imgUrl: playerPerformance.playerId.imgUrl,
+          playerId: playerPerformance.playerId?.id,
+          name: playerPerformance.playerId?.name,
+          imgUrl: playerPerformance.playerId?.imgUrl,
           goals: playerPerformance.goals,
           assists: playerPerformance.assists,
           rating: playerPerformance.rating,

@@ -10,4 +10,5 @@ export interface IGameRepository {
   getGameById(id: string | Types.ObjectId, session?: ClientSession): Promise<IGame>;
   getGamesByIds(ids: string | Types.ObjectId[], session?: ClientSession): Promise<IGame[]>;
   getTeamGames(teamId: string | Types.ObjectId[], session?: ClientSession): Promise<IGame[]>;
+  getPlayedTeamGames(teamId: string | Types.ObjectId[], session?: ClientSession): Promise<IGame[]>;
 }

@@ -21,13 +21,15 @@ import { IPlayerTeamService } from "../interfaces/wrapper-services/player-team-s
 import { ITeamLeagueService } from "../interfaces/wrapper-services/team-league-service.interface";
 import { ImageService } from "../interfaces/util-services/image-service.interface";
 import { CacheService } from "../interfaces/util-services/cache-service.interface";
+import { ITeamStatsService } from "../interfaces/wrapper-services/team-stats-service.interface";
+import { TeamStatsService } from "../services/wrapper-services/team-stats-service";
 
-// Register controllers
-container.registerSingleton<IPlayerController>("IPlayerController", PlayerController);
-container.registerSingleton<IGameController>("IGameController", GameController);
-container.registerSingleton<ITeamController>("ITeamController", TeamController);
-container.registerSingleton<IFixtureController>("IFixtureController", FixtureController);
-container.registerSingleton<ILeagueController>("ILeagueController", LeagueController);
+// Register repositories
+container.registerSingleton<IPlayerRepository>("IPlayerRepository", PlayerRepository);
+container.registerSingleton<IGameRepository>("IGameRepository", GameRepository);
+container.registerSingleton<ITeamRepository>("ITeamRepository", TeamRepository);
+container.registerSingleton<IFixtureRepository>("IFixtureRepository", FixtureRepository);
+container.registerSingleton<ILeagueRepository>("ILeagueRepository", LeagueRepository);
 
 // Register services
 container.registerSingleton<IPlayerService>("IPlayerService", PlayerService);
@@ -37,15 +39,16 @@ container.registerSingleton<IFixtureService>("IFixtureService", FixtureService);
 container.registerSingleton<ILeagueService>("ILeagueService", LeagueService);
 container.registerSingleton<IPlayerTeamService>("IPlayerTeamService", PlayerTeamService);
 container.registerSingleton<ITeamLeagueService>("ITeamLeagueService", TeamLeagueService);
+container.registerSingleton<ITeamStatsService>("ITeamStatsService", TeamStatsService);
 
 container.registerSingleton<ImageService>("ImageService", CloudinaryImageService);
 container.registerSingleton<CacheService>("CacheService", RedisCacheService);
 
-// Register repositories
-container.registerSingleton<IPlayerRepository>("IPlayerRepository", PlayerRepository);
-container.registerSingleton<IGameRepository>("IGameRepository", GameRepository);
-container.registerSingleton<ITeamRepository>("ITeamRepository", TeamRepository);
-container.registerSingleton<IFixtureRepository>("IFixtureRepository", FixtureRepository);
-container.registerSingleton<ILeagueRepository>("ILeagueRepository", LeagueRepository);
+// Register controllers
+container.registerSingleton<IPlayerController>("IPlayerController", PlayerController);
+container.registerSingleton<IGameController>("IGameController", GameController);
+container.registerSingleton<ITeamController>("ITeamController", TeamController);
+container.registerSingleton<IFixtureController>("IFixtureController", FixtureController);
+container.registerSingleton<ILeagueController>("ILeagueController", LeagueController);
 
 export { container };

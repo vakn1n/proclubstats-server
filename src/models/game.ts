@@ -17,22 +17,10 @@ export type IPlayerGamePerformance = {
   // add other player stats
 };
 
-type PopulatedGamePerformance = {
-  playerId: {
-    id: string;
-    name: string;
-    imgUrl?: string;
-  };
-  goals?: number;
-  assists?: number;
-  rating: number;
-  playerOfTheMatch?: boolean;
-  cleanSheet: boolean;
-};
-
 export interface IGame extends Document {
   id: string;
   fixture: mongoose.Types.ObjectId;
+  round: number;
   homeTeam: mongoose.Types.ObjectId;
   awayTeam: mongoose.Types.ObjectId;
   date?: Date;
@@ -58,6 +46,7 @@ const playerGameStatsSchema = new Schema({
 const gameSchema = new Schema<IGame>(
   {
     fixture: { type: mongoose.Schema.Types.ObjectId, ref: "Fixture", required: true },
+    round: { type: Number, required: true },
     homeTeam: { type: mongoose.Schema.Types.ObjectId, ref: "Team", required: true },
     awayTeam: { type: mongoose.Schema.Types.ObjectId, ref: "Team", required: true },
     date: { type: Date },

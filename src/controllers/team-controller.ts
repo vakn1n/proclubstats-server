@@ -2,15 +2,23 @@ import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
 import { ITeamController, ITeamService } from "../interfaces/team/";
 import { IPlayerTeamService } from "../interfaces/wrapper-services/player-team-service.interface";
+import { ITeamStatsService } from "../interfaces/wrapper-services/team-stats-service.interface";
+import Fixture from "../models/fixture";
 
 @injectable()
 export default class TeamController implements ITeamController {
   private teamService: ITeamService;
   private playerTeamService: IPlayerTeamService;
+  private teamStatsService: ITeamStatsService;
 
-  constructor(@inject("ITeamService") teamService: ITeamService, @inject("IPlayerTeamService") playerTeamService: IPlayerTeamService) {
+  constructor(
+    @inject("ITeamService") teamService: ITeamService,
+    @inject("IPlayerTeamService") playerTeamService: IPlayerTeamService,
+    @inject("ITeamStatsService") teamStatsService: ITeamStatsService
+  ) {
     this.teamService = teamService;
     this.playerTeamService = playerTeamService;
+    this.teamStatsService = teamStatsService;
   }
 
   async createTeam(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -98,6 +106,21 @@ export default class TeamController implements ITeamController {
     try {
       const team = await this.teamService.getTeamById(teamId);
       res.json(team);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  async getAdvancedTeamStats(req: Request, res: Response, next: NextFunction) {
+    const { id: teamId } = req.params;
+    if (!teamId) {
+      res.status(400).send({ message: "No teamId provided" });
+      return;
+    }
+
+    try {
+      const teamStats = await this.teamStatsService.getAdvancedTeamStats(teamId);
+      res.json(teamStats);
     } catch (error: any) {
       next(error);
     }

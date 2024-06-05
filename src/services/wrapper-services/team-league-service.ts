@@ -1,9 +1,9 @@
 import { inject, injectable } from "tsyringe";
-import { BadRequestError } from "../errors";
-import { ILeagueRepository } from "../interfaces/league";
-import { ITeamRepository } from "../interfaces/team";
-import { ITeamLeagueService } from "../interfaces/wrapper-services/team-league-service.interface";
-import { transactionService } from "./transaction-service";
+import { BadRequestError } from "../../errors";
+import { ILeagueRepository } from "../../interfaces/league";
+import { ITeamRepository } from "../../interfaces/team";
+import { ITeamLeagueService } from "../../interfaces/wrapper-services/team-league-service.interface";
+import { transactionService } from "../util-services/transaction-service";
 
 @injectable()
 export class TeamLeagueService implements ITeamLeagueService {

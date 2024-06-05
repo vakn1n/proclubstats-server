@@ -3,6 +3,7 @@ import { IGameRepository } from "../interfaces/game/game-repository.interface";
 import Game, { AddGameData, IGame } from "../models/game";
 import { BadRequestError, NotFoundError, QueryFailedError } from "../errors";
 import logger from "../config/logger";
+import { GAME_STATUS } from "../../types-changeToNPM/shared-DTOs";
 
 export class GameRepository implements IGameRepository {
   async createGame(fixtureId: string | Types.ObjectId, addGameData: AddGameData, session?: ClientSession): Promise<IGame> {
@@ -70,13 +71,24 @@ export class GameRepository implements IGameRepository {
     }
   }
 
-  async getTeamGames(teamId: string) {
+  async getTeamGames(teamId: string): Promise<IGame[]> {
     try {
       const games = await Game.find({ $or: [{ homeTeam: teamId }, { awayTeam: teamId }] });
       return games;
     } catch (e: any) {
       logger.error(e.message);
       throw new QueryFailedError(`Failed to get games for team ${teamId}`);
+    }
+  }
+  async getPlayedTeamGames(teamId: string): Promise<IGame[]> {
+    try {
+      const games = await Game.find({ $or: [{ homeTeam: teamId }, { awayTeam: teamId }], status: [GAME_STATUS.COMPLETED, GAME_STATUS.PLAYED] })
+        .sort({ round: 1 })
+        .exec();
+      return games;
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`Failed to get played games for team ${teamId}`);
     }
   }
 

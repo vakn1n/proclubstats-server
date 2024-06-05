@@ -168,6 +168,7 @@ export type PlayerPerformanceDTO = {
 export type GameDTO = {
   id: string;
   fixtureId: string;
+  round: number;
   status: GAME_STATUS;
   result?: {
     homeTeamGoals: number;
@@ -196,4 +197,10 @@ export type AddSingleFixtureData = {
     homeTeamId: string;
     awayTeamId: string;
   }[];
+};
+
+export type AdvancedTeamStats = {
+  longestUnbeatenStreak: number;
+  longestWinStreak: number;
+  longestLoseStreak: number;
 };

@@ -8,11 +8,11 @@ import LeagueMapper from "../mappers/league-mapper";
 import Fixture, { AddFixtureData } from "../models/fixture";
 import { AddGameData } from "../models/game";
 import { ILeague } from "../models/league";
-import { transactionService } from "./transaction-service";
 import { IFixtureService } from "../interfaces/fixture";
 import { ILeagueService, ILeagueRepository } from "../interfaces/league";
 import { ITeamService } from "../interfaces/team";
 import { CacheService } from "../interfaces/util-services/cache-service.interface";
+import { transactionService } from "./util-services/transaction-service";
 
 const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
 const TOP_SCORERS_CACHE_KEY = "topScorers";

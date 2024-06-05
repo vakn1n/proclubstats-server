@@ -1,10 +1,10 @@
 import { inject, injectable } from "tsyringe";
-import logger from "../config/logger";
-import { BadRequestError } from "../errors";
-import { IPlayerRepository } from "../interfaces/player";
-import { ITeamRepository } from "../interfaces/team/";
-import { IPlayerTeamService } from "../interfaces/wrapper-services/player-team-service.interface";
-import { transactionService } from "./transaction-service";
+import logger from "../../config/logger";
+import { BadRequestError } from "../../errors";
+import { IPlayerRepository } from "../../interfaces/player";
+import { ITeamRepository } from "../../interfaces/team";
+import { IPlayerTeamService } from "../../interfaces/wrapper-services/player-team-service.interface";
+import { transactionService } from "../util-services/transaction-service";
 
 @injectable()
 export class PlayerTeamService implements IPlayerTeamService {

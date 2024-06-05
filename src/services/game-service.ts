@@ -8,8 +8,7 @@ import { IPlayerService } from "../interfaces/player";
 import { ITeamService } from "../interfaces/team";
 import { GameMapper } from "../mappers/game-mapper";
 import { AddGameData, IGame, IPlayerGamePerformance } from "../models/game";
-import { transactionService } from "./transaction-service";
-
+import { transactionService } from "./util-services/transaction-service";
 @injectable()
 export class GameService implements IGameService {
   private gameRepository: IGameRepository;

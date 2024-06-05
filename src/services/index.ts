@@ -1,12 +1,12 @@
-import { RedisCacheService } from "./redis-cache-service";
 import { FixtureService } from "./fixture-service";
 import { GameService } from "./game-service";
-import { CloudinaryImageService } from "./cloudinary-image-service";
 import { LeagueService } from "./league-service";
 import { PlayerService } from "./player-service";
-import { PlayerTeamService } from "./player-team-service";
-import { TeamLeagueService } from "./team-league-service";
+import { PlayerTeamService } from "./wrapper-services/player-team-service";
+import { TeamLeagueService } from "./wrapper-services/team-league-service";
 import { TeamService } from "./team-service";
+import { RedisCacheService } from "./util-services/redis-cache-service";
+import { CloudinaryImageService } from "./util-services/cloudinary-image-service";
 
 export {
   PlayerTeamService,

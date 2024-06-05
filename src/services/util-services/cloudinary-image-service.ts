@@ -1,10 +1,10 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 import { promisify } from "util";
-import logger from "../config/logger";
 import { extractPublicId } from "cloudinary-build-url";
 import { injectable } from "tsyringe";
-import { ImageService } from "../interfaces/util-services/image-service.interface";
+import logger from "../../config/logger";
+import { ImageService } from "../../interfaces/util-services/image-service.interface";
 
 const unlinkAsync = promisify(fs.unlink);
 
