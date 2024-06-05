@@ -17,6 +17,10 @@ export class PlayerService implements IPlayerService {
     this.playerRepository = playerRepository;
     this.imageService = imageService;
   }
+  async renamePlayer(id: string, newName: string): Promise<void> {
+    logger.info(`PlayerService: renaming player with id ${id}`);
+    await this.playerRepository.renamePlayer(id, newName);
+  }
 
   async getPlayerById(id: string): Promise<PlayerDTO> {
     logger.info(`PlayerService: getting player with id ${id}`);

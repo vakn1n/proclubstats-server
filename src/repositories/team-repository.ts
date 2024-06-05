@@ -78,4 +78,13 @@ export class TeamRepository implements ITeamRepository {
       throw new QueryFailedError(`Failed to set team ${teamId} league to ${leagueId}`);
     }
   }
+
+  async renameTeam(teamId: string, newName: string, session?: ClientSession | undefined): Promise<void> {
+    try {
+      await Team.updateOne({ _id: teamId }, { name: newName }, { session });
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`Failed to rename team ${teamId} to ${newName}`);
+    }
+  }
 }

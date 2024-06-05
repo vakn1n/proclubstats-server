@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
-import { CreatePlayerDataRequest } from "../../types-changeToNPM/shared-DTOs";
 import { IPlayerController } from "../interfaces/player";
 import { IPlayerService } from "../interfaces/player/player-service.interface";
 import { IPlayerTeamService } from "../interfaces/wrapper-services/player-team-service.interface";
+import { CreatePlayerDataRequest } from "../../types-changeToNPM/shared-DTOs";
 
 @injectable()
 export default class PlayerController implements IPlayerController {
@@ -13,6 +13,22 @@ export default class PlayerController implements IPlayerController {
   constructor(@inject("IPlayerService") playerService: IPlayerService, @inject("IPlayerTeamService") playerTeamService: IPlayerTeamService) {
     this.playerService = playerService;
     this.playerTeamService = playerTeamService;
+  }
+
+  async getPlayerById(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.params;
+
+    if (!id) {
+      res.status(400).send({ message: "no id provided" });
+      return;
+    }
+
+    try {
+      const player = await this.playerService.getPlayerById(id);
+      res.json(player);
+    } catch (error: any) {
+      next(error);
+    }
   }
 
   async createPlayer(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -53,17 +69,18 @@ export default class PlayerController implements IPlayerController {
     }
   }
 
-  async getPlayerById(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async renamePlayer(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
 
-    if (!id) {
-      res.status(400).send({ message: "no id provided" });
+    const { newName } = req.body;
+    if (!id || !newName || !newName.length) {
+      res.status(400).send({ message: "bad data" });
       return;
     }
 
     try {
-      const player = await this.playerService.getPlayerById(id);
-      res.json(player);
+      await this.playerService.renamePlayer(id, newName);
+      res.status(200);
     } catch (error: any) {
       next(error);
     }

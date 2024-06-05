@@ -52,6 +52,14 @@ export class PlayerRepository implements IPlayerRepository {
       throw new QueryFailedError(`Failed to set team ${teamId} to player ${playerId}`);
     }
   }
+  async renamePlayer(playerId: string | Types.ObjectId, newName: string, session?: ClientSession): Promise<void> {
+    try {
+      await Player.updateOne({ _id: playerId }, { name: newName }, { session });
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`Failed to rename player ${playerId}`);
+    }
+  }
 
   async removePlayersFromTeam(playersIds: Types.ObjectId[], session?: ClientSession): Promise<void> {
     try {

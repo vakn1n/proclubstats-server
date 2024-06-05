@@ -26,6 +26,10 @@ export class TeamService implements ITeamService {
     this.imageService = imageService;
     this.playerService = playerService;
   }
+  async renameTeam(teamId: string, newName: string): Promise<void> {
+    logger.info(`TeamService: renaming team ${teamId} to ${newName}`);
+    await this.teamRepository.renameTeam(teamId, newName);
+  }
 
   async getAllTeams(): Promise<TeamDTO[]> {
     const teams = await this.teamRepository.getTeams();

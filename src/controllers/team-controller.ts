@@ -3,7 +3,6 @@ import { inject, injectable } from "tsyringe";
 import { ITeamController, ITeamService } from "../interfaces/team/";
 import { IPlayerTeamService } from "../interfaces/wrapper-services/player-team-service.interface";
 import { ITeamStatsService } from "../interfaces/wrapper-services/team-stats-service.interface";
-import Fixture from "../models/fixture";
 
 @injectable()
 export default class TeamController implements ITeamController {
@@ -38,6 +37,22 @@ export default class TeamController implements ITeamController {
         team.imgUrl = imgUrl;
       }
       res.status(201).json(team);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  async renameTeam(req: Request, res: Response, next: NextFunction) {
+    const { id: teamId } = req.params;
+    const { name } = req.body;
+    if (!teamId || !name) {
+      res.status(400).json({ error: "bad data" });
+      return;
+    }
+
+    try {
+      await this.teamService.renameTeam(teamId, name);
+      res.sendStatus(200);
     } catch (error: any) {
       next(error);
     }

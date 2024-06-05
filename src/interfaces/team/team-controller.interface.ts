@@ -1,12 +1,13 @@
 import { NextFunction, Response, Request } from "express";
 
 export interface ITeamController {
-  getTeamById: (req: Request, res: Response, next: NextFunction) => void;
-  setTeamCaptain: (req: Request, res: Response, next: NextFunction) => void;
-  createTeam: (req: Request, res: Response, next: NextFunction) => void;
+  getTeamById: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  setTeamCaptain: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  renameTeam: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  createTeam: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 
-  getAdvancedTeamStats: (req: Request, res: Response, next: NextFunction) => void;
-  getTeamPlayers: (req: Request, res: Response, next: NextFunction) => void;
+  getAdvancedTeamStats: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  getTeamPlayers: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 
-  addPlayerToTeam: (req: Request, res: Response, next: NextFunction) => void;
+  addPlayerToTeam: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 }

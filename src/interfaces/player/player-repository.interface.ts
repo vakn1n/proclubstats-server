@@ -11,6 +11,7 @@ export interface IPlayerRepository {
 
   deletePlayer(id: string | Types.ObjectId, session?: ClientSession): Promise<void>;
 
+  renamePlayer(id: string, newName: string): Promise<void>;
   setPlayerTeam(playerId: string | Types.ObjectId, teamId: string | Types.ObjectId | null, session?: ClientSession): Promise<void>;
 
   removePlayersFromTeam(playersIds: Types.ObjectId[], session?: ClientSession): Promise<void>;

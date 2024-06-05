@@ -16,6 +16,7 @@ export interface ITeamService {
 
   removePlayerFromTeam(teamId: Types.ObjectId, playerId: Types.ObjectId, session: ClientSession): Promise<void>;
 
+  renameTeam(teamId: string, name: any): Promise<void>;
   setTeamImage(teamId: string, imageFile: Express.Multer.File): Promise<string>;
   setTeamCaptain(teamId: string, captainId: string): Promise<void>;
 
