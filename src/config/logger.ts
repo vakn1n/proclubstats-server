@@ -9,20 +9,17 @@ const transport = new winston.transports.DailyRotateFile({
   maxFiles: "14d",
 });
 
-// Add a new transport for error logs to the console
-const errorConsoleTransport = new winston.transports.Console({
-  format: winston.format.combine(winston.format.colorize(), winston.format.simple()),
-  level: "error", // Only log error messages to the console
-});
+// Conditionally set the logger level based on the NODE_ENV
+const loggerLevel = process.env.NODE_ENV === "test" ? "error" : "info";
 
 const logger = winston.createLogger({
-  level: "info",
+  level: loggerLevel, // Use the determined level
   format: winston.format.combine(winston.format.timestamp(), winston.format.json()),
   transports: [
     transport,
-    // errorConsoleTransport,
     new winston.transports.Console({
       format: winston.format.simple(),
+      level: loggerLevel, // Also apply the level to the console transport
     }),
   ],
 });

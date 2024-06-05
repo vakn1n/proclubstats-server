@@ -10,8 +10,6 @@ describe("LeagueService", () => {
 
   beforeAll(() => {
     mockLeagueRepository = new MockLeagueRepository();
-    console.log(mockLeagueRepository);
-
     leagueService = new LeagueService(mockLeagueRepository, new MockTeamService(), new MockCacheService(), new MockFixtureService());
   });
 
