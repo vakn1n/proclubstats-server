@@ -4,6 +4,9 @@ import { ITeamService } from "../../interfaces/team";
 import { ITeam } from "../../models/team";
 
 export class MockTeamService implements ITeamService {
+  renameTeam(teamId: string, name: any): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
   getTeamById(teamId: string): Promise<TeamDTO> {
     throw new Error("Method not implemented.");
   }

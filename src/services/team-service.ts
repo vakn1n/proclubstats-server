@@ -28,6 +28,13 @@ export class TeamService implements ITeamService {
   }
   async renameTeam(teamId: string, newName: string): Promise<void> {
     logger.info(`TeamService: renaming team ${teamId} to ${newName}`);
+
+    const isTeamNameExists = await this.teamRepository.isTeamNameExists(newName);
+
+    if (isTeamNameExists) {
+      throw new BadRequestError(`Team with name ${newName} already exists`);
+    }
+
     await this.teamRepository.renameTeam(teamId, newName);
   }
 

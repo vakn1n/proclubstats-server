@@ -87,4 +87,13 @@ export class TeamRepository implements ITeamRepository {
       throw new QueryFailedError(`Failed to rename team ${teamId} to ${newName}`);
     }
   }
+
+  async isTeamNameExists(newName: string): Promise<boolean> {
+    try {
+      return !!(await Team.exists({ name: newName }));
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`Failed to check if team name ${newName} exists`);
+    }
+  }
 }

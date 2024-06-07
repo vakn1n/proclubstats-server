@@ -1,14 +1,10 @@
-import "reflect-metadata";
 import mongoose from "mongoose";
-import { container } from "tsyringe";
-import { IGameRepository } from "../../../src/interfaces/game";
-import { ITeamRepository } from "../../../src/interfaces/team";
-import Game, { AddGameData, IGame } from "../../../src/models/game";
+import "reflect-metadata";
+import { MockGameRepository } from "../../../src/mocks/repositories/mock-game-repository";
+import { MockTeamRepository } from "../../../src/mocks/repositories/mock-team-repository";
+import Game, { IGame } from "../../../src/models/game";
 import { TeamStatsService } from "../../../src/services/wrapper-services/team-stats-service";
 import { AdvancedTeamStats } from "../../../types-changeToNPM/shared-DTOs";
-import { ITeam, TeamWithPlayers } from "../../../src/models/team";
-import { MockTeamRepository } from "../../../src/mocks/repositories/mock-team-repository";
-import { MockGameRepository } from "../../../src/mocks/repositories/mock-game-repository";
 
 describe("TeamStatsService", () => {
   let teamStatsService: TeamStatsService;

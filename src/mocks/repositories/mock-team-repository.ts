@@ -3,6 +3,12 @@ import { ITeamRepository } from "../../interfaces/team";
 import { ITeam, TeamWithPlayers } from "../../models/team";
 
 export class MockTeamRepository implements ITeamRepository {
+  isTeamNameExists(newName: string): Promise<boolean> {
+    throw new Error("Method not implemented.");
+  }
+  renameTeam(teamId: string, newName: string, session?: mongoose.mongo.ClientSession | undefined): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
   getTeamById(id: string | mongoose.Types.ObjectId, session?: ClientSession): Promise<ITeam> {
     throw new Error("Method not implemented.");
   }

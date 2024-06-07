@@ -2,11 +2,11 @@ import { ClientSession, Types } from "mongoose";
 import { inject, injectable } from "tsyringe";
 import { CreatePlayerDataRequest, PlayerDTO } from "../../types-changeToNPM/shared-DTOs";
 import logger from "../config/logger";
+import { IPlayerRepository, IPlayerService } from "../interfaces/player";
+import { ImageService } from "../interfaces/util-services/image-service.interface";
 import { PlayerMapper } from "../mappers/player-mapper";
 import { IPlayerGamePerformance } from "../models/game";
 import { IPlayer } from "../models/player";
-import { IPlayerService, IPlayerRepository } from "../interfaces/player";
-import { ImageService } from "../interfaces/util-services/image-service.interface";
 
 @injectable()
 export class PlayerService implements IPlayerService {
@@ -19,6 +19,7 @@ export class PlayerService implements IPlayerService {
   }
   async renamePlayer(id: string, newName: string): Promise<void> {
     logger.info(`PlayerService: renaming player with id ${id}`);
+
     await this.playerRepository.renamePlayer(id, newName);
   }
 

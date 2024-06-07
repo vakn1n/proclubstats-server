@@ -12,7 +12,7 @@ router.put("/:id/addPlayer", (req, res, next) => teamController.addPlayerToTeam(
 
 router.patch("/:id/setImage", upload.single("file"), (req, res, next) => teamController.setTeamImage(req, res, next));
 router.patch("/:id/setCaptain", (req, res, next) => teamController.setTeamCaptain(req, res, next));
-router.patch("/:id/rename", (req, res, next) => teamController.renameTeam(req, res, next));
+router.put("/:id/rename", (req, res, next) => teamController.renameTeam(req, res, next));
 
 router.get("/:id/advancedStats", (req, res, next) => teamController.getAdvancedTeamStats(req, res, next));
 router.get("/:id/players", (req, res, next) => teamController.getTeamPlayers(req, res, next));
