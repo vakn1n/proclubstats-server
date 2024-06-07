@@ -79,7 +79,7 @@ export type CreatePlayerDataRequest = {
   playablePositions?: string[];
 };
 
-export type TopScorer = {
+type TOPPlayerStats = {
   playerId: string;
   playerName: string;
   teamId: string;
@@ -87,20 +87,20 @@ export type TopScorer = {
   position: string;
   playerImgUrl?: string;
   games: number;
+};
+
+export type TopScorer = TOPPlayerStats & {
   goals: number;
   goalsPerGame: number;
 };
 
-export type TopAssister = {
-  playerId: string;
-  playerName: string;
-  teamId: string;
-  teamName: string;
-  position: string;
-  playerImgUrl?: string;
-  games: number;
+export type TopAssister = TOPPlayerStats & {
   assists: number;
   assistsPerGame: number;
+};
+
+export type TopAvgRating = TOPPlayerStats & {
+  avgRating: number;
 };
 
 export enum GAME_STATUS {
@@ -203,4 +203,10 @@ export type AdvancedTeamStats = {
   longestUnbeatenStreak: number;
   longestWinStreak: number;
   longestLoseStreak: number;
+};
+
+export type AdvancedPlayersStats = {
+  topScorers: TopScorer[];
+  topAssisters: TopAssister[];
+  topAvgRating: TopAvgRating[];
 };

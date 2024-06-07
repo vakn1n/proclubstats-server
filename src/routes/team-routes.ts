@@ -16,6 +16,7 @@ router.put("/:id/rename", (req, res, next) => teamController.renameTeam(req, res
 
 router.get("/:id/advancedStats", (req, res, next) => teamController.getAdvancedTeamStats(req, res, next));
 router.get("/:id/players", (req, res, next) => teamController.getTeamPlayers(req, res, next));
+router.get("/:id/playerStats", (req, res, next) => teamController.getTeamPlayersStats(req, res, next));
 router.get("/:id", (req, res, next) => teamController.getTeamById(req, res, next));
 
 // router.delete("/:id", teamController.deleteTeam);

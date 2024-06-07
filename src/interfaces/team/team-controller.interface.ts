@@ -8,6 +8,7 @@ export interface ITeamController {
 
   getAdvancedTeamStats: (req: Request, res: Response, next: NextFunction) => Promise<void>;
   getTeamPlayers: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  getTeamPlayersStats: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 
   addPlayerToTeam: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 }

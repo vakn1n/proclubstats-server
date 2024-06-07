@@ -4,7 +4,9 @@ import { ITeamRepository } from "../../interfaces/team";
 import { ITeamStatsService } from "../../interfaces/wrapper-services/team-stats-service.interface";
 import { IGame } from "../../models/game";
 import logger from "../../config/logger";
-import { AdvancedTeamStats } from "../../../types-changeToNPM/shared-DTOs";
+import { AdvancedPlayersStats, AdvancedTeamStats, TopAssister, TopAvgRating, TopScorer } from "../../../types-changeToNPM/shared-DTOs";
+import { Types, ClientSession } from "mongoose";
+import { TeamWithPlayers } from "../../models/team";
 
 @injectable()
 export class TeamStatsService implements ITeamStatsService {
@@ -14,6 +16,81 @@ export class TeamStatsService implements ITeamStatsService {
   constructor(@inject("IGameRepository") gameRepository: IGameRepository, @inject("ITeamRepository") teamRepository: ITeamRepository) {
     this.gameRepository = gameRepository;
     this.teamRepository = teamRepository;
+  }
+
+  async getTeamPlayersStats(teamId: string | Types.ObjectId, limit?: number, session?: ClientSession): Promise<AdvancedPlayersStats> {
+    logger.info(`TeamStatsService: getting team ${teamId} advanced players stats`);
+    const team = await this.teamRepository.getTeamWithPlayers(teamId, session);
+    let { topScorers, topAssisters, topAvgRating } = this.getTopPlayersStats(team);
+    if (limit) {
+      topScorers = topScorers.slice(0, limit);
+      topAssisters = topAssisters.slice(0, limit);
+      topAvgRating = topAvgRating.slice(0, limit);
+    }
+    return { topScorers, topAssisters, topAvgRating };
+  }
+  private getTopPlayersStats(team: TeamWithPlayers): { topScorers: TopScorer[]; topAssisters: TopAssister[]; topAvgRating: TopAvgRating[] } {
+    const topScorers: TopScorer[] = [];
+    const topAssisters: TopAssister[] = [];
+    const topAvgRating: TopAvgRating[] = [];
+    team.players.forEach((player) => {
+      const playerData = {
+        playerId: player.id,
+        playerName: player.name,
+        position: player.position,
+        teamId: team.id,
+        teamName: team.name,
+        playerImgUrl: player.imgUrl,
+        games: player.stats.games,
+      };
+      topScorers.push({
+        ...playerData,
+        goals: player.stats.goals,
+        goalsPerGame: player.stats.goals / player.stats.games,
+      });
+      topAssisters.push({
+        assists: player.stats.assists,
+        assistsPerGame: player.stats.assists / player.stats.games,
+        ...playerData,
+      });
+      topAvgRating.push({
+        avgRating: player.stats.avgRating,
+        ...playerData,
+      });
+    });
+
+    topScorers.sort((playerA, playerB) => playerB.goals - playerA.goals);
+    topAssisters.sort((playerA, playerB) => playerB.assists - playerA.assists);
+    topAvgRating.sort((playerA, playerB) => playerB.avgRating - playerA.avgRating);
+
+    return { topAssisters, topScorers, topAvgRating };
+  }
+
+  async getAdvancedTeamStats(teamId: string): Promise<AdvancedTeamStats> {
+    logger.info(`TeamStatsService: getting team ${teamId} advanced stats`);
+
+    const { longestWinStreak, longestLoseStreak, longestUnbeatenStreak } = await this.getAllTeamStreaks(teamId);
+    return {
+      longestUnbeatenStreak,
+      longestWinStreak,
+      longestLoseStreak,
+    };
+  }
+
+  async getTeamLongestWinningStreak(teamId: string): Promise<number> {
+    logger.info(`TeamStatsService: getting team ${teamId} longest winning streak for`);
+    return await this.getTeamLongestStreak(teamId, this.isWinning);
+  }
+
+  async getTeamLongestUnbeatenStreak(teamId: string): Promise<number> {
+    logger.info(`TeamStatsService: getting team ${teamId} longest unbeaten streak for`);
+
+    return await this.getTeamLongestStreak(teamId, this.isUnbeaten);
+  }
+  async getTeamLongestLosingStreak(teamId: string): Promise<number> {
+    logger.info(`TeamStatsService: getting team ${teamId} longest losing streak for`);
+
+    return await this.getTeamLongestStreak(teamId, this.isLosing);
   }
 
   private async getAllTeamStreaks(teamId: string): Promise<{ longestWinStreak: number; longestLoseStreak: number; longestUnbeatenStreak: number }> {
@@ -53,31 +130,6 @@ export class TeamStatsService implements ITeamStatsService {
       longestWinStreak,
       longestUnbeatenStreak,
     };
-  }
-
-  async getAdvancedTeamStats(teamId: string): Promise<AdvancedTeamStats> {
-    const { longestWinStreak, longestLoseStreak, longestUnbeatenStreak } = await this.getAllTeamStreaks(teamId);
-    return {
-      longestUnbeatenStreak,
-      longestWinStreak,
-      longestLoseStreak,
-    };
-  }
-
-  async getTeamLongestWinningStreak(teamId: string): Promise<number> {
-    logger.info(`TeamStatsService: getting team ${teamId} longest winning streak for`);
-    return await this.getTeamLongestStreak(teamId, this.isWinning);
-  }
-
-  async getTeamLongestUnbeatenStreak(teamId: string): Promise<number> {
-    logger.info(`TeamStatsService: getting team ${teamId} longest unbeaten streak for`);
-
-    return await this.getTeamLongestStreak(teamId, this.isUnbeaten);
-  }
-  async getTeamLongestLosingStreak(teamId: string): Promise<number> {
-    logger.info(`TeamStatsService: getting team ${teamId} longest losing streak for`);
-
-    return await this.getTeamLongestStreak(teamId, this.isLosing);
   }
 
   private async getTeamLongestStreak(teamId: string, conditionFn: (teamId: string, game: IGame) => boolean): Promise<number> {
