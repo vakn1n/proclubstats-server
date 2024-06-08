@@ -29,13 +29,15 @@ export default class GameController implements IGameController {
   async getTeamGames(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { teamId } = req.params;
 
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+
     if (!teamId) {
       res.status(400).send({ message: "No teamId provided" });
       return;
     }
 
     try {
-      const games = await this.gameService.getTeamGames(teamId);
+      const games = await this.gameService.getTeamGames(teamId, limit);
       res.json(games);
     } catch (error: any) {
       next(error);

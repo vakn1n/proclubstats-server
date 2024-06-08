@@ -5,7 +5,7 @@ import { AddGameData, IGame } from "../../models/game";
 export interface IGameService {
   getGameById(id: string | Types.ObjectId, session?: ClientSession): Promise<GameDTO>;
   getGamesByIds(gamesIds: string[] | Types.ObjectId[]): Promise<GameDTO[]>;
-  getTeamGames(teamId: string | Types.ObjectId, session?: ClientSession): Promise<GameDTO[]>;
+  getTeamGames(teamId: string | Types.ObjectId, limit?: number, session?: ClientSession): Promise<GameDTO[]>;
 
   createGame(gameData: AddGameData, fixtureId: Types.ObjectId, session: ClientSession): Promise<GameDTO>;
   createFixtureGames(fixtureId: Types.ObjectId, gamesData: AddGameData[], session: ClientSession): Promise<IGame[]>;

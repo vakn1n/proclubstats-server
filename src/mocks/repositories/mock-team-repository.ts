@@ -57,7 +57,14 @@ export class MockTeamRepository implements ITeamRepository {
     throw new Error("Method not implemented.");
   }
   createTeam(name: string, session?: ClientSession): Promise<ITeam> {
-    throw new Error("Method not implemented.");
+    return Promise.resolve({
+      id: new Types.ObjectId().toString(),
+      name,
+      league: new Types.ObjectId(),
+      players: [],
+      captain: new Types.ObjectId(),
+      stats: {} as ITeamStats, // Adjust this if there are required fields
+    } as unknown as ITeam);
   }
   setTeamLeague(teamId: mongoose.Types.ObjectId, leagueId: mongoose.Types.ObjectId | null, session?: ClientSession): Promise<void> {
     throw new Error("Method not implemented.");

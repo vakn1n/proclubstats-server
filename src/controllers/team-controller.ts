@@ -112,7 +112,8 @@ export default class TeamController implements ITeamController {
 
   async getTeamPlayersStats(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id: teamId } = req.params;
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+
     if (!teamId) {
       res.status(400).send({ message: "No teamId provided" });
       return;

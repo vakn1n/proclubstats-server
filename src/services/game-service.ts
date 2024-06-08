@@ -41,10 +41,17 @@ export class GameService implements IGameService {
     return await GameMapper.mapToDto(game);
   }
 
-  async getTeamGames(teamId: string) {
+  async getTeamGames(teamId: string, limit?: number): Promise<GameDTO[]> {
     logger.info(`GameService: getting games for team ${teamId}`);
 
-    const teamGames = await this.gameRepository.getTeamGames(teamId);
+    let teamGames = await this.gameRepository.getTeamGames(teamId);
+
+    if (limit) {
+      // if we pass limit, it means we want to fetch the last games, so sort the rounds the opposite way
+      teamGames.sort((game1, game2) => game2.round - game1.round);
+      teamGames = teamGames.slice(0, limit);
+      console.log(teamGames);
+    }
 
     return await GameMapper.mapToDtos(teamGames);
   }
