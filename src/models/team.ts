@@ -5,7 +5,7 @@ export type TeamWithPlayers = {
   id: string;
   name: string;
   league: mongoose.Types.ObjectId;
-  imgUrl: string;
+  imgUrl?: string;
   players: IPlayer[];
   captain: mongoose.Types.ObjectId;
   stats: ITeamStats;

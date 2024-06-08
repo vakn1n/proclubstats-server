@@ -1,21 +1,62 @@
-import mongoose from "mongoose";
+import mongoose, { Types } from "mongoose";
 import "reflect-metadata";
 import { MockGameRepository } from "../../../src/mocks/repositories/mock-game-repository";
 import { MockTeamRepository } from "../../../src/mocks/repositories/mock-team-repository";
 import Game, { IGame } from "../../../src/models/game";
 import { TeamStatsService } from "../../../src/services/wrapper-services/team-stats-service";
-import { AdvancedTeamStats } from "../../../types-changeToNPM/shared-DTOs";
+import { AdvancedPlayersStats, AdvancedTeamStats } from "../../../types-changeToNPM/shared-DTOs";
+import { TeamWithPlayers, ITeamStats } from "../../../src/models/team";
+import { IPlayer } from "../../../src/models/player";
 
 describe("TeamStatsService", () => {
   let teamStatsService: TeamStatsService;
+  let mockGameRepository: MockGameRepository;
+  let mockTeamRepository: MockTeamRepository;
   let homeTeam = new mongoose.Types.ObjectId("60d5ec49c2f0a87bb4e0e3a4");
   let awayTeam = new mongoose.Types.ObjectId("60d5ec49c2f0a87bb4e0e3a5");
 
   beforeAll(async () => {
-    const mockGameRepository = new MockGameRepository();
-    const mockTeamRepository = new MockTeamRepository();
+    mockGameRepository = new MockGameRepository();
+    mockTeamRepository = new MockTeamRepository();
 
     teamStatsService = new TeamStatsService(mockGameRepository, mockTeamRepository);
+  });
+
+  describe("getTeamPlayersStats", () => {
+    test("should get team players sorted stats without limit", async () => {
+      const teamId = new Types.ObjectId().toString();
+
+      const getTeamWithPlayersSpy = jest.spyOn(mockTeamRepository, "getTeamWithPlayers");
+
+      const result = await teamStatsService.getTeamPlayersStats(teamId);
+
+      expect(getTeamWithPlayersSpy).toHaveBeenCalledWith(teamId, undefined);
+
+      expect(result).toEqual({
+        topScorers: expect.any(Array),
+        topAssisters: expect.any(Array),
+        topAvgRating: expect.any(Array),
+      });
+
+      expect(result.topScorers.length).toBe(3);
+      expect(result.topAssisters.length).toBe(3);
+      expect(result.topAvgRating.length).toBe(3);
+
+      // Check sorting within the limited results
+      expect(result.topScorers).toEqual([...result.topScorers].sort((a, b) => b.goals - a.goals));
+      expect(result.topAssisters).toEqual([...result.topAssisters].sort((a, b) => b.assists - a.assists));
+      expect(result.topAvgRating).toEqual([...result.topAvgRating].sort((a, b) => b.avgRating - a.avgRating));
+    });
+
+    test("should get team players stats with limit", async () => {
+      const teamId = new Types.ObjectId().toString();
+      const limit = 2;
+      const result = await teamStatsService.getTeamPlayersStats(teamId, limit);
+
+      expect(result.topScorers.length).toBe(limit);
+      expect(result.topAssisters.length).toBe(limit);
+      expect(result.topAvgRating.length).toBe(limit);
+    });
   });
 
   describe("getAdvancedTeamStats", () => {
@@ -183,4 +224,6 @@ describe("TeamStatsService", () => {
       expect(longestLosingStreak).toBe(3);
     });
   });
+
+  describe("getTeamPlayersStats", () => {});
 });
