@@ -1,10 +1,11 @@
 import mongoose, { Document, Schema } from "mongoose";
-import { GAME_STATUS } from "../../types-changeToNPM/shared-DTOs";
+import { GAME_STATUS } from "../types-changeToNPM/shared-DTOs";
 
 export type AddGameData = {
   homeTeam: mongoose.Types.ObjectId;
   awayTeam: mongoose.Types.ObjectId;
   date?: Date;
+  round?: number;
 };
 
 export type IPlayerGamePerformance = {

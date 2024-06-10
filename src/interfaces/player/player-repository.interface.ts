@@ -1,7 +1,7 @@
 // player-repository.interface.ts
 import { ClientSession, Types } from "mongoose";
 import { IPlayer } from "../../models/player";
-import { CreatePlayerDataRequest } from "../../../types-changeToNPM/shared-DTOs";
+import { CreatePlayerDataRequest } from "../../types-changeToNPM/shared-DTOs";
 import { IPlayerGamePerformance } from "../../models/game";
 
 export interface IPlayerRepository {

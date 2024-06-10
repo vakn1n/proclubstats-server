@@ -1,6 +1,6 @@
 import { ClientSession, Types } from "mongoose";
 import { inject, injectable } from "tsyringe";
-import { GAME_STATUS, GameDTO, UpdatePlayerPerformanceDataRequest } from "../../types-changeToNPM/shared-DTOs";
+import { GAME_STATUS, GameDTO, UpdatePlayerPerformanceDataRequest } from "../types-changeToNPM/shared-DTOs";
 import logger from "../config/logger";
 import { BadRequestError } from "../errors";
 import { IGameRepository, IGameService } from "../interfaces/game";
@@ -50,7 +50,6 @@ export class GameService implements IGameService {
       // if we pass limit, it means we want to fetch the last games, so sort the rounds the opposite way
       teamGames.sort((game1, game2) => game2.round - game1.round);
       teamGames = teamGames.slice(0, limit);
-      console.log(teamGames);
     }
 
     return await GameMapper.mapToDtos(teamGames);

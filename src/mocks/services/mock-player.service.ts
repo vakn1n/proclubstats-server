@@ -1,5 +1,5 @@
 import { Types, ClientSession } from "mongoose";
-import { CreatePlayerDataRequest, PlayerDTO } from "../../../types-changeToNPM/shared-DTOs";
+import { CreatePlayerDataRequest, PlayerDTO } from "../../types-changeToNPM/shared-DTOs";
 import { IPlayerService } from "../../interfaces/player";
 import { IPlayerGamePerformance } from "../../models/game";
 import { IPlayer } from "../../models/player";

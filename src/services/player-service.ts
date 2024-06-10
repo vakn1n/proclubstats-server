@@ -1,6 +1,6 @@
 import { ClientSession, Types } from "mongoose";
 import { inject, injectable } from "tsyringe";
-import { CreatePlayerDataRequest, PlayerDTO } from "../../types-changeToNPM/shared-DTOs";
+import { CreatePlayerDataRequest, PlayerDTO } from "../types-changeToNPM/shared-DTOs";
 import logger from "../config/logger";
 import { IPlayerRepository, IPlayerService } from "../interfaces/player";
 import { ImageService } from "../interfaces/util-services/image-service.interface";

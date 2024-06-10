@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { IGameController, IGameService } from "../interfaces/game";
 import { inject, injectable } from "tsyringe";
+import Fixture from "../models/fixture";
+import Game from "../models/game";
 
 @injectable()
 export default class GameController implements IGameController {

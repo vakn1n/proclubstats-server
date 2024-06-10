@@ -4,7 +4,7 @@ import { MockGameRepository } from "../../../src/mocks/repositories/mock-game-re
 import { MockTeamRepository } from "../../../src/mocks/repositories/mock-team-repository";
 import Game, { IGame } from "../../../src/models/game";
 import { TeamStatsService } from "../../../src/services/wrapper-services/team-stats-service";
-import { AdvancedTeamStats } from "../../../types-changeToNPM/shared-DTOs";
+import { AdvancedTeamStats } from "../../../src/types-changeToNPM/shared-DTOs";
 
 describe("TeamStatsService", () => {
   let teamStatsService: TeamStatsService;

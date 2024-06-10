@@ -3,7 +3,7 @@ import { NotFoundError, QueryFailedError } from "../errors";
 import { ILeagueRepository } from "../interfaces/league/league-repository.interface";
 import logger from "../config/logger";
 import League, { ILeague } from "../models/league";
-import { TopScorer, TopAssister } from "../../types-changeToNPM/shared-DTOs";
+import { TopScorer, TopAssister } from "../types-changeToNPM/shared-DTOs";
 
 export class LeagueRepository implements ILeagueRepository {
   async getAllLeagues(): Promise<ILeague[]> {

@@ -1,6 +1,6 @@
 import { ClientSession, Types } from "mongoose";
 import { inject, injectable } from "tsyringe";
-import { LeagueTableRow, PlayerDTO, TeamDTO } from "../../types-changeToNPM/shared-DTOs";
+import { LeagueTableRow, PlayerDTO, TeamDTO } from "../types-changeToNPM/shared-DTOs";
 import logger from "../config/logger";
 import { BadRequestError, NotFoundError } from "../errors";
 import { IPlayerService } from "../interfaces/player";

@@ -1,7 +1,7 @@
 import { ClientSession, Types } from "mongoose";
 import { IPlayer } from "../../models/player";
 import { IPlayerGamePerformance } from "../../models/game";
-import { CreatePlayerDataRequest, PlayerDTO } from "../../../types-changeToNPM/shared-DTOs";
+import { CreatePlayerDataRequest, PlayerDTO } from "../../types-changeToNPM/shared-DTOs";
 
 export interface IPlayerService {
   getPlayerById(id: string | Types.ObjectId, session?: ClientSession): Promise<PlayerDTO>;

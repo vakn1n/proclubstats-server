@@ -1,6 +1,6 @@
 import { ClientSession, Types } from "mongoose";
 import { ILeague } from "../../models/league";
-import { TopAssister, TopScorer } from "../../../types-changeToNPM/shared-DTOs";
+import { TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
 
 export interface ILeagueRepository {
   getAllLeagues(): Promise<ILeague[]>;

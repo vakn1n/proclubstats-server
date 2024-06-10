@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
-import { AddSingleFixtureData } from "../../types-changeToNPM/shared-DTOs";
+import { AddSingleFixtureData } from "../types-changeToNPM/shared-DTOs";
 import { ImageService } from "../interfaces/util-services/image-service.interface";
 import { ITeamLeagueService } from "../interfaces/wrapper-services/team-league-service.interface";
 import { ILeagueController, ILeagueService } from "../interfaces/league";

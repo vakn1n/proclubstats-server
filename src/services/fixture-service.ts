@@ -1,6 +1,6 @@
 import { ClientSession, Types } from "mongoose";
 import { inject, injectable } from "tsyringe";
-import { FixtureDTO, PaginatedFixtureDTO } from "../../types-changeToNPM/shared-DTOs";
+import { FixtureDTO, PaginatedFixtureDTO } from "../types-changeToNPM/shared-DTOs";
 import logger from "../config/logger";
 import { BadRequestError, NotFoundError } from "../errors";
 import { IFixtureRepository, IFixtureService } from "../interfaces/fixture";

@@ -1,6 +1,6 @@
 import { Types, ClientSession } from "mongoose";
 import { inject, injectable } from "tsyringe";
-import { AddSingleFixtureData, FixtureDTO, LeagueDTO, LeagueTableRow, TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
+import { AddSingleFixtureData, FixtureDTO, LeagueDTO, LeagueTableRow, TopAssister, TopScorer } from "../types-changeToNPM/shared-DTOs";
 import { BadRequestError, NotFoundError } from "../errors";
 import logger from "../config/logger";
 import { FixtureMapper } from "../mappers/fixture-mapper";
@@ -84,6 +84,7 @@ export class LeagueService implements ILeagueService {
     const gamesData: AddGameData[] = games.map((game) => ({
       awayTeam: new Types.ObjectId(game.awayTeamId),
       homeTeam: new Types.ObjectId(game.homeTeamId),
+      round,
     }));
 
     return await transactionService.withTransaction(async (session) => {

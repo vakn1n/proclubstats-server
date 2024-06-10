@@ -1,4 +1,4 @@
-import { AddSingleFixtureData, FixtureDTO, LeagueDTO, LeagueTableRow, TopAssister, TopScorer } from "../../../types-changeToNPM/shared-DTOs";
+import { AddSingleFixtureData, FixtureDTO, LeagueDTO, LeagueTableRow, TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
 
 export interface ILeagueService {
   getAllLeagues(): Promise<LeagueDTO[]>;

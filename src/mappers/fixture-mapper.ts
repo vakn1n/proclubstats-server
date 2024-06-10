@@ -1,4 +1,4 @@
-import { FixtureDTO, GameFixtureData } from "../../types-changeToNPM/shared-DTOs";
+import { FixtureDTO, GameFixtureData } from "../types-changeToNPM/shared-DTOs";
 import { IFixture } from "../models/fixture";
 
 export class FixtureMapper {

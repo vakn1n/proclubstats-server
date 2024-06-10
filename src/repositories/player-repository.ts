@@ -4,7 +4,7 @@ import { NotFoundError, QueryFailedError } from "../errors";
 import { IPlayerRepository } from "../interfaces/player/player-repository.interface";
 import Player, { IPlayer } from "../models/player";
 import logger from "../config/logger";
-import { CreatePlayerDataRequest } from "../../types-changeToNPM/shared-DTOs";
+import { CreatePlayerDataRequest } from "../types-changeToNPM/shared-DTOs";
 import { injectable } from "tsyringe";
 import { IPlayerGamePerformance } from "../models/game";
 

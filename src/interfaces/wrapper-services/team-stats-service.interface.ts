@@ -1,5 +1,5 @@
 import { ClientSession, Types } from "mongoose";
-import { AdvancedPlayersStats, AdvancedTeamStats } from "../../../types-changeToNPM/shared-DTOs";
+import { AdvancedPlayersStats, AdvancedTeamStats } from "../../types-changeToNPM/shared-DTOs";
 
 export interface ITeamStatsService {
   getTeamLongestWinningStreak(teamId: string | Types.ObjectId, session?: ClientSession): Promise<number>;

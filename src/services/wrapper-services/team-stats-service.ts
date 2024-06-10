@@ -4,7 +4,7 @@ import { ITeamRepository } from "../../interfaces/team";
 import { ITeamStatsService } from "../../interfaces/wrapper-services/team-stats-service.interface";
 import { IGame } from "../../models/game";
 import logger from "../../config/logger";
-import { AdvancedPlayersStats, AdvancedTeamStats, TopAssister, TopAvgRating, TopScorer } from "../../../types-changeToNPM/shared-DTOs";
+import { AdvancedPlayersStats, AdvancedTeamStats, TopAssister, TopAvgRating, TopScorer } from "../../types-changeToNPM/shared-DTOs";
 import { Types, ClientSession } from "mongoose";
 import { TeamWithPlayers } from "../../models/team";
 
@@ -46,11 +46,11 @@ export class TeamStatsService implements ITeamStatsService {
       topScorers.push({
         ...playerData,
         goals: player.stats.goals,
-        goalsPerGame: player.stats.goals / player.stats.games,
+        goalsPerGame: player.stats.games ? player.stats.goals / player.stats.games : 0,
       });
       topAssisters.push({
         assists: player.stats.assists,
-        assistsPerGame: player.stats.assists / player.stats.games,
+        assistsPerGame: player.stats.games ? player.stats.assists / player.stats.games : 0,
         ...playerData,
       });
       topAvgRating.push({

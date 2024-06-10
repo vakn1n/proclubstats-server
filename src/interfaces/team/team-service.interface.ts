@@ -1,5 +1,5 @@
 import { ClientSession, Types } from "mongoose";
-import { LeagueTableRow, PlayerDTO, TeamDTO } from "../../../types-changeToNPM/shared-DTOs";
+import { LeagueTableRow, PlayerDTO, TeamDTO } from "../../types-changeToNPM/shared-DTOs";
 import { ITeam } from "../../models/team";
 
 export interface ITeamService {

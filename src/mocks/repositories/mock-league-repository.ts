@@ -1,5 +1,5 @@
 import { Types } from "mongoose";
-import { TopAssister, TopScorer } from "../../../types-changeToNPM/shared-DTOs";
+import { TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
 import { NotFoundError } from "../../errors";
 import { ILeagueRepository } from "../../interfaces/league";
 import League, { ILeague } from "../../models/league";

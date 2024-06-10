@@ -1,5 +1,5 @@
 import { ClientSession, Types } from "mongoose";
-import { FixtureDTO, GameDTO, PaginatedFixtureDTO } from "../../../types-changeToNPM/shared-DTOs";
+import { FixtureDTO, GameDTO, PaginatedFixtureDTO } from "../../types-changeToNPM/shared-DTOs";
 import { AddFixtureData, IFixture } from "../../models/fixture";
 
 export interface IFixtureService {

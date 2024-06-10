@@ -10,7 +10,7 @@ import { GameService } from "../../src/services";
 import { Types } from "mongoose";
 import { IGame } from "../../src/models/game";
 import { GameMapper } from "../../src/mappers/game-mapper";
-import { GameDTO } from "../../types-changeToNPM/shared-DTOs";
+import { GameDTO } from "../../src/types-changeToNPM/shared-DTOs";
 
 describe("GameService", () => {
   let gameService: GameService;
