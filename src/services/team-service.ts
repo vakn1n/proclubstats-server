@@ -81,20 +81,6 @@ export class TeamService implements ITeamService {
     return await TeamMapper.mapToDto(team);
   }
 
-  async deleteTeam(team: ITeam, session: ClientSession): Promise<void> {
-    logger.info(`deleting team with id ${team.id}`);
-
-    if (team.imgUrl) {
-      await this.imageService.removeImage(team.imgUrl);
-    }
-
-    if (team.players.length) {
-      await this.playerService.removePlayersFromTeam(team.players, session);
-    }
-
-    await this.teamRepository.deleteTeamById(team.id, session);
-  }
-
   async updateTeamGameStats(teamId: Types.ObjectId, goalsScored: number, goalsConceded: number, session: ClientSession): Promise<void> {
     logger.info(`TeamService: Updating stats for team ${teamId}`);
 
@@ -150,7 +136,7 @@ export class TeamService implements ITeamService {
       throw new NotFoundError(`Captain with id ${captainId} not found `);
     }
 
-    if (captain.team._id.toString() != team.id) {
+    if (captain.team?._id.toString() != team.id) {
       throw new BadRequestError(`Captain with id ${captainId} does not belong to team with id ${team.id}`);
     }
 

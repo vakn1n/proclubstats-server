@@ -12,7 +12,7 @@ export interface ITeamService {
 
   createTeam(name: string): Promise<TeamDTO>;
 
-  deleteTeam(team: ITeam, session?: ClientSession): Promise<void>;
+  // deleteTeam(team: ITeam, session?: ClientSession): Promise<void>;
 
   removePlayerFromTeam(teamId: Types.ObjectId, playerId: Types.ObjectId, session: ClientSession): Promise<void>;
 

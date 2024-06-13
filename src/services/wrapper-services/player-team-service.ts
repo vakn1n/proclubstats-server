@@ -49,7 +49,7 @@ export class PlayerTeamService implements IPlayerTeamService {
       logger.info(`PlayerTeamService:  removing player ${playerId} from team ${teamId}`);
 
       // TODO: implement in repositories
-      await this.teamRepository.removePlayerFromTeam(player.team, player.id, session);
+      await this.teamRepository.removePlayerFromTeam(player.team!, player.id, session);
       await this.playerRepository.setPlayerTeam(player.id, null, session);
       logger.info(`Successfully removed player ${player.id} from team ${team.id}`);
     });

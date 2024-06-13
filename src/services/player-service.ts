@@ -32,17 +32,13 @@ export class PlayerService implements IPlayerService {
   }
 
   async createPlayer(playerData: CreatePlayerDataRequest): Promise<PlayerDTO> {
-    const { age, name, position, phone } = playerData;
+    logger.info(`PlayerService: creating player with name ${playerData.name}`);
 
-    logger.info(`PlayerService: creating player with name ${name}`);
-
-    let playablePositions = [position];
-
-    if (playerData.playablePositions) {
-      playablePositions = playerData.playablePositions;
+    if (!playerData.playablePositions) {
+      playerData.playablePositions = [playerData.position];
     }
 
-    const player = await this.playerRepository.createPlayer({ name, age, playablePositions, position, phone });
+    const player = await this.playerRepository.createPlayer(playerData);
     return PlayerMapper.mapToDto(player);
   }
 

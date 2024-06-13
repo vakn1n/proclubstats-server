@@ -20,7 +20,7 @@ export class PlayerRepository implements IPlayerRepository {
 
   async createPlayer({ age, name, position, imgUrl, phone, playablePositions }: CreatePlayerDataRequest, session?: ClientSession): Promise<IPlayer> {
     try {
-      const player = await Player.create({ age, name, position, imgUrl, phone, playablePositions }, { session });
+      const player = await Player.create([{ age, name, position, imgUrl, phone, playablePositions }], { session });
       return player[0];
     } catch (error: any) {
       logger.error(error.message);

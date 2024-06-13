@@ -11,7 +11,7 @@ export interface IPlayerStats {
 
 export interface IPlayer extends Document {
   id: string;
-  team: mongoose.Types.ObjectId;
+  team?: mongoose.Types.ObjectId;
   phone?: Number;
   email?: string;
   name: string;
@@ -33,7 +33,7 @@ const playerStatsSchema = new Schema({
 
 const playerSchema: Schema = new Schema(
   {
-    team: { type: mongoose.Schema.Types.ObjectId, ref: "Team", required: true },
+    team: { type: mongoose.Schema.Types.ObjectId, ref: "Team" },
     email: { type: String },
     phone: { type: Number },
     name: { type: String, required: true },

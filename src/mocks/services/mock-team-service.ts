@@ -1,7 +1,7 @@
 import { ClientSession, Types } from "mongoose";
-import { TeamDTO, PlayerDTO, LeagueTableRow } from "../../types-changeToNPM/shared-DTOs";
 import { ITeamService } from "../../interfaces/team";
 import { ITeam } from "../../models/team";
+import { TeamDTO, PlayerDTO, LeagueTableRow } from "@pro-clubs-manager/shared-dtos";
 
 export class MockTeamService implements ITeamService {
   renameTeam(teamId: string, name: any): Promise<void> {

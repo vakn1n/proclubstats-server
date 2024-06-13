@@ -25,11 +25,13 @@ export class PlayerMapper {
         playerOfTheMatch: player.stats.playerOfTheMatch,
         avgRating: player.stats.avgRating,
       },
-      team: {
-        id: team.id,
-        name: team.name,
-        imgUrl: team.imgUrl,
-      },
+      team: team
+        ? {
+            id: team.id,
+            name: team.name,
+            imgUrl: team.imgUrl,
+          }
+        : undefined,
     };
   }
 
