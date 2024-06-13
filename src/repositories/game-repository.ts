@@ -3,7 +3,7 @@ import { IGameRepository } from "../interfaces/game/game-repository.interface";
 import Game, { AddGameData, IGame } from "../models/game";
 import { BadRequestError, NotFoundError, QueryFailedError } from "../errors";
 import logger from "../config/logger";
-import { GAME_STATUS } from "../types-changeToNPM/shared-DTOs";
+import { GAME_STATUS } from "@pro-clubs-manager/shared-dtos";
 
 export class GameRepository implements IGameRepository {
   async createGame(fixtureId: string | Types.ObjectId, addGameData: AddGameData, session?: ClientSession): Promise<IGame> {

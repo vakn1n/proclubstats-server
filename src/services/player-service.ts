@@ -1,12 +1,12 @@
 import { ClientSession, Types } from "mongoose";
 import { inject, injectable } from "tsyringe";
-import { CreatePlayerDataRequest, PlayerDTO } from "../types-changeToNPM/shared-DTOs";
 import logger from "../config/logger";
 import { IPlayerRepository, IPlayerService } from "../interfaces/player";
 import { ImageService } from "../interfaces/util-services/image-service.interface";
 import { PlayerMapper } from "../mappers/player-mapper";
 import { IPlayerGamePerformance } from "../models/game";
 import { IPlayer } from "../models/player";
+import { PlayerDTO, CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dtos";
 
 @injectable()
 export class PlayerService implements IPlayerService {

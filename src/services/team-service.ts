@@ -1,6 +1,5 @@
 import { ClientSession, Types } from "mongoose";
 import { inject, injectable } from "tsyringe";
-import { LeagueTableRow, PlayerDTO, TeamDTO } from "../types-changeToNPM/shared-DTOs";
 import logger from "../config/logger";
 import { BadRequestError, NotFoundError } from "../errors";
 import { IPlayerService } from "../interfaces/player";
@@ -10,6 +9,7 @@ import { TeamMapper } from "../mappers/team-mapper";
 import Player from "../models/player";
 import { ITeam } from "../models/team";
 import { ITeamService, ITeamRepository } from "../interfaces/team";
+import { TeamDTO, PlayerDTO, LeagueTableRow } from "@pro-clubs-manager/shared-dtos";
 
 @injectable()
 export class TeamService implements ITeamService {

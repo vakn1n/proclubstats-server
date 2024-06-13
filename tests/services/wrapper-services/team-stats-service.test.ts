@@ -4,7 +4,6 @@ import { MockGameRepository } from "../../../src/mocks/repositories/mock-game-re
 import { MockTeamRepository } from "../../../src/mocks/repositories/mock-team-repository";
 import Game, { IGame } from "../../../src/models/game";
 import { TeamStatsService } from "../../../src/services/wrapper-services/team-stats-service";
-import { AdvancedTeamStats } from "../../../src/types-changeToNPM/shared-DTOs";
 
 describe("TeamStatsService", () => {
   let teamStatsService: TeamStatsService;
@@ -92,7 +91,7 @@ describe("TeamStatsService", () => {
     });
 
     it("should return the correct advanced team stats", async () => {
-      const teamStats: AdvancedTeamStats = await teamStatsService.getAdvancedTeamStats("60d5ec49c2f0a87bb4e0e3a4");
+      const teamStats = await teamStatsService.getAdvancedTeamStats("60d5ec49c2f0a87bb4e0e3a4");
 
       expect(teamStats.longestWinStreak).toBe(1);
       expect(teamStats.longestLoseStreak).toBe(1);

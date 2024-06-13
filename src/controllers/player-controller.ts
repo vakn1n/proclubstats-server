@@ -3,7 +3,7 @@ import { inject, injectable } from "tsyringe";
 import { IPlayerController } from "../interfaces/player";
 import { IPlayerService } from "../interfaces/player/player-service.interface";
 import { IPlayerTeamService } from "../interfaces/wrapper-services/player-team-service.interface";
-import { CreatePlayerDataRequest } from "../types-changeToNPM/shared-DTOs";
+import { CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dtos";
 
 @injectable()
 export default class PlayerController implements IPlayerController {

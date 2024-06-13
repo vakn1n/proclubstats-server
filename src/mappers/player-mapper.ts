@@ -1,4 +1,4 @@
-import { PlayerDTO } from "../types-changeToNPM/shared-DTOs";
+import { PlayerDTO } from "@pro-clubs-manager/shared-dtos";
 import { IPlayer } from "../models/player";
 import { ITeam } from "../models/team";
 

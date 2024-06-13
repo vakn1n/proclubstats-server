@@ -1,6 +1,5 @@
 import { ClientSession, Types } from "mongoose";
 import { inject, injectable } from "tsyringe";
-import { GAME_STATUS, GameDTO, UpdatePlayerPerformanceDataRequest } from "../types-changeToNPM/shared-DTOs";
 import logger from "../config/logger";
 import { BadRequestError } from "../errors";
 import { IGameRepository, IGameService } from "../interfaces/game";
@@ -9,6 +8,7 @@ import { ITeamService } from "../interfaces/team";
 import { GameMapper } from "../mappers/game-mapper";
 import { AddGameData, IGame, IPlayerGamePerformance } from "../models/game";
 import { transactionService } from "./util-services/transaction-service";
+import { GameDTO, GAME_STATUS, UpdatePlayerPerformanceDataRequest } from "@pro-clubs-manager/shared-dtos";
 @injectable()
 export class GameService implements IGameService {
   private gameRepository: IGameRepository;

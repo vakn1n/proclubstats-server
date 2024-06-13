@@ -1,4 +1,4 @@
-import { GameDTO, PlayerPerformanceDTO } from "../types-changeToNPM/shared-DTOs";
+import { GameDTO, PlayerPerformanceDTO } from "@pro-clubs-manager/shared-dtos";
 import { IGame } from "../models/game";
 
 type PopulatedTeam = {

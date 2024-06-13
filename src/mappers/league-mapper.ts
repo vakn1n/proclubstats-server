@@ -1,4 +1,4 @@
-import { LeagueDTO } from "../types-changeToNPM/shared-DTOs";
+import { LeagueDTO } from "@pro-clubs-manager/shared-dtos";
 import { ILeague } from "../models/league";
 
 export default class LeagueMapper {

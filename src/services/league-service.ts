@@ -1,6 +1,5 @@
 import { Types, ClientSession } from "mongoose";
 import { inject, injectable } from "tsyringe";
-import { AddSingleFixtureData, FixtureDTO, LeagueDTO, LeagueTableRow, TopAssister, TopScorer } from "../types-changeToNPM/shared-DTOs";
 import { BadRequestError, NotFoundError } from "../errors";
 import logger from "../config/logger";
 import { FixtureMapper } from "../mappers/fixture-mapper";
@@ -13,6 +12,7 @@ import { ILeagueService, ILeagueRepository } from "../interfaces/league";
 import { ITeamService } from "../interfaces/team";
 import { CacheService } from "../interfaces/util-services/cache-service.interface";
 import { transactionService } from "./util-services/transaction-service";
+import { AddSingleFixtureData, FixtureDTO, LeagueDTO, LeagueTableRow, TopAssister, TopScorer } from "@pro-clubs-manager/shared-dtos";
 
 const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
 const TOP_SCORERS_CACHE_KEY = "topScorers";

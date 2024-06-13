@@ -1,6 +1,6 @@
 import { ClientSession, Types } from "mongoose";
-import { GameDTO, UpdatePlayerPerformanceDataRequest } from "../../types-changeToNPM/shared-DTOs";
 import { AddGameData, IGame } from "../../models/game";
+import { GameDTO, UpdatePlayerPerformanceDataRequest } from "@pro-clubs-manager/shared-dtos";
 
 export interface IGameService {
   getGameById(id: string | Types.ObjectId, session?: ClientSession): Promise<GameDTO>;

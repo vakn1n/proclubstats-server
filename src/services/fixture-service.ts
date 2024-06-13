@@ -1,12 +1,12 @@
 import { ClientSession, Types } from "mongoose";
 import { inject, injectable } from "tsyringe";
-import { FixtureDTO, PaginatedFixtureDTO } from "../types-changeToNPM/shared-DTOs";
 import logger from "../config/logger";
 import { BadRequestError, NotFoundError } from "../errors";
 import { IFixtureRepository, IFixtureService } from "../interfaces/fixture";
 import { IGameService } from "../interfaces/game";
 import { FixtureMapper } from "../mappers/fixture-mapper";
 import { AddFixtureData, IFixture } from "../models/fixture";
+import { FixtureDTO, PaginatedFixtureDTO } from "@pro-clubs-manager/shared-dtos";
 
 @injectable()
 export class FixtureService implements IFixtureService {

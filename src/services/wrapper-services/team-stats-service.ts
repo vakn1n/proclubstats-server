@@ -4,9 +4,9 @@ import { ITeamRepository } from "../../interfaces/team";
 import { ITeamStatsService } from "../../interfaces/wrapper-services/team-stats-service.interface";
 import { IGame } from "../../models/game";
 import logger from "../../config/logger";
-import { AdvancedPlayersStats, AdvancedTeamStats, TopAssister, TopAvgRating, TopScorer } from "../../types-changeToNPM/shared-DTOs";
 import { Types, ClientSession } from "mongoose";
 import { TeamWithPlayers } from "../../models/team";
+import { AdvancedPlayersStats, TopScorer, TopAssister, TopAvgRating, AdvancedTeamStats } from "@pro-clubs-manager/shared-dtos";
 
 @injectable()
 export class TeamStatsService implements ITeamStatsService {

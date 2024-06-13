@@ -1,5 +1,9 @@
-import { FixtureDTO, GameFixtureData } from "../types-changeToNPM/shared-DTOs";
+import { FixtureDTO, GameFixtureData } from "@pro-clubs-manager/shared-dtos";
 import { IFixture } from "../models/fixture";
+
+// type GameFixtureData = {
+
+// }
 
 export class FixtureMapper {
   static async mapToDto(fixture: IFixture): Promise<FixtureDTO> {

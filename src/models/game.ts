@@ -1,5 +1,5 @@
+import { GAME_STATUS } from "@pro-clubs-manager/shared-dtos";
 import mongoose, { Document, Schema } from "mongoose";
-import { GAME_STATUS } from "../types-changeToNPM/shared-DTOs";
 
 export type AddGameData = {
   homeTeam: mongoose.Types.ObjectId;
