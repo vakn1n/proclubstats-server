@@ -1,9 +1,9 @@
+import { CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dtos";
 import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
 import { IPlayerController } from "../interfaces/player";
 import { IPlayerService } from "../interfaces/player/player-service.interface";
 import { IPlayerTeamService } from "../interfaces/wrapper-services/player-team-service.interface";
-import { CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dtos";
 
 @injectable()
 export default class PlayerController implements IPlayerController {
@@ -28,6 +28,15 @@ export default class PlayerController implements IPlayerController {
       res.json(player);
     } catch (error: any) {
       next(error);
+    }
+  }
+
+  async getFreeAgents(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const freeAgents = await this.playerService.getFreeAgents();
+      res.send(freeAgents);
+    } catch (e: any) {
+      next(e);
     }
   }
 

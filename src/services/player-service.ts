@@ -31,6 +31,14 @@ export class PlayerService implements IPlayerService {
     return await PlayerMapper.mapToDto(player);
   }
 
+  async getFreeAgents(session?: ClientSession): Promise<PlayerDTO[]> {
+    logger.info(`PlayerService: getting free agents players`);
+
+    const freeAgents = await this.playerRepository.getFreeAgents(session);
+
+    return await PlayerMapper.mapToDtos(freeAgents);
+  }
+
   async createPlayer(playerData: CreatePlayerDataRequest): Promise<PlayerDTO> {
     logger.info(`PlayerService: creating player with name ${playerData.name}`);
 

@@ -17,10 +17,11 @@ export class PlayerTeamService implements IPlayerTeamService {
   }
 
   async addPlayerToTeam(playerId: string, teamId: string): Promise<void> {
+    logger.info(`PlayerTeamService: adding player ${playerId} to team ${teamId}`);
     const player = await this.playerRepository.getPlayerById(playerId);
 
     if (player.team) {
-      throw new BadRequestError(`Player is already in team ${player.team}`);
+      throw new BadRequestError(`Player is already in a team ${player.team}`);
     }
 
     const team = await this.teamRepository.getTeamById(teamId);

@@ -5,6 +5,7 @@ import { PlayerDTO, CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dt
 
 export interface IPlayerService {
   getPlayerById(id: string | Types.ObjectId, session?: ClientSession): Promise<PlayerDTO>;
+  getFreeAgents(session?: ClientSession): Promise<PlayerDTO[]>;
 
   createPlayer(playerData: CreatePlayerDataRequest): Promise<PlayerDTO>;
   deletePlayer(player: IPlayer, session: ClientSession): Promise<void>;

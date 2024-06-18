@@ -18,6 +18,10 @@ export class PlayerRepository implements IPlayerRepository {
     return player;
   }
 
+  async getFreeAgents(session?: ClientSession): Promise<IPlayer[]> {
+    return await Player.find({ team: null }, {}, { session });
+  }
+
   async createPlayer({ age, name, position, imgUrl, phone, playablePositions }: CreatePlayerDataRequest, session?: ClientSession): Promise<IPlayer> {
     try {
       const player = await Player.create([{ age, name, position, imgUrl, phone, playablePositions }], { session });

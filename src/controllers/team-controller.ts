@@ -68,7 +68,7 @@ export default class TeamController implements ITeamController {
     }
 
     try {
-      await this.playerTeamService.addPlayerToTeam(teamId, playerId);
+      await this.playerTeamService.addPlayerToTeam(playerId, teamId);
       res.sendStatus(200);
     } catch (error: any) {
       next(error);
