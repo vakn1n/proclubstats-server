@@ -1,8 +1,8 @@
 import { ClientSession, Types } from "mongoose";
-import { NotFoundError, QueryFailedError } from "../errors";
+import { BadRequestError, NotFoundError, QueryFailedError } from "../errors";
 import { ILeagueRepository } from "../interfaces/league/league-repository.interface";
 import logger from "../config/logger";
-import League, { ILeague } from "../models/league";
+import League, { ILeague, ILeagueSeason } from "../models/league";
 import { TopScorer, TopAssister } from "@pro-clubs-manager/shared-dtos";
 
 export class LeagueRepository implements ILeagueRepository {
@@ -40,6 +40,34 @@ export class LeagueRepository implements ILeagueRepository {
     } catch (error: any) {
       logger.error(error.message);
       throw new QueryFailedError(`Failed to check if league name exists`);
+    }
+  }
+
+  async startNewSeason(leagueId: string, startDate: Date, endDate?: Date): Promise<void> {
+    try {
+      // Step 1: Fetch the current season count
+      const league = await League.findById(leagueId);
+      if (!league) {
+        throw new BadRequestError(`Failed to find league with id ${leagueId}`);
+      }
+      const currentSeasonCount = league.seasons.length;
+
+      // Step 2: Define the new season object with incremented season number
+      const newSeason: ILeagueSeason = {
+        seasonNumber: currentSeasonCount + 1,
+        startDate,
+        endDate,
+        winner: null, // Initialize winner as null
+        fixtures: [],
+      };
+
+      await League.updateOne({ _id: new Types.ObjectId(leagueId) }, { $push: { seasons: newSeason } });
+    } catch (e: any) {
+      if (e instanceof BadRequestError) {
+        throw e;
+      }
+      logger.error(e.message);
+      throw new QueryFailedError(`Failed to start new season for league with id ${leagueId}`);
     }
   }
 

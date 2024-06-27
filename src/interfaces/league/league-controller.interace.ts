@@ -9,4 +9,5 @@ export interface ILeagueController {
   getTopPlayers: (req: Request, res: Response, next: NextFunction) => void;
   addTeamToLeague: (req: Request, res: Response, next: NextFunction) => void;
   createLeague: (req: Request, res: Response, next: NextFunction) => void;
+  startNewSeason: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 }

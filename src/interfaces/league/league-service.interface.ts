@@ -12,6 +12,7 @@ export interface ILeagueService {
   addLeague(name: string, imgUrl?: string): Promise<LeagueDTO>;
   deleteLeague(leagueId: string): Promise<void>;
 
+  startNewSeason(leagueId: string, startDate: string, endDate?: string): Promise<void>;
   createFixture(leagueId: string, fixtureData: AddSingleFixtureData): Promise<FixtureDTO>;
   generateLeagueFixtures(leagueId: string, startDate: string, fixturesPerWeek: number): Promise<FixtureDTO[]>;
   deleteAllLeagueFixtures(leagueId: string): Promise<void>;

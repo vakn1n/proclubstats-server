@@ -54,6 +54,23 @@ export default class LeagueController implements ILeagueController {
     }
   }
 
+  async startNewSeason(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: leagueId } = req.params;
+    const { startDate, endDate } = req.body;
+
+    if (!leagueId || !startDate) {
+      res.status(404).send({ message: "missing date for generate fixtures" });
+      return;
+    }
+
+    try {
+      await this.leagueService.startNewSeason(leagueId, startDate, endDate);
+      res.sendStatus(200);
+    } catch (e) {
+      next(e);
+    }
+  }
+
   async deleteLeague(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
 

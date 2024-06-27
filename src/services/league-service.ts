@@ -36,6 +36,12 @@ export class LeagueService implements ILeagueService {
     this.teamService = teamService;
     this.fixtureService = fixtureService;
   }
+  async startNewSeason(leagueId: string, startDateString: string, endDateString?: string): Promise<void> {
+    logger.info(`LeagueService: Starting new season for league with id ${leagueId}`);
+    const startDate = new Date(startDateString);
+    const endDate = endDateString ? new Date(endDateString) : undefined;
+    await this.leagueRepository.startNewSeason(leagueId, startDate, endDate);
+  }
 
   async addLeague(name: string, imgUrl?: string): Promise<ILeague> {
     const isLeagueExists = await this.leagueRepository.isLeagueNameExists(name);
@@ -72,11 +78,11 @@ export class LeagueService implements ILeagueService {
 
     const league = await this.leagueRepository.getLeagueById(leagueId);
 
-    const isFixtureRoundExists = await Fixture.exists({ round, league: league._id });
+    // const isFixtureRoundExists = await Fixture.exists({ round, league: league._id });
 
-    if (isFixtureRoundExists) {
-      throw new BadRequestError(`Fixture with round ${round} already exists`);
-    }
+    // if (isFixtureRoundExists) {
+    //   throw new BadRequestError(`Fixture with round ${round} already exists`);
+    // }
 
     const startDate = new Date(addFixtureData.startDate);
     const endDate = new Date(addFixtureData.endDate);
@@ -89,7 +95,8 @@ export class LeagueService implements ILeagueService {
 
     return await transactionService.withTransaction(async (session) => {
       const fixture = await this.fixtureService.generateFixture({ leagueId: league._id, round, gamesData, startDate, endDate }, session);
-      league.fixtures.push(fixture._id);
+      league.seasons[league.seasons.length - 1].fixtures.push(fixture._id); // add fixture to the latest season
+
       const fixtureDto = await FixtureMapper.mapToDto(fixture);
       await league.save({ session });
 
@@ -116,7 +123,7 @@ export class LeagueService implements ILeagueService {
         const fixture = await this.fixtureService.generateFixture(fixtureData, session);
         fixtures.push(fixture);
       }
-      league.fixtures = fixtures.map((fixture) => fixture._id);
+      league.seasons[league.seasons.length - 1].fixtures = fixtures.map((fixture) => fixture._id);
       await league.save({ session });
       return await FixtureMapper.mapToDtos(fixtures);
     });
@@ -170,9 +177,9 @@ export class LeagueService implements ILeagueService {
     const league = await this.leagueRepository.getLeagueById(leagueId);
 
     await transactionService.withTransaction(async (session) => {
-      await this.fixtureService.deleteFixtures(league.fixtures, session);
+      await this.fixtureService.deleteFixtures(league.seasons[league.seasons.length - 1].fixtures, session);
       try {
-        league.fixtures = [];
+        league.seasons[league.seasons.length - 1].fixtures = [];
         await league.save({ session });
       } catch (e) {
         logger.error(e);

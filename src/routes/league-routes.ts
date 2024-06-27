@@ -9,6 +9,7 @@ const leagueController = container.resolve(LeagueController);
 router.post("/", upload.single("file"), (req, res, next) => leagueController.createLeague(req, res, next));
 router.post("/:id/generateFixtures", (req, res, next) => leagueController.generateLeagueFixtures(req, res, next));
 router.post("/:id/createFixture", (req, res, next) => leagueController.createLeagueFixture(req, res, next));
+router.post("/:id/newSeason", (req, res, next) => leagueController.startNewSeason(req, res, next));
 
 router.put("/:id/addTeam", (req, res, next) => leagueController.addTeamToLeague(req, res, next));
 

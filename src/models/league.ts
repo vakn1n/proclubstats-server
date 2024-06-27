@@ -11,37 +11,50 @@ interface ILeagueAdmin {
   role: Role;
 }
 
+// League Model
 export interface ILeague extends Document {
   id: string;
   name: string;
   imgUrl?: string;
   teams: mongoose.Types.ObjectId[];
-  currentTitleHolder: mongoose.Types.ObjectId | null;
-  admins: ILeagueAdmin[];
+  // admins: ILeagueAdmin[];
+  seasons: ILeagueSeason[];
   fixtures: mongoose.Types.ObjectId[];
 }
+
+export interface ILeagueSeason {
+  seasonNumber: number;
+  winner: mongoose.Types.ObjectId | null;
+  fixtures: mongoose.Types.ObjectId[];
+  startDate: Date;
+  endDate?: Date;
+}
+
+const leagueSeasonSchema = new Schema({
+  seasonNumber: { type: Number, required: true },
+  winner: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },
+  fixtures: [{ type: mongoose.Schema.Types.ObjectId, ref: "Fixture" }],
+  startDate: { type: mongoose.Schema.Types.Date, required: true },
+  endDate: { type: mongoose.Schema.Types.Date },
+});
 
 const leagueSchema: Schema = new Schema<ILeague>(
   {
     name: { type: String, required: true, unique: true },
     imgUrl: { type: String },
     teams: [{ type: mongoose.Schema.Types.ObjectId, ref: "Team" }],
-    currentTitleHolder: {
-      type: mongoose.Types.ObjectId,
-      ref: "Team",
-      default: null,
-    },
-    admins: [
-      {
-        playerId: {
-          type: mongoose.Types.ObjectId,
-          required: true,
-          ref: "Player",
-        },
-        role: { type: String, enum: Object.values(Role), required: true },
-      },
-    ],
     fixtures: [{ type: mongoose.Schema.Types.ObjectId, ref: "Fixture" }],
+    seasons: [leagueSeasonSchema],
+    // admins: [
+    //   {
+    //     playerId: {
+    //       type: mongoose.Types.ObjectId,
+    //       required: true,
+    //       ref: "Player",
+    //     },
+    //     role: { type: String, enum: Object.values(Role), required: true },
+    //   },
+    // ],
   },
   {
     toJSON: { virtuals: true },
