@@ -8,7 +8,6 @@ export type TeamWithPlayers = {
   imgUrl?: string;
   players: IPlayer[];
   captain: mongoose.Types.ObjectId;
-  stats: ITeamStats;
 };
 
 export interface ITeamStats {
@@ -20,17 +19,24 @@ export interface ITeamStats {
   cleanSheets: number;
 }
 
-export interface ITeam extends Document {
-  id: string;
-  name: string;
+export interface ITeamSeason {
+  seasonNumber: number;
   league: mongoose.Types.ObjectId;
-  imgUrl: string;
-  players: mongoose.Types.ObjectId[];
-  captain: mongoose.Types.ObjectId;
   stats: ITeamStats;
 }
 
-const teamStatsSchema = new Schema({
+export interface ITeam extends Document {
+  id: string;
+  name: string;
+  imgUrl?: string;
+  league?: mongoose.Types.ObjectId;
+  players: mongoose.Types.ObjectId[];
+  captain: mongoose.Types.ObjectId;
+  seasons: ITeamSeason[];
+  stats: ITeamStats | undefined;
+}
+
+const teamStatsSchema = new Schema<ITeamStats>({
   wins: { type: Number, default: 0 },
   losses: { type: Number, default: 0 },
   draws: { type: Number, default: 0 },
@@ -39,13 +45,20 @@ const teamStatsSchema = new Schema({
   cleanSheets: { type: Number, default: 0 },
 });
 
-const teamSchema: Schema = new Schema<ITeam>(
+const teamSeasonSchema = new Schema<ITeamSeason>({
+  seasonNumber: { type: Number, required: true },
+  league: { type: mongoose.Schema.Types.ObjectId, ref: "League" },
+  stats: teamStatsSchema,
+});
+
+const teamSchema: Schema<ITeam> = new Schema<ITeam>(
   {
     name: { type: String, required: true, unique: true },
+    imgUrl: { type: String },
+    league: { type: mongoose.Schema.Types.ObjectId, ref: "League" },
     players: [{ type: mongoose.Schema.Types.ObjectId, ref: "Player" }],
     captain: { type: mongoose.Schema.Types.ObjectId, ref: "Player" },
-    league: { type: mongoose.Schema.Types.ObjectId, ref: "League", required: true },
-    imgUrl: { type: String },
+    seasons: [teamSeasonSchema],
     stats: teamStatsSchema,
   },
   {

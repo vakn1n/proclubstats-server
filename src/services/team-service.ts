@@ -86,19 +86,21 @@ export class TeamService implements ITeamService {
 
     const team = await this.teamRepository.getTeamById(teamId, session);
 
-    team.stats.goalsScored += goalsScored;
-    team.stats.goalsConceded += goalsConceded;
+    const latestSeasonStats = team.seasons.filter((season) => season.league === team.league)[team.seasons.length - 1].stats;
+
+    latestSeasonStats.goalsScored += goalsScored;
+    latestSeasonStats.goalsConceded += goalsConceded;
 
     if (!goalsConceded) {
-      team.stats.cleanSheets += 1;
+      latestSeasonStats.cleanSheets += 1;
     }
 
     if (goalsScored > goalsConceded) {
-      team.stats.wins += 1;
+      latestSeasonStats.wins += 1;
     } else if (goalsScored < goalsConceded) {
-      team.stats.losses += 1;
+      latestSeasonStats.losses += 1;
     } else {
-      team.stats.draws += 1;
+      latestSeasonStats.draws += 1;
     }
 
     await team.save({ session });
@@ -106,21 +108,23 @@ export class TeamService implements ITeamService {
 
   async revertTeamGameStats(teamId: Types.ObjectId, goalsScored: number, goalsConceded: number, session: ClientSession): Promise<void> {
     logger.info(`TeamService: Reverting stats for team ${teamId}`);
-
     const team = await this.teamRepository.getTeamById(teamId, session);
 
-    // Update team stats
-    team.stats.goalsScored -= goalsScored;
-    team.stats.goalsConceded -= goalsConceded;
+    const latestSeasonStats = team.seasons.filter((season) => season.league === team.league)[team.seasons.length - 1].stats;
+
+    latestSeasonStats.goalsScored -= goalsScored;
+    latestSeasonStats.goalsConceded -= goalsConceded;
+
     if (!goalsConceded) {
-      team.stats.cleanSheets -= 1;
+      latestSeasonStats.cleanSheets -= 1;
     }
+
     if (goalsScored > goalsConceded) {
-      team.stats.wins -= 1;
+      latestSeasonStats.wins -= 1;
     } else if (goalsScored < goalsConceded) {
-      team.stats.losses -= 1;
+      latestSeasonStats.losses -= 1;
     } else {
-      team.stats.draws -= 1;
+      latestSeasonStats.draws -= 1;
     }
     await team.save({ session });
   }
@@ -167,24 +171,25 @@ export class TeamService implements ITeamService {
   }
 
   private calculateTeamTableRow(team: ITeam): LeagueTableRow {
-    const stats = team.stats;
-    const gamesPlayed = stats.wins + stats.losses + stats.draws;
-    const goalDifference = stats.goalsScored - stats.goalsConceded;
-    const points = stats.wins * 3 + stats.draws;
+    const latestSeasonStats = team.seasons.filter((season) => season.league === team.league)[team.seasons.length - 1].stats;
+
+    const gamesPlayed = latestSeasonStats.wins + latestSeasonStats.losses + latestSeasonStats.draws;
+    const goalDifference = latestSeasonStats.goalsScored - latestSeasonStats.goalsConceded;
+    const points = latestSeasonStats.wins * 3 + latestSeasonStats.draws;
 
     return {
       teamId: team.id,
       teamName: team.name,
       imgUrl: team.imgUrl,
       gamesPlayed,
-      gamesWon: stats.wins,
-      gamesLost: stats.losses,
-      draws: stats.draws,
+      gamesWon: latestSeasonStats.wins,
+      gamesLost: latestSeasonStats.losses,
+      draws: latestSeasonStats.draws,
       goalDifference,
       points,
-      goalsConceded: stats.goalsConceded,
-      goalsScored: stats.goalsScored,
-      cleanSheets: stats.cleanSheets,
+      goalsConceded: latestSeasonStats.goalsConceded,
+      goalsScored: latestSeasonStats.goalsScored,
+      cleanSheets: latestSeasonStats.cleanSheets,
     };
   }
 }

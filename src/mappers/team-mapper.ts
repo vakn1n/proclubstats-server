@@ -14,10 +14,11 @@ export class TeamMapper {
     });
 
     const captain = players.find((player) => team.captain?._id.equals(player._id));
+    const latestSeasonStats = team.league ? team.seasons.filter((season) => season.league === team.league)[team.seasons.length - 1].stats : undefined;
 
     return {
       captain: captain ? { name: captain.name, id: captain.id, imgUrl: captain.imgUrl } : null,
-      leagueId: team.league.toString(),
+      leagueId: team.league?.toString(),
       id: team.id,
       name: team.name,
       imgUrl: team.imgUrl,
@@ -27,15 +28,17 @@ export class TeamMapper {
         imgUrl: player.imgUrl,
         position: player.position,
       })),
-      stats: {
-        games: team.stats.wins + team.stats.losses + team.stats.draws,
-        cleanSheets: team.stats.cleanSheets,
-        goalsScored: team.stats.goalsScored,
-        goalsConceded: team.stats.goalsConceded,
-        draws: team.stats.draws,
-        wins: team.stats.wins,
-        losses: team.stats.losses,
-      },
+      stats: latestSeasonStats
+        ? {
+            games: latestSeasonStats.wins + latestSeasonStats.losses + latestSeasonStats.draws,
+            cleanSheets: latestSeasonStats.cleanSheets,
+            goalsScored: latestSeasonStats.goalsScored,
+            goalsConceded: latestSeasonStats.goalsConceded,
+            draws: latestSeasonStats.draws,
+            wins: latestSeasonStats.wins,
+            losses: latestSeasonStats.losses,
+          }
+        : undefined,
     };
   }
 
