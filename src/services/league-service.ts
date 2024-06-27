@@ -38,9 +38,19 @@ export class LeagueService implements ILeagueService {
   }
   async startNewSeason(leagueId: string, startDateString: string, endDateString?: string): Promise<void> {
     logger.info(`LeagueService: Starting new season for league with id ${leagueId}`);
+
+    const league = await this.leagueRepository.getLeagueById(leagueId);
+
     const startDate = new Date(startDateString);
     const endDate = endDateString ? new Date(endDateString) : undefined;
-    await this.leagueRepository.startNewSeason(leagueId, startDate, endDate);
+
+    const newSeasonNumber = league.seasons.length + 1;
+
+    await transactionService.withTransaction(async (session) => {
+      // start new season for all the teams in the league
+      await this.teamService.startNewLeagueSeason(new Types.ObjectId(leagueId), newSeasonNumber, session);
+      await this.leagueRepository.startNewSeason(leagueId, startDate, newSeasonNumber, endDate, session);
+    });
   }
 
   async addLeague(name: string, imgUrl?: string): Promise<ILeague> {

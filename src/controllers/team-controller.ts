@@ -32,10 +32,10 @@ export default class TeamController implements ITeamController {
       const team = await this.teamService.createTeam(name);
       const file = req.file;
 
-      if (file) {
-        const imgUrl = await this.teamService.setTeamImage(team.id, file);
-        team.imgUrl = imgUrl;
-      }
+      // if (file) {
+      //   const imgUrl = await this.teamService.setTeamImage(team.id, file);
+      //   team.imgUrl = imgUrl;
+      // }
       res.status(201).json(team);
     } catch (error: any) {
       next(error);

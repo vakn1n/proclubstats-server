@@ -1,7 +1,7 @@
 import { ClientSession, Types } from "mongoose";
 import { NotFoundError, QueryFailedError } from "../errors";
 import { ITeamRepository } from "../interfaces/team/team-repository.interface";
-import Team, { ITeam, TeamWithPlayers } from "../models/team";
+import Team, { ITeam, ITeamSeason, TeamWithPlayers } from "../models/team";
 import logger from "../config/logger";
 import { IPlayer } from "../models/player";
 
@@ -38,9 +38,39 @@ export class TeamRepository implements ITeamRepository {
     }
   }
 
+  async startNewLeagueSeason(leagueId: Types.ObjectId, seasonNumber: number, session?: ClientSession): Promise<void> {
+    try {
+      const teams = await Team.find({ league: leagueId });
+
+      const newSeason: ITeamSeason = {
+        league: leagueId,
+        seasonNumber: seasonNumber,
+        stats: {
+          wins: 0,
+          losses: 0,
+          draws: 0,
+          goalsScored: 0,
+          goalsConceded: 0,
+          cleanSheets: 0,
+        },
+      };
+
+      await Promise.all(
+        teams.map(async (team) => {
+          team.seasons.push(newSeason);
+          await team.save({ session });
+        })
+      );
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`Failed to start new league season in league ${leagueId} for teams`);
+    }
+  }
+
   async createTeam(name: string, session?: ClientSession): Promise<ITeam> {
     try {
-      const team = (await Team.create({ name }, { session }))[0];
+      const team = new Team({ name });
+      await team.save({ session });
       return team;
     } catch (e: any) {
       logger.error(e.message);

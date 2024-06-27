@@ -43,25 +43,24 @@ export class LeagueRepository implements ILeagueRepository {
     }
   }
 
-  async startNewSeason(leagueId: string, startDate: Date, endDate?: Date): Promise<void> {
+  async startNewSeason(leagueId: string, startDate: Date, seasonNumber: number, endDate?: Date, session?: ClientSession): Promise<void> {
     try {
-      // Step 1: Fetch the current season count
       const league = await League.findById(leagueId);
       if (!league) {
         throw new BadRequestError(`Failed to find league with id ${leagueId}`);
       }
-      const currentSeasonCount = league.seasons.length;
 
-      // Step 2: Define the new season object with incremented season number
       const newSeason: ILeagueSeason = {
-        seasonNumber: currentSeasonCount + 1,
+        seasonNumber,
         startDate,
         endDate,
-        winner: null, // Initialize winner as null
+        winner: null,
         fixtures: [],
       };
+      league.seasons[league.seasons.length - 1].teams = league.teams; // save the teams that finished the league
+      league.seasons.push(newSeason);
 
-      await League.updateOne({ _id: new Types.ObjectId(leagueId) }, { $push: { seasons: newSeason } });
+      await league.save({ session });
     } catch (e: any) {
       if (e instanceof BadRequestError) {
         throw e;

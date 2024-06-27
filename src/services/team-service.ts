@@ -7,7 +7,7 @@ import { ImageService } from "../interfaces/util-services/image-service.interfac
 import { PlayerMapper } from "../mappers/player-mapper";
 import { TeamMapper } from "../mappers/team-mapper";
 import Player from "../models/player";
-import { ITeam } from "../models/team";
+import { ITeam, ITeamSeason } from "../models/team";
 import { ITeamService, ITeamRepository } from "../interfaces/team";
 import { TeamDTO, PlayerDTO, LeagueTableRow } from "@pro-clubs-manager/shared-dtos";
 
@@ -26,6 +26,12 @@ export class TeamService implements ITeamService {
     this.imageService = imageService;
     this.playerService = playerService;
   }
+
+  async startNewLeagueSeason(leagueId: Types.ObjectId, seasonNumber: number, session?: ClientSession): Promise<void> {
+    logger.info(`TeamService: Starting new league season for all teams in league ${leagueId}`);
+    await this.teamRepository.startNewLeagueSeason(leagueId, seasonNumber, session);
+  }
+
   async renameTeam(teamId: string, newName: string): Promise<void> {
     logger.info(`TeamService: renaming team ${teamId} to ${newName}`);
 

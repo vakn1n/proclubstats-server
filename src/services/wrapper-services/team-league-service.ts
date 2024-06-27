@@ -26,6 +26,11 @@ export class TeamLeagueService implements ITeamLeagueService {
 
     league.teams.push(team._id);
     team.league = league._id;
+    team.seasons.push({
+      league: league._id,
+      seasonNumber: league.seasons.length,
+      stats: { cleanSheets: 0, goalsConceded: 0, draws: 0, goalsScored: 0, losses: 0, wins: 0 },
+    });
 
     await transactionService.withTransaction(async (session) => {
       await league.save({ session });

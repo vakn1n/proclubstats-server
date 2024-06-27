@@ -44,6 +44,7 @@ export class CloudinaryImageService implements ImageService {
     try {
       // Upload image to Cloudinary
       const result = await cloudinary.uploader.upload(file.path);
+      console.log(result);
 
       return result.secure_url;
     } catch (error) {

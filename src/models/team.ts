@@ -59,7 +59,6 @@ const teamSchema: Schema<ITeam> = new Schema<ITeam>(
     players: [{ type: mongoose.Schema.Types.ObjectId, ref: "Player" }],
     captain: { type: mongoose.Schema.Types.ObjectId, ref: "Player" },
     seasons: [teamSeasonSchema],
-    stats: teamStatsSchema,
   },
   {
     toJSON: { virtuals: true },
