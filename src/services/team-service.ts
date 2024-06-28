@@ -7,7 +7,7 @@ import { ImageService } from "../interfaces/util-services/image-service.interfac
 import { PlayerMapper } from "../mappers/player-mapper";
 import { TeamMapper } from "../mappers/team-mapper";
 import Player from "../models/player";
-import { ITeam, ITeamSeason } from "../models/team";
+import { ITeam, ITeamSeason, ITeamStats } from "../models/team";
 import { ITeamService, ITeamRepository } from "../interfaces/team";
 import { TeamDTO, PlayerDTO, LeagueTableRow } from "@pro-clubs-manager/shared-dtos";
 
@@ -92,7 +92,7 @@ export class TeamService implements ITeamService {
 
     const team = await this.teamRepository.getTeamById(teamId, session);
 
-    const latestSeasonStats = team.seasons.filter((season) => season.league === team.league)[team.seasons.length - 1].stats;
+    const latestSeasonStats = this.getLatestSeasonStatsFromTeam(team);
 
     latestSeasonStats.goalsScored += goalsScored;
     latestSeasonStats.goalsConceded += goalsConceded;
@@ -116,7 +116,7 @@ export class TeamService implements ITeamService {
     logger.info(`TeamService: Reverting stats for team ${teamId}`);
     const team = await this.teamRepository.getTeamById(teamId, session);
 
-    const latestSeasonStats = team.seasons.filter((season) => season.league === team.league)[team.seasons.length - 1].stats;
+    const latestSeasonStats = this.getLatestSeasonStatsFromTeam(team);
 
     latestSeasonStats.goalsScored -= goalsScored;
     latestSeasonStats.goalsConceded -= goalsConceded;
@@ -177,7 +177,7 @@ export class TeamService implements ITeamService {
   }
 
   private calculateTeamTableRow(team: ITeam): LeagueTableRow {
-    const latestSeasonStats = team.seasons.filter((season) => season.league.equals(team.league)).pop()!.stats;
+    const latestSeasonStats = this.getLatestSeasonStatsFromTeam(team);
 
     const gamesPlayed = latestSeasonStats.wins + latestSeasonStats.losses + latestSeasonStats.draws;
     const goalDifference = latestSeasonStats.goalsScored - latestSeasonStats.goalsConceded;
@@ -197,5 +197,9 @@ export class TeamService implements ITeamService {
       goalsScored: latestSeasonStats.goalsScored,
       cleanSheets: latestSeasonStats.cleanSheets,
     };
+  }
+
+  private getLatestSeasonStatsFromTeam(team: ITeam): ITeamStats {
+    return team.seasons.filter((season) => season.league?.equals(team.league)).sort((seasonA, seasonB) => seasonB.seasonNumber - seasonA.seasonNumber)[0].stats;
   }
 }
