@@ -177,7 +177,7 @@ export class TeamService implements ITeamService {
   }
 
   private calculateTeamTableRow(team: ITeam): LeagueTableRow {
-    const latestSeasonStats = team.seasons.filter((season) => season.league === team.league)[team.seasons.length - 1].stats;
+    const latestSeasonStats = team.seasons.filter((season) => season.league.equals(team.league)).pop()!.stats;
 
     const gamesPlayed = latestSeasonStats.wins + latestSeasonStats.losses + latestSeasonStats.draws;
     const goalDifference = latestSeasonStats.goalsScored - latestSeasonStats.goalsConceded;
