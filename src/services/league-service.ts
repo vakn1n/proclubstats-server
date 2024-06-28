@@ -102,10 +102,13 @@ export class LeagueService implements ILeagueService {
       homeTeam: new Types.ObjectId(game.homeTeamId),
       round,
     }));
-
+    const currentSeasonNumber = league.seasons.length;
     return await transactionService.withTransaction(async (session) => {
-      const fixture = await this.fixtureService.generateFixture({ leagueId: league._id, round, gamesData, startDate, endDate }, session);
-      league.seasons[league.seasons.length - 1].fixtures.push(fixture._id); // add fixture to the latest season
+      const fixture = await this.fixtureService.generateFixture(
+        { leagueId: league._id, seasonNumber: currentSeasonNumber - 1, round, gamesData, startDate, endDate },
+        session
+      );
+      league.seasons[currentSeasonNumber - 1].fixtures.push(fixture._id); // add fixture to the latest season
 
       const fixtureDto = await FixtureMapper.mapToDto(fixture);
       await league.save({ session });
@@ -167,7 +170,7 @@ export class LeagueService implements ILeagueService {
           });
         }
 
-        fixtures.push({ leagueId, gamesData: fixtureGames, round: round + 1, startDate: new Date(startDate.getTime()), endDate: new Date(endDate.getTime()) });
+        // fixtures.push({ leagueId, gamesData: fixtureGames, round: round + 1, startDate: new Date(startDate.getTime()), endDate: new Date(endDate.getTime()) });
 
         // updates date after we done all fixtures of the week
         if ((round + 1) % fixturesPerWeek === 0) {

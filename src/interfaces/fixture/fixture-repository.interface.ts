@@ -2,7 +2,14 @@ import { Types, ClientSession } from "mongoose";
 import { IFixture } from "../../models/fixture";
 
 export interface IFixtureRepository {
-  createFixture(leagueId: string | Types.ObjectId, startDate: Date, endDate: Date, round: number, session?: ClientSession): Promise<IFixture>;
+  createFixture(
+    leagueId: string | Types.ObjectId,
+    seasonNumber: number,
+    startDate: Date,
+    endDate: Date,
+    round: number,
+    session?: ClientSession
+  ): Promise<IFixture>;
 
   deleteFixtureById(id: string | Types.ObjectId, session?: ClientSession): Promise<void>;
   deleteFixtures(fixturesIds: string[] | Types.ObjectId[], session?: ClientSession): Promise<void>;

@@ -1,9 +1,9 @@
+import { AddSingleFixtureData } from "@pro-clubs-manager/shared-dtos";
 import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
+import { ILeagueController, ILeagueService } from "../interfaces/league";
 import { ImageService } from "../interfaces/util-services/image-service.interface";
 import { ITeamLeagueService } from "../interfaces/wrapper-services/team-league-service.interface";
-import { ILeagueController, ILeagueService } from "../interfaces/league";
-import { AddSingleFixtureData } from "@pro-clubs-manager/shared-dtos";
 
 @injectable()
 export default class LeagueController implements ILeagueController {
@@ -144,6 +144,23 @@ export default class LeagueController implements ILeagueController {
       const topAssists = await this.leagueService.getTopAssists(leagueId);
       res.json(topAssists);
     } catch (error) {
+      next(error);
+    }
+  }
+
+  async removeTeamFromLeague(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: leagueId } = req.params;
+    const { teamId } = req.body;
+
+    if (!leagueId || !teamId) {
+      res.status(404).send({ message: "Missing data" });
+      return;
+    }
+
+    try {
+      await this.teamLeagueService.removeTeamFromLeague(leagueId, teamId);
+      res.sendStatus(204);
+    } catch (error: any) {
       next(error);
     }
   }

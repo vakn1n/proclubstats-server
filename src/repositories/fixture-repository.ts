@@ -60,9 +60,16 @@ export class FixtureRepository implements IFixtureRepository {
     }
   }
 
-  async createFixture(leagueId: string | Types.ObjectId, startDate: Date, endDate: Date, round: number, session?: ClientSession): Promise<IFixture> {
+  async createFixture(
+    leagueId: string | Types.ObjectId,
+    seasonNumber: number,
+    startDate: Date,
+    endDate: Date,
+    round: number,
+    session?: ClientSession
+  ): Promise<IFixture> {
     try {
-      const fixture = new Fixture({ league: leagueId, startDate, endDate, round });
+      const fixture = new Fixture({ league: leagueId, seasonNumber, startDate, endDate, round });
       await fixture.save({ session });
       return fixture;
     } catch (e: any) {
@@ -98,7 +105,27 @@ export class FixtureRepository implements IFixtureRepository {
 
   async countFixturesByLeague(leagueId: string): Promise<number> {
     try {
-      return await Fixture.countDocuments({ league: leagueId });
+      // Find the latest season number for the league
+      const latestSeasonNumber = await Fixture.aggregate([
+        { $match: { league: new Types.ObjectId(leagueId) } }, // Match fixtures by league ObjectId
+        { $group: { _id: null, maxSeasonNumber: { $max: "$seasonNumber" } } }, // Get the max season number
+        { $project: { _id: 0, maxSeasonNumber: 1 } }, // Project to include only maxSeasonNumber
+      ]);
+
+      if (latestSeasonNumber.length === 0) {
+        // Handle case where no fixtures are found for the league
+        return 0;
+      }
+
+      const maxSeasonNumber = latestSeasonNumber[0].maxSeasonNumber;
+
+      // Count fixtures for the latest season of the league
+      const count = await Fixture.countDocuments({
+        league: new Types.ObjectId(leagueId),
+        seasonNumber: maxSeasonNumber,
+      });
+
+      return count;
     } catch (e: any) {
       logger.error(e.message);
       throw new Error(`Failed to count fixtures by league id ${leagueId}`);

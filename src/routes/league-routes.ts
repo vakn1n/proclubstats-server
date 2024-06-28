@@ -12,6 +12,7 @@ router.post("/:id/createFixture", (req, res, next) => leagueController.createLea
 router.post("/:id/newSeason", (req, res, next) => leagueController.startNewSeason(req, res, next));
 
 router.put("/:id/addTeam", (req, res, next) => leagueController.addTeamToLeague(req, res, next));
+router.put("/:id/removeTeam", (req, res, next) => leagueController.removeTeamFromLeague(req, res, next));
 
 router.delete("/:id", (req, res, next) => leagueController.deleteLeague(req, res, next));
 

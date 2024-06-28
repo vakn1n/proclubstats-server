@@ -33,7 +33,6 @@ export interface ITeam extends Document {
   players: mongoose.Types.ObjectId[];
   captain: mongoose.Types.ObjectId;
   seasons: ITeamSeason[];
-  stats: ITeamStats | undefined;
 }
 
 const teamStatsSchema = new Schema<ITeamStats>({

@@ -27,7 +27,7 @@ export class FixtureService implements IFixtureService {
   }
 
   async getPaginatedLeagueFixturesGames(leagueId: string, page: number, pageSize: number): Promise<PaginatedFixtureDTO> {
-    logger.info(`FixtureService: getting fixture with league with id ${leagueId} for page ${page} and page size ${pageSize}`);
+    logger.info(`FixtureService: getting fixture for league with id ${leagueId} for page ${page} and page size ${pageSize}`);
     if (page < 1 || pageSize < 1) {
       throw new BadRequestError("Page and page size must be positive integers.");
     }
@@ -52,11 +52,11 @@ export class FixtureService implements IFixtureService {
   }
 
   async generateFixture(fixtureData: AddFixtureData, session: ClientSession): Promise<IFixture> {
-    const { leagueId, round, startDate, endDate, gamesData } = fixtureData;
+    const { leagueId, seasonNumber, round, startDate, endDate, gamesData } = fixtureData;
 
     logger.info(`FixtureService: generating fixture for round ${round} `);
 
-    const fixture = await this.fixtureRepository.createFixture(leagueId, startDate, endDate, round);
+    const fixture = await this.fixtureRepository.createFixture(leagueId, seasonNumber, startDate, endDate, round);
 
     const games = await this.gameService.createFixtureGames(fixture._id, gamesData, session);
 

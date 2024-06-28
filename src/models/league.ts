@@ -19,7 +19,6 @@ export interface ILeague extends Document {
   teams: mongoose.Types.ObjectId[];
   // admins: ILeagueAdmin[];
   seasons: ILeagueSeason[];
-  fixtures: mongoose.Types.ObjectId[];
 }
 
 export interface ILeagueSeason {
@@ -45,7 +44,6 @@ const leagueSchema: Schema = new Schema<ILeague>(
     name: { type: String, required: true, unique: true },
     imgUrl: { type: String },
     teams: [{ type: mongoose.Schema.Types.ObjectId, ref: "Team" }],
-    fixtures: [{ type: mongoose.Schema.Types.ObjectId, ref: "Fixture" }],
     seasons: [leagueSeasonSchema],
     // admins: [
     //   {

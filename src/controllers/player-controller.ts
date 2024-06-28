@@ -48,10 +48,10 @@ export default class PlayerController implements IPlayerController {
 
     try {
       const player = await this.playerService.createPlayer(playerData);
-      if (file) {
-        const imgUrl = await this.playerService.setPlayerImage(player.id, file);
-        player.imgUrl = imgUrl;
-      }
+      // if (file) {
+      //   const imgUrl = await this.playerService.setPlayerImage(player.id, file);
+      //   player.imgUrl = imgUrl;
+      // }
 
       res.status(201).json(player);
     } catch (error: any) {
