@@ -24,6 +24,8 @@ export default class FixtureController implements IFixtureController {
     const { leagueId } = req.params;
     const { page = 1, pageSize = 1 } = req.query;
 
+    console.log(req.query, pageSize);
+
     try {
       const games = await this.fixtureService.getPaginatedLeagueFixturesGames(leagueId, +page, +pageSize);
       res.json(games); // TODO: change to specific type of

@@ -33,10 +33,27 @@ export class FixtureRepository implements IFixtureRepository {
 
   async getFixturesByLeagueWithPagination(leagueId: string, page: number, pageSize: number): Promise<IFixture[]> {
     try {
-      return await Fixture.find({ league: leagueId })
-        .sort({ round: 1 }) // Assuming you want to sort by date, adjust as needed
+      // Find the latest season number for the league
+      const latestSeason = await Fixture.findOne({ league: new Types.ObjectId(leagueId) })
+        .sort({ seasonNumber: -1 }) // Sort by seasonNumber descending to get the latest season first
+        .select("seasonNumber") // Select only the seasonNumber field
+        .lean(); // Use lean() for faster read-only queries
+
+      if (!latestSeason) {
+        // Handle case where no fixtures are found for the league
+        return [];
+      }
+
+      const maxSeasonNumber = latestSeason.seasonNumber;
+
+      // Query fixtures by leagueId and maxSeasonNumber
+      const fixtures = await Fixture.find({ league: new Types.ObjectId(leagueId), seasonNumber: maxSeasonNumber })
+        .sort({ round: 1 }) // Sort fixtures by round in ascending order
         .skip((page - 1) * pageSize)
-        .limit(pageSize);
+        .limit(pageSize)
+        .exec();
+
+      return fixtures;
     } catch (e: any) {
       logger.error(e.message);
       throw new QueryFailedError(`Failed to get fixtures by league id ${leagueId}`);
