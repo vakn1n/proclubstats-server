@@ -4,6 +4,9 @@ import { inject, injectable } from "tsyringe";
 import { IPlayerController } from "../interfaces/player";
 import { IPlayerService } from "../interfaces/player/player-service.interface";
 import { IPlayerTeamService } from "../interfaces/wrapper-services/player-team-service.interface";
+import Player, { IPlayerSeason } from "../models/player";
+import Team from "../models/team";
+import { Types } from "mongoose";
 
 @injectable()
 export default class PlayerController implements IPlayerController {
@@ -32,6 +35,18 @@ export default class PlayerController implements IPlayerController {
   }
 
   async getFreeAgents(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const league = new Types.ObjectId("65ecb1eb2f272e434483a821");
+    // const leagueTeams = await Team.find({ league: league });
+    const players = await Player.find({ team: null });
+
+    await Promise.all(
+      players.map(async (player) => {
+        player.seasonsHistory = [];
+        player.stats = undefined;
+        player.save();
+      })
+    );
+
     try {
       const freeAgents = await this.playerService.getFreeAgents();
       res.send(freeAgents);

@@ -21,7 +21,6 @@ export class RedisCacheService implements CacheService {
 
   private async initializeClient() {
     if (!this.client.isOpen) {
-      console.log("Connecting to Redis");
       await this.client.connect();
       this.isConnected = true;
       console.log("Redis is running");

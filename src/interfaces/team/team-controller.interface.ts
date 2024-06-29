@@ -11,4 +11,5 @@ export interface ITeamController {
   getTeamPlayersStats: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 
   addPlayerToTeam: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  removePlayerFromTeam: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 }

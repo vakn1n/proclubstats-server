@@ -43,33 +43,6 @@ export class LeagueRepository implements ILeagueRepository {
     }
   }
 
-  async startNewSeason(leagueId: string, startDate: Date, seasonNumber: number, endDate?: Date, session?: ClientSession): Promise<void> {
-    try {
-      const league = await League.findById(leagueId);
-      if (!league) {
-        throw new BadRequestError(`Failed to find league with id ${leagueId}`);
-      }
-
-      const newSeason: ILeagueSeason = {
-        seasonNumber,
-        startDate,
-        endDate,
-        winner: null,
-        fixtures: [],
-      };
-      league.seasons[league.seasons.length - 1].teams = league.teams; // save the teams that finished the league
-      league.seasons.push(newSeason);
-
-      await league.save({ session });
-    } catch (e: any) {
-      if (e instanceof BadRequestError) {
-        throw e;
-      }
-      logger.error(e.message);
-      throw new QueryFailedError(`Failed to start new season for league with id ${leagueId}`);
-    }
-  }
-
   async createLeague(name: string, imgUrl?: string | undefined, session?: ClientSession): Promise<ILeague> {
     try {
       const league = (await League.create({ name, imgUrl }, { session }))[0];

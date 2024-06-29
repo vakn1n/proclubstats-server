@@ -18,6 +18,15 @@ export class PlayerRepository implements IPlayerRepository {
     return player;
   }
 
+  async getPlayersByTeamId(teamId: Types.ObjectId, session?: ClientSession): Promise<IPlayer[]> {
+    try {
+      return await Player.find({ team: teamId }, {}, { session });
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`Failed to get players by team id ${teamId}`);
+    }
+  }
+
   async getFreeAgents(session?: ClientSession): Promise<IPlayer[]> {
     return await Player.find({ team: null }, {}, { session });
   }

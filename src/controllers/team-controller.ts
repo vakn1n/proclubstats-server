@@ -3,6 +3,7 @@ import { inject, injectable } from "tsyringe";
 import { ITeamController, ITeamService } from "../interfaces/team/";
 import { IPlayerTeamService } from "../interfaces/wrapper-services/player-team-service.interface";
 import { ITeamStatsService } from "../interfaces/wrapper-services/team-stats-service.interface";
+import Team from "../models/team";
 
 @injectable()
 export default class TeamController implements ITeamController {
@@ -69,6 +70,22 @@ export default class TeamController implements ITeamController {
 
     try {
       await this.playerTeamService.addPlayerToTeam(playerId, teamId);
+      res.sendStatus(200);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+  async removePlayerFromTeam(req: Request, res: Response, next: NextFunction) {
+    const { id: teamId } = req.params;
+    const { playerId } = req.body;
+
+    if (!teamId || !playerId) {
+      res.status(404).send({ message: "Missing data" });
+      return;
+    }
+
+    try {
+      await this.playerTeamService.removePlayerFromTeam(playerId, teamId);
       res.sendStatus(200);
     } catch (error: any) {
       next(error);

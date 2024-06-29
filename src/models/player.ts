@@ -9,17 +9,26 @@ export interface IPlayerStats {
   avgRating: number;
 }
 
+export interface IPlayerSeason {
+  seasonNumber: number;
+  league: mongoose.Types.ObjectId;
+  team: mongoose.Types.ObjectId;
+  stats: IPlayerStats;
+}
+
 export interface IPlayer extends Document {
   id: string;
-  team?: mongoose.Types.ObjectId;
+  team: mongoose.Types.ObjectId | null;
   phone?: Number;
   email?: string;
   name: string;
   age: number;
   imgUrl?: string;
-  stats: IPlayerStats;
   position: string;
   playablePositions: string[];
+  stats?: IPlayerStats;
+  currentSeason?: IPlayerSeason;
+  seasonsHistory: IPlayerSeason[];
 }
 
 const playerStatsSchema = new Schema({
@@ -29,6 +38,13 @@ const playerStatsSchema = new Schema({
   cleanSheets: { type: Number, default: 0, required: true },
   playerOfTheMatch: { type: Number, default: 0, required: true },
   avgRating: { type: Number, default: 0.0, required: true },
+});
+
+const playerSeasonStatsSchema = new Schema({
+  seasonNumber: { type: Number, required: true },
+  league: { type: mongoose.Types.ObjectId, ref: "League", required: true },
+  team: { type: mongoose.Types.ObjectId, ref: "Team", required: true },
+  stats: { type: playerStatsSchema, required: true },
 });
 
 const playerSchema: Schema = new Schema(
@@ -41,6 +57,8 @@ const playerSchema: Schema = new Schema(
     position: { type: String, required: true },
     playablePositions: [{ type: String, required: true }],
     imgUrl: { type: String },
+    currentSeason: playerSeasonStatsSchema,
+    seasonsHistory: [playerSeasonStatsSchema],
     stats: playerStatsSchema,
   },
   {
@@ -48,20 +66,6 @@ const playerSchema: Schema = new Schema(
     id: true, // Use 'id' instead of '_id'
   }
 );
-
-playerSchema.pre("save", function (next) {
-  if (!this.stats) {
-    this.stats = {
-      games: 0,
-      goals: 0,
-      assists: 0,
-      cleanSheets: 0,
-      playerOfTheMatch: 0,
-      avgRating: 0.0,
-    };
-  }
-  next();
-});
 
 const Player = mongoose.model<IPlayer>("Player", playerSchema);
 

@@ -26,11 +26,11 @@ export class TeamLeagueService implements ITeamLeagueService {
 
     league.teams.push(team._id);
     team.league = league._id;
-    team.seasons.push({
+    team.currentSeason = {
       league: league._id,
-      seasonNumber: league.seasons.length,
+      seasonNumber: league.currentSeason.seasonNumber,
       stats: { cleanSheets: 0, goalsConceded: 0, draws: 0, goalsScored: 0, losses: 0, wins: 0 },
-    });
+    };
 
     await transactionService.withTransaction(async (session) => {
       await league.save({ session });
@@ -42,13 +42,18 @@ export class TeamLeagueService implements ITeamLeagueService {
     const league = await this.leagueRepository.getLeagueById(leagueId);
     const team = await this.teamRepository.getTeamById(teamId);
 
-    if (!league.teams.includes(team._id)) {
+    if (!team.league?.equals(league._id)) {
       throw new BadRequestError(`Team ${teamId} is not in league ${leagueId}`);
     }
 
     await transactionService.withTransaction(async (session) => {
-      await this.leagueRepository.removeTeamFromLeague(league._id, team._id, session);
-      await this.teamRepository.setTeamLeague(team._id, null, session);
+      league.teams = league.teams.filter((leagueTeam) => !leagueTeam._id.equals(team._id));
+      team.league = null;
+      if (team.currentSeason) {
+        team.seasonsHistory.push(team.currentSeason);
+      }
+      team.currentSeason = undefined;
+      await Promise.all([league.save({ session }), team.save({ session })]);
     });
   }
 }

@@ -57,7 +57,7 @@ export class TeamRepository implements ITeamRepository {
 
       await Promise.all(
         teams.map(async (team) => {
-          team.seasons.push(newSeason);
+          team.seasonsHistory.push(newSeason);
           await team.save({ session });
         })
       );

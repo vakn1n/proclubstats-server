@@ -4,6 +4,7 @@ import { inject, injectable } from "tsyringe";
 import { ILeagueController, ILeagueService } from "../interfaces/league";
 import { ImageService } from "../interfaces/util-services/image-service.interface";
 import { ITeamLeagueService } from "../interfaces/wrapper-services/team-league-service.interface";
+import League from "../models/league";
 
 @injectable()
 export default class LeagueController implements ILeagueController {
@@ -84,6 +85,7 @@ export default class LeagueController implements ILeagueController {
 
   async getLeagueById(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
+
     try {
       const league = await this.leagueService.getLeagueById(id);
       res.json(league);
@@ -94,8 +96,8 @@ export default class LeagueController implements ILeagueController {
 
   async getAllLeagues(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const fixtures = await this.leagueService.getAllLeagues();
-      res.json(fixtures);
+      const leagues = await this.leagueService.getAllLeagues();
+      res.json(leagues);
     } catch (error: any) {
       next(error);
     }

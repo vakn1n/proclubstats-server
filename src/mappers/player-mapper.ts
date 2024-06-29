@@ -18,12 +18,12 @@ export class PlayerMapper {
       position: player.position,
       playablePositions: player.playablePositions,
       stats: {
-        games: player.stats.games,
-        goals: player.stats.goals,
-        cleanSheets: player.stats.cleanSheets,
-        assists: player.stats.assists,
-        playerOfTheMatch: player.stats.playerOfTheMatch,
-        avgRating: player.stats.avgRating,
+        games: player.currentSeason?.stats.games || 0,
+        goals: player.currentSeason?.stats.goals || 0,
+        cleanSheets: player.currentSeason?.stats.cleanSheets || 0,
+        assists: player.currentSeason?.stats.assists || 0,
+        playerOfTheMatch: player.currentSeason?.stats.playerOfTheMatch || 0,
+        avgRating: player.currentSeason?.stats.avgRating || 0,
       },
       team: team
         ? {

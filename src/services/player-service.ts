@@ -5,7 +5,7 @@ import { IPlayerRepository, IPlayerService } from "../interfaces/player";
 import { ImageService } from "../interfaces/util-services/image-service.interface";
 import { PlayerMapper } from "../mappers/player-mapper";
 import { IPlayerGamePerformance } from "../models/game";
-import { IPlayer } from "../models/player";
+import { IPlayer, IPlayerSeason } from "../models/player";
 import { PlayerDTO, CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dtos";
 
 @injectable()
@@ -90,5 +90,33 @@ export class PlayerService implements IPlayerService {
     if (player.imgUrl) {
       await this.imageService.removeImage(player.imgUrl);
     }
+  }
+
+  async startNewSeason(teamId: Types.ObjectId, leagueId: Types.ObjectId, seasonNumber: number, session: ClientSession): Promise<void> {
+    logger.info(`PlayerService: starting new season for players in team with id ${teamId}`);
+
+    const players = await this.playerRepository.getPlayersByTeamId(teamId, session);
+    const newSeason: IPlayerSeason = {
+      league: leagueId,
+      team: teamId,
+      seasonNumber: seasonNumber,
+      stats: {
+        assists: 0,
+        goals: 0,
+        avgRating: 0,
+        cleanSheets: 0,
+        games: 0,
+        playerOfTheMatch: 0,
+      },
+    };
+
+    await Promise.all(
+      players.map(async (player) => {
+        if (player.currentSeason) {
+          player.seasonsHistory.push(player.currentSeason);
+        }
+        player.currentSeason = newSeason;
+      })
+    );
   }
 }

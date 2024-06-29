@@ -14,7 +14,7 @@ export class TeamMapper {
     });
 
     const captain = players.find((player) => team.captain?._id.equals(player._id));
-    const latestSeasonStats = team.league ? team.seasons.filter((season) => season.league === team.league).pop()?.stats : undefined;
+    const latestSeasonStats = team.league ? team.seasonsHistory.filter((season) => season.league === team.league).pop()?.stats : undefined;
 
     return {
       captain: captain ? { name: captain.name, id: captain.id, imgUrl: captain.imgUrl } : null,

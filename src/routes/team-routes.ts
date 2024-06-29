@@ -9,6 +9,7 @@ const teamController = container.resolve(TeamController);
 router.post("/", upload.single("file"), (req, res, next) => teamController.createTeam(req, res, next));
 
 router.put("/:id/addPlayer", (req, res, next) => teamController.addPlayerToTeam(req, res, next));
+router.put("/:id/removePlayer", (req, res, next) => teamController.removePlayerFromTeam(req, res, next));
 
 router.patch("/:id/setImage", upload.single("file"), (req, res, next) => teamController.setTeamImage(req, res, next));
 router.patch("/:id/setCaptain", (req, res, next) => teamController.setTeamCaptain(req, res, next));

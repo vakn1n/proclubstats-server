@@ -16,8 +16,6 @@ export interface ITeamRepository {
 
   createTeam(name: string, session?: ClientSession): Promise<ITeam>;
 
-  startNewLeagueSeason(leagueId: Types.ObjectId, seasonNumber: number, session?: ClientSession): Promise<void>;
-
   renameTeam(teamId: string, newName: string, session?: ClientSession): Promise<void>;
   setTeamLeague(teamId: Types.ObjectId, leagueId: Types.ObjectId | null, session?: ClientSession): Promise<void>;
 }

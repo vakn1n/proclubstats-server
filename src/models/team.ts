@@ -29,10 +29,11 @@ export interface ITeam extends Document {
   id: string;
   name: string;
   imgUrl?: string;
-  league?: mongoose.Types.ObjectId;
+  league: mongoose.Types.ObjectId | null;
   players: mongoose.Types.ObjectId[];
   captain: mongoose.Types.ObjectId;
-  seasons: ITeamSeason[];
+  seasonsHistory: ITeamSeason[];
+  currentSeason?: ITeamSeason;
 }
 
 const teamStatsSchema = new Schema<ITeamStats>({
@@ -57,7 +58,8 @@ const teamSchema: Schema<ITeam> = new Schema<ITeam>(
     league: { type: mongoose.Schema.Types.ObjectId, ref: "League" },
     players: [{ type: mongoose.Schema.Types.ObjectId, ref: "Player" }],
     captain: { type: mongoose.Schema.Types.ObjectId, ref: "Player" },
-    seasons: [teamSeasonSchema],
+    seasonsHistory: [teamSeasonSchema],
+    currentSeason: teamSeasonSchema,
   },
   {
     toJSON: { virtuals: true },

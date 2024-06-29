@@ -3,7 +3,6 @@ import { ILeague } from "../../models/league";
 import { TopScorer, TopAssister } from "@pro-clubs-manager/shared-dtos";
 
 export interface ILeagueRepository {
-  startNewSeason(leagueId: string, startDate: Date, seasonNumber: number, endDate: Date | undefined, session?: ClientSession): Promise<void>;
   getAllLeagues(): Promise<ILeague[]>;
   getLeagueById(id: string | Types.ObjectId, session?: ClientSession): Promise<ILeague>;
 

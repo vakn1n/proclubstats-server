@@ -41,20 +41,20 @@ export class TeamStatsService implements ITeamStatsService {
         teamId: team.id,
         teamName: team.name,
         playerImgUrl: player.imgUrl,
-        games: player.stats.games,
+        games: player.currentSeason!.stats.games,
       };
       topScorers.push({
         ...playerData,
-        goals: player.stats.goals,
-        goalsPerGame: player.stats.games ? player.stats.goals / player.stats.games : 0,
+        goals: player.currentSeason!.stats.goals,
+        goalsPerGame: player.currentSeason!.stats.games ? player.currentSeason!.stats.goals / player.currentSeason!.stats.games : 0,
       });
       topAssisters.push({
-        assists: player.stats.assists,
-        assistsPerGame: player.stats.games ? player.stats.assists / player.stats.games : 0,
+        assists: player.currentSeason!.stats.assists,
+        assistsPerGame: player.currentSeason!.stats.games ? player.currentSeason!.stats.assists / player.currentSeason!.stats.games : 0,
         ...playerData,
       });
       topAvgRating.push({
-        avgRating: player.stats.avgRating,
+        avgRating: player.currentSeason!.stats.avgRating,
         ...playerData,
       });
     });
