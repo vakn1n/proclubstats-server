@@ -30,14 +30,17 @@ export interface ILeagueSeason {
   endDate?: Date;
 }
 
-const leagueSeasonSchema = new Schema({
-  seasonNumber: { type: Number, required: true },
-  winner: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },
-  teams: [{ type: mongoose.Schema.Types.ObjectId, ref: "Team" }],
-  fixtures: [{ type: mongoose.Schema.Types.ObjectId, ref: "Fixture" }],
-  startDate: { type: mongoose.Schema.Types.Date, required: true },
-  endDate: { type: mongoose.Schema.Types.Date },
-});
+const leagueSeasonSchema = new Schema(
+  {
+    seasonNumber: { type: Number, required: true },
+    winner: { type: mongoose.Schema.Types.ObjectId, ref: "Team", default: null },
+    teams: [{ type: mongoose.Schema.Types.ObjectId, ref: "Team" }],
+    fixtures: [{ type: mongoose.Schema.Types.ObjectId, ref: "Fixture" }],
+    startDate: { type: mongoose.Schema.Types.Date, required: true },
+    endDate: { type: mongoose.Schema.Types.Date },
+  },
+  { _id: false }
+);
 
 const leagueSchema: Schema = new Schema<ILeague>(
   {

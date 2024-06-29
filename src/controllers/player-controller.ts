@@ -3,19 +3,13 @@ import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
 import { IPlayerController } from "../interfaces/player";
 import { IPlayerService } from "../interfaces/player/player-service.interface";
-import { IPlayerTeamService } from "../interfaces/wrapper-services/player-team-service.interface";
-import Player, { IPlayerSeason } from "../models/player";
-import Team from "../models/team";
-import { Types } from "mongoose";
 
 @injectable()
 export default class PlayerController implements IPlayerController {
   private playerService: IPlayerService;
-  private playerTeamService: IPlayerTeamService;
 
-  constructor(@inject("IPlayerService") playerService: IPlayerService, @inject("IPlayerTeamService") playerTeamService: IPlayerTeamService) {
+  constructor(@inject("IPlayerService") playerService: IPlayerService) {
     this.playerService = playerService;
-    this.playerTeamService = playerTeamService;
   }
 
   async getPlayerById(req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -35,18 +29,6 @@ export default class PlayerController implements IPlayerController {
   }
 
   async getFreeAgents(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const league = new Types.ObjectId("65ecb1eb2f272e434483a821");
-    // const leagueTeams = await Team.find({ league: league });
-    const players = await Player.find({ team: null });
-
-    await Promise.all(
-      players.map(async (player) => {
-        player.seasonsHistory = [];
-        player.stats = undefined;
-        player.save();
-      })
-    );
-
     try {
       const freeAgents = await this.playerService.getFreeAgents();
       res.send(freeAgents);
@@ -79,7 +61,7 @@ export default class PlayerController implements IPlayerController {
     const file = req.file;
 
     if (!file || !id) {
-      res.status(400).json({
+      res.status(400).send({
         message: "Bad request",
       });
       return;
@@ -111,17 +93,15 @@ export default class PlayerController implements IPlayerController {
   }
 
   async deletePlayer(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { id } = req.params;
-
-    if (!id) {
-      res.status(400).send({ message: "no id provided" });
-      return;
-    }
-    try {
-      await this.playerTeamService.deletePlayer(id);
-      res.sendStatus(204);
-    } catch (error: any) {
-      next(error);
-    }
+    // const { id } = req.params;
+    // if (!id) {
+    //   res.status(400).send({ message: "no id provided" });
+    //   return;
+    // }
+    // try {
+    //   await this.playerTeamService.deletePlayer(id);
+    //   res.sendStatus(204);
+    // } catch (error: any) {
+    //   next(error);
   }
 }

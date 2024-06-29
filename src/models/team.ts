@@ -36,20 +36,26 @@ export interface ITeam extends Document {
   currentSeason?: ITeamSeason;
 }
 
-const teamStatsSchema = new Schema<ITeamStats>({
-  wins: { type: Number, default: 0 },
-  losses: { type: Number, default: 0 },
-  draws: { type: Number, default: 0 },
-  goalsScored: { type: Number, default: 0 },
-  goalsConceded: { type: Number, default: 0 },
-  cleanSheets: { type: Number, default: 0 },
-});
+const teamStatsSchema = new Schema<ITeamStats>(
+  {
+    wins: { type: Number, default: 0 },
+    losses: { type: Number, default: 0 },
+    draws: { type: Number, default: 0 },
+    goalsScored: { type: Number, default: 0 },
+    goalsConceded: { type: Number, default: 0 },
+    cleanSheets: { type: Number, default: 0 },
+  },
+  { _id: false }
+);
 
-const teamSeasonSchema = new Schema<ITeamSeason>({
-  seasonNumber: { type: Number, required: true },
-  league: { type: mongoose.Schema.Types.ObjectId, ref: "League" },
-  stats: teamStatsSchema,
-});
+const teamSeasonSchema = new Schema<ITeamSeason>(
+  {
+    seasonNumber: { type: Number, required: true },
+    league: { type: mongoose.Schema.Types.ObjectId, ref: "League" },
+    stats: teamStatsSchema,
+  },
+  { _id: false }
+);
 
 const teamSchema: Schema<ITeam> = new Schema<ITeam>(
   {

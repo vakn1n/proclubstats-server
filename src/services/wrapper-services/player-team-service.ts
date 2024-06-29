@@ -29,9 +29,23 @@ export class PlayerTeamService implements IPlayerTeamService {
     if (team.players.includes(player._id)) {
       throw new BadRequestError(`Player ${player.id} is already in team ${teamId}`);
     }
-    // const currentSeasonNumber = team.seasonsHistory.filter((season) => season.league.equals(team.league)).reverse()[0].seasonNumber; // will take the latest season of the league
+
     player.team = team._id;
-    // player.currentSeasons.push({ league: team.leagueId, seasonNumber: currentSeasonNumber });
+    if (team.currentSeason) {
+      player.currentSeason = {
+        league: team.league!,
+        seasonNumber: team.currentSeason.seasonNumber,
+        team: team._id,
+        stats: {
+          assists: 0,
+          goals: 0,
+          avgRating: 0,
+          cleanSheets: 0,
+          playerOfTheMatch: 0,
+          games: 0,
+        },
+      };
+    }
     team.players.push(player._id);
 
     await transactionService.withTransaction(async (session) => {
@@ -50,6 +64,11 @@ export class PlayerTeamService implements IPlayerTeamService {
     }
 
     player.team = null;
+    if (player.currentSeason) {
+      player.seasonsHistory.push(player.currentSeason);
+      player.currentSeason = undefined;
+    }
+
     team.players = team.players.filter((id) => !id.equals(player._id));
 
     await transactionService.withTransaction(async (session) => {
@@ -59,15 +78,13 @@ export class PlayerTeamService implements IPlayerTeamService {
   }
 
   async deletePlayer(playerId: string) {
-    logger.info(`PlayerTeamService: deleting player ${playerId}`);
-
-    const player = await this.playerRepository.getPlayerById(playerId);
-
-    await transactionService.withTransaction(async (session) => {
-      if (player.team) {
-        await this.teamRepository.removePlayerFromTeam(player.team, player.id, session);
-      }
-      await this.playerRepository.deletePlayer(player.id, session);
-    });
+    // logger.info(`PlayerTeamService: deleting player ${playerId}`);
+    // const player = await this.playerRepository.getPlayerById(playerId);
+    // await transactionService.withTransaction(async (session) => {
+    //   if (player.team) {
+    //     await this.teamRepository.removePlayerFromTeam(player.team, player.id, session);
+    //   }
+    //   await this.playerRepository.deletePlayer(player.id, session);
+    // });
   }
 }

@@ -26,26 +26,31 @@ export interface IPlayer extends Document {
   imgUrl?: string;
   position: string;
   playablePositions: string[];
-  stats?: IPlayerStats;
   currentSeason?: IPlayerSeason;
   seasonsHistory: IPlayerSeason[];
 }
 
-const playerStatsSchema = new Schema({
-  games: { type: Number, default: 0, required: true },
-  goals: { type: Number, default: 0, required: true },
-  assists: { type: Number, default: 0, required: true },
-  cleanSheets: { type: Number, default: 0, required: true },
-  playerOfTheMatch: { type: Number, default: 0, required: true },
-  avgRating: { type: Number, default: 0.0, required: true },
-});
+const playerStatsSchema = new Schema(
+  {
+    games: { type: Number, default: 0, required: true },
+    goals: { type: Number, default: 0, required: true },
+    assists: { type: Number, default: 0, required: true },
+    cleanSheets: { type: Number, default: 0, required: true },
+    playerOfTheMatch: { type: Number, default: 0, required: true },
+    avgRating: { type: Number, default: 0.0, required: true },
+  },
+  { _id: false }
+); // Disable _id for this subdocument
 
-const playerSeasonStatsSchema = new Schema({
-  seasonNumber: { type: Number, required: true },
-  league: { type: mongoose.Types.ObjectId, ref: "League", required: true },
-  team: { type: mongoose.Types.ObjectId, ref: "Team", required: true },
-  stats: { type: playerStatsSchema, required: true },
-});
+const playerSeasonStatsSchema = new Schema(
+  {
+    seasonNumber: { type: Number, required: true },
+    league: { type: mongoose.Types.ObjectId, ref: "League", required: true },
+    team: { type: mongoose.Types.ObjectId, ref: "Team", required: true },
+    stats: { type: playerStatsSchema },
+  },
+  { _id: false }
+);
 
 const playerSchema: Schema = new Schema(
   {
@@ -59,7 +64,6 @@ const playerSchema: Schema = new Schema(
     imgUrl: { type: String },
     currentSeason: playerSeasonStatsSchema,
     seasonsHistory: [playerSeasonStatsSchema],
-    stats: playerStatsSchema,
   },
   {
     toJSON: { virtuals: true },

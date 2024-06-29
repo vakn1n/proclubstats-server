@@ -1,7 +1,11 @@
 import { RedisClientType, createClient } from "redis";
+import dotenv from "dotenv";
+
 import { injectable } from "tsyringe";
 import logger from "../../config/logger";
 import { CacheService } from "../../interfaces/util-services/cache-service.interface";
+
+dotenv.config(); // set env variables
 
 @injectable()
 export class RedisCacheService implements CacheService {
@@ -10,9 +14,9 @@ export class RedisCacheService implements CacheService {
 
   public constructor() {
     this.client = createClient({
-      password: "YJ8pXa4U8DSKa6vavT5ppMvTrRLqSVVC",
+      password: process.env.REDIS_PASSWORD,
       socket: {
-        host: "redis-19402.c300.eu-central-1-1.ec2.cloud.redislabs.com",
+        host: process.env.REDIS_HOST,
         port: 19402,
       },
     });
