@@ -3,6 +3,7 @@ import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
 import { IPlayerController } from "../interfaces/player";
 import { IPlayerService } from "../interfaces/player/player-service.interface";
+import logger from "../config/logger";
 
 @injectable()
 export default class PlayerController implements IPlayerController {
@@ -45,10 +46,14 @@ export default class PlayerController implements IPlayerController {
 
     try {
       const player = await this.playerService.createPlayer(playerData);
-      // if (file) {
-      //   const imgUrl = await this.playerService.setPlayerImage(player.id, file);
-      //   player.imgUrl = imgUrl;
-      // }
+      if (file) {
+        try {
+          const imgUrl = await this.playerService.setPlayerImage(player.id, file);
+          player.imgUrl = imgUrl;
+        } catch (e: any) {
+          logger.error(e.message);
+        }
+      }
 
       res.status(201).json(player);
     } catch (error: any) {
