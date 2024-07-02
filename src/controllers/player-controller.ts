@@ -69,7 +69,7 @@ export default class PlayerController implements IPlayerController {
 
     try {
       const imgUrl = await this.playerService.setPlayerImage(id, file);
-      res.status(200).json(imgUrl);
+      res.json(imgUrl);
     } catch (error: any) {
       next(error);
     }
@@ -86,7 +86,7 @@ export default class PlayerController implements IPlayerController {
 
     try {
       await this.playerService.renamePlayer(id, newName);
-      res.status(200);
+      res.sendStatus(200);
     } catch (error: any) {
       next(error);
     }

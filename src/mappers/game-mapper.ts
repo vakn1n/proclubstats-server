@@ -18,6 +18,7 @@ type PopulatedPlayerPerformance = {
   rating: number;
   playerOfTheMatch?: boolean;
   cleanSheet: boolean;
+  positionPlayed: string;
 };
 
 export class GameMapper {
@@ -83,6 +84,7 @@ export class GameMapper {
           assists: playerPerformance.assists,
           rating: playerPerformance.rating,
           playerOfTheMatch: playerPerformance.playerOfTheMatch,
+          postionPlayed: playerPerformance.positionPlayed,
         }))
       : undefined;
   }

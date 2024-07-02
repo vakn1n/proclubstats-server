@@ -104,8 +104,8 @@ export default class TeamController implements ITeamController {
     }
 
     try {
-      await this.teamService.setTeamImage(teamId, file);
-      res.sendStatus(200);
+      const imgUrl = await this.teamService.setTeamImage(teamId, file);
+      res.json(imgUrl);
     } catch (err) {
       next(err);
     }

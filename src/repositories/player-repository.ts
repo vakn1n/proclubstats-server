@@ -129,17 +129,20 @@ export class PlayerRepository implements IPlayerRepository {
         update: [
           {
             $set: {
-              "stats.goals": { $add: ["$stats.goals", goals || 0] },
-              "stats.assists": { $add: ["$stats.assists", assists || 0] },
-              "stats.games": { $add: ["$stats.games", 1] },
-              "stats.playerOfTheMatch": { $add: ["$stats.playerOfTheMatch", playerOfTheMatch ? 1 : 0] },
-              "stats.cleanSheets": { $add: ["$stats.cleanSheets", cleanSheet ? 1 : 0] },
-              "stats.avgRating": {
+              "currentSeason.stats.goals": { $add: [{ $ifNull: ["$currentSeason.stats.goals", 0] }, goals || 0] },
+              "currentSeason.stats.assists": { $add: [{ $ifNull: ["$currentSeason.stats.assists", 0] }, assists || 0] },
+              "currentSeason.stats.games": { $add: [{ $ifNull: ["$currentSeason.stats.games", 0] }, 1] },
+              "currentSeason.stats.playerOfTheMatch": { $add: [{ $ifNull: ["$currentSeason.stats.playerOfTheMatch", 0] }, playerOfTheMatch ? 1 : 0] },
+              "currentSeason.stats.cleanSheets": { $add: [{ $ifNull: ["$currentSeason.stats.cleanSheets", 0] }, cleanSheet ? 1 : 0] },
+              "currentSeason.stats.avgRating": {
                 $cond: [
-                  { $eq: ["$stats.games", 0] },
+                  { $eq: [{ $ifNull: ["$currentSeason.stats.games", 0] }, 0] },
                   { $ifNull: [rating, 0] },
                   {
-                    $divide: [{ $add: [{ $multiply: ["$stats.avgRating", "$stats.games"] }, rating] }, { $add: ["$stats.games", 1] }],
+                    $divide: [
+                      { $add: [{ $multiply: [{ $ifNull: ["$currentSeason.stats.avgRating", 0] }, { $ifNull: ["$currentSeason.stats.games", 0] }] }, rating] },
+                      { $add: [{ $ifNull: ["$currentSeason.stats.games", 0] }, 1] },
+                    ],
                   },
                 ],
               },
@@ -157,18 +160,25 @@ export class PlayerRepository implements IPlayerRepository {
         update: [
           {
             $set: {
-              "stats.goals": { $subtract: ["$stats.goals", goals || 0] },
-              "stats.assists": { $subtract: ["$stats.assists", assists || 0] },
-              "stats.games": { $subtract: ["$stats.games", 1] },
-              "stats.playerOfTheMatch": { $subtract: ["$stats.playerOfTheMatch", playerOfTheMatch ? 1 : 0] },
-              "stats.cleanSheets": { $subtract: ["$stats.cleanSheets", cleanSheet ? 1 : 0] },
-              // Calculate the new average rating outside of the $cond operator
-              "stats.avgRating": {
+              "currentSeason.stats.goals": { $subtract: [{ $ifNull: ["$currentSeason.stats.goals", 0] }, goals || 0] },
+              "currentSeason.stats.assists": { $subtract: [{ $ifNull: ["$currentSeason.stats.assists", 0] }, assists || 0] },
+              "currentSeason.stats.games": { $subtract: [{ $ifNull: ["$currentSeason.stats.games", 0] }, 1] },
+              "currentSeason.stats.playerOfTheMatch": { $subtract: [{ $ifNull: ["$currentSeason.stats.playerOfTheMatch", 0] }, playerOfTheMatch ? 1 : 0] },
+              "currentSeason.stats.cleanSheets": { $subtract: [{ $ifNull: ["$currentSeason.stats.cleanSheets", 0] }, cleanSheet ? 1 : 0] },
+              "currentSeason.stats.avgRating": {
                 $cond: [
-                  { $eq: ["$stats.games", 1] }, // Check if this is the first game
-                  0, // If it's the first game, set avgRating to 0
+                  { $lte: [{ $ifNull: ["$currentSeason.stats.games", 1] }, 1] },
+                  0,
                   {
-                    $divide: [{ $subtract: [{ $multiply: ["$stats.avgRating", "$stats.games"] }, rating] }, { $subtract: ["$stats.games", 1] }],
+                    $divide: [
+                      {
+                        $subtract: [
+                          { $multiply: [{ $ifNull: ["$currentSeason.stats.avgRating", 0] }, { $ifNull: ["$currentSeason.stats.games", 0] }] },
+                          rating,
+                        ],
+                      },
+                      { $subtract: [{ $ifNull: ["$currentSeason.stats.games", 0] }, 1] },
+                    ],
                   },
                 ],
               },

@@ -15,7 +15,7 @@ export type IPlayerGamePerformance = {
   goals?: number;
   assists?: number;
   cleanSheet: boolean;
-  // add other player stats
+  positionPlayed: string;
 };
 
 export interface IGame extends Document {
@@ -34,15 +34,18 @@ export interface IGame extends Document {
   awayTeamPlayersPerformance?: IPlayerGamePerformance[];
 }
 
-const playerGameStatsSchema = new Schema({
-  playerId: { type: mongoose.Schema.Types.ObjectId, ref: "Player", required: true },
-  rating: { type: Number, required: true },
-  cleanSheet: { type: Boolean, required: true },
-  goals: { type: Number },
-  assists: { type: Number },
-  playerOfTheMatch: { type: Boolean },
-  // add other player stats
-});
+const playerGameStatsSchema = new Schema(
+  {
+    playerId: { type: mongoose.Schema.Types.ObjectId, ref: "Player", required: true },
+    rating: { type: Number, required: true },
+    cleanSheet: { type: Boolean, required: true },
+    goals: { type: Number },
+    assists: { type: Number },
+    playerOfTheMatch: { type: Boolean },
+    positionPlayed: { type: String },
+  },
+  { id: false }
+);
 
 const gameSchema = new Schema<IGame>(
   {
