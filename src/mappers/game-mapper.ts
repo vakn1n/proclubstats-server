@@ -84,7 +84,7 @@ export class GameMapper {
           assists: playerPerformance.assists,
           rating: playerPerformance.rating,
           playerOfTheMatch: playerPerformance.playerOfTheMatch,
-          postionPlayed: playerPerformance.positionPlayed,
+          positionPlayed: playerPerformance.positionPlayed,
         }))
       : undefined;
   }
