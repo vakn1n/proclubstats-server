@@ -97,9 +97,9 @@ export class LeagueRepository implements ILeagueRepository {
             $addFields: {
               goalsPerGame: {
                 $cond: {
-                  if: { $eq: ["$players.stats.games", 0] },
+                  if: { $eq: ["$players.currentSeason.stats.games", 0] },
                   then: 0,
-                  else: { $divide: ["$players.stats.goals", "$players.stats.games"] },
+                  else: { $divide: ["$players.currentSeason.stats.goals", "$players.currentSeason.stats.games"] },
                 },
               },
             },
@@ -112,8 +112,8 @@ export class LeagueRepository implements ILeagueRepository {
               teamName: "$teams.name",
               position: "$players.position",
               playerImgUrl: "$players.imgUrl",
-              games: "$players.stats.games",
-              goals: "$players.stats.goals",
+              games: "$players.currentSeason.stats.games",
+              goals: "$players.currentSeason.stats.goals",
               goalsPerGame: 1,
             },
           },
@@ -124,7 +124,7 @@ export class LeagueRepository implements ILeagueRepository {
       );
     } catch (e: any) {
       logger.error(e.message);
-      throw new QueryFailedError(`failed to calculate top scorers for league with id ${leagueId}`);
+      throw new QueryFailedError(`Failed to calculate top scorers for league with id ${leagueId}`);
     }
   }
 
@@ -141,9 +141,9 @@ export class LeagueRepository implements ILeagueRepository {
             $addFields: {
               assistsPerGame: {
                 $cond: {
-                  if: { $eq: ["$players.stats.games", 0] },
+                  if: { $eq: ["$players.currentSeason.stats.games", 0] },
                   then: 0,
-                  else: { $divide: ["$players.stats.assists", "$players.stats.games"] },
+                  else: { $divide: ["$players.currentSeason.stats.assists", "$players.currentSeason.stats.games"] },
                 },
               },
             },
@@ -156,8 +156,8 @@ export class LeagueRepository implements ILeagueRepository {
               teamName: "$teams.name",
               position: "$players.position",
               playerImgUrl: "$players.imgUrl",
-              games: "$players.stats.games",
-              assists: "$players.stats.assists",
+              games: "$players.currentSeason.stats.games",
+              assists: "$players.currentSeason.stats.assists",
               assistsPerGame: 1,
             },
           },
@@ -168,7 +168,7 @@ export class LeagueRepository implements ILeagueRepository {
       );
     } catch (e: any) {
       logger.error(e.message);
-      throw new QueryFailedError(`Failed To Calculate top assisters for league with id ${leagueId}`);
+      throw new QueryFailedError(`Failed to calculate top assisters for league with id ${leagueId}`);
     }
   }
 }
