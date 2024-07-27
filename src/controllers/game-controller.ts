@@ -26,18 +26,18 @@ export default class GameController implements IGameController {
     }
   }
 
-  async getLeagueSeasonTeamGames(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { teamId, leagueId, seasonNumber } = req.params;
+  async getCurrentSeasonTeamGames(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { teamId } = req.params;
 
     const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
 
-    if (!teamId || !leagueId || !seasonNumber) {
+    if (!teamId) {
       res.status(400).send({ message: "missing data" });
       return;
     }
 
     try {
-      const games = await this.gameService.getLeagueSeasonTeamGames(teamId, leagueId, +seasonNumber, limit);
+      const games = await this.gameService.getCurrentSeasonTeamGames(teamId, limit);
       res.json(games);
     } catch (error: any) {
       next(error);

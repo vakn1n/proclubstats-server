@@ -87,9 +87,9 @@ export class GameRepository implements IGameRepository {
     }
   }
 
-  async getLeagueSeasonTeamGames(teamId: string, leagueId: string, seasonNumber: number, limit: number = 10): Promise<IGame[]> {
+  async getLeagueSeasonTeamGames(teamId: string, leagueId: string, seasonNumber: number, limit: number = 100): Promise<IGame[]> {
     try {
-      const games = await Game.find({ league: leagueId, seasonNumber: seasonNumber, $or: [{ homeTeam: teamId }, { awayTeam: teamId }] })
+      const games = await Game.find({ league: leagueId, seasonNumber, $or: [{ homeTeam: teamId }, { awayTeam: teamId }] })
         .sort({ round: 1 })
         .limit(limit)
         .exec();

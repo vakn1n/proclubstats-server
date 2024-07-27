@@ -5,13 +5,7 @@ import { GameDTO, UpdatePlayerPerformanceDataRequest } from "@pro-clubs-manager/
 export interface IGameService {
   getGameById(id: string | Types.ObjectId, session?: ClientSession): Promise<GameDTO>;
   getGamesByIds(gamesIds: string[] | Types.ObjectId[]): Promise<GameDTO[]>;
-  getLeagueSeasonTeamGames(
-    teamId: string | Types.ObjectId,
-    leagueId: string,
-    seasonNumber: number,
-    limit?: number,
-    session?: ClientSession
-  ): Promise<GameDTO[]>;
+  getCurrentSeasonTeamGames(teamId: string | Types.ObjectId, limit?: number, session?: ClientSession): Promise<GameDTO[]>;
 
   createGame(fixtureId: Types.ObjectId, leagueId: Types.ObjectId, seasonNumber: number, gameData: AddGameData, session: ClientSession): Promise<GameDTO>;
   createFixtureGames(

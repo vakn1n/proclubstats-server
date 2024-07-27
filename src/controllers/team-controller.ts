@@ -3,7 +3,6 @@ import { inject, injectable } from "tsyringe";
 import { ITeamController, ITeamService } from "../interfaces/team/";
 import { IPlayerTeamService } from "../interfaces/wrapper-services/player-team-service.interface";
 import { ITeamStatsService } from "../interfaces/wrapper-services/team-stats-service.interface";
-import Team from "../models/team";
 
 @injectable()
 export default class TeamController implements ITeamController {

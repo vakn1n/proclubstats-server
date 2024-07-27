@@ -1,4 +1,4 @@
-import { LeagueTableRow, PlayerDTO, TeamDTO } from "@pro-clubs-manager/shared-dtos";
+import { GameDTO, LeagueTableRow, PlayerDTO, TeamDTO } from "@pro-clubs-manager/shared-dtos";
 import { ClientSession, Types } from "mongoose";
 import { inject, injectable } from "tsyringe";
 import logger from "../config/logger";
@@ -25,6 +25,18 @@ export class TeamService implements ITeamService {
     this.teamRepository = teamRepository;
     this.imageService = imageService;
     this.playerService = playerService;
+  }
+
+  async getTeamEntityById(id: string): Promise<ITeam> {
+    logger.info(`TeamService: getting team entity ${id}`);
+    return await this.teamRepository.getTeamById(id);
+  }
+
+  async getTeamById(id: string): Promise<TeamDTO> {
+    logger.info(`TeamService: getting team ${id}`);
+
+    const team = await this.teamRepository.getTeamById(id);
+    return await TeamMapper.mapToDto(team);
   }
 
   async startNewLeagueSeason(leagueId: Types.ObjectId, seasonNumber: number, session: ClientSession): Promise<void> {
@@ -102,13 +114,6 @@ export class TeamService implements ITeamService {
     team.imgUrl = imageUrl;
     await team.save();
     return imageUrl;
-  }
-
-  async getTeamById(id: string): Promise<TeamDTO> {
-    logger.info(`TeamService: getting team ${id}`);
-
-    const team = await this.teamRepository.getTeamById(id);
-    return await TeamMapper.mapToDto(team);
   }
 
   async updateTeamGameStats(teamId: Types.ObjectId, goalsScored: number, goalsConceded: number, session: ClientSession): Promise<void> {

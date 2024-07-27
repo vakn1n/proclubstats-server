@@ -69,7 +69,7 @@ describe("GameService", () => {
       const gameMapperSpy = jest.spyOn(GameMapper, "mapToDtos");
       gameMapperSpy.mockResolvedValue([{} as unknown as GameDTO]);
 
-      await gameService.getLeagueSeasonTeamGames(teamId.toString());
+      await gameService.getCurrentSeasonTeamGames(teamId.toString());
 
       expect(gameMapperSpy).toHaveBeenCalledWith(mockGames);
     });
@@ -79,7 +79,7 @@ describe("GameService", () => {
       const gameMapperSpy = jest.spyOn(GameMapper, "mapToDtos");
       gameMapperSpy.mockResolvedValue([{} as unknown as GameDTO]);
 
-      await gameService.getLeagueSeasonTeamGames(teamId.toString(), limit);
+      await gameService.getCurrentSeasonTeamGames(teamId.toString(), limit);
 
       expect(gameMapperSpy).toHaveBeenCalledWith([...mockGames.sort((game1, game2) => game2.round - game1.round).slice(0, limit)]);
     });

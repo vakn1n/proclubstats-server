@@ -41,10 +41,17 @@ export class GameService implements IGameService {
     return await GameMapper.mapToDto(game);
   }
 
-  async getLeagueSeasonTeamGames(teamId: string, leagueId: string, seasonNumber: number, limit?: number): Promise<GameDTO[]> {
+  async getCurrentSeasonTeamGames(teamId: string, limit?: number): Promise<GameDTO[]> {
     logger.info(`GameService: getting games for team ${teamId}`);
 
-    const teamGames = await this.gameRepository.getLeagueSeasonTeamGames(teamId, leagueId, seasonNumber, limit);
+    const team = await this.teamService.getTeamEntityById(teamId);
+    if (!team.currentSeason) {
+      throw new BadRequestError(`Team with id ${teamId} does not have a current season`);
+    }
+
+    const { league, seasonNumber } = team.currentSeason;
+
+    const teamGames = await this.gameRepository.getLeagueSeasonTeamGames(teamId, league, seasonNumber, limit);
 
     return await GameMapper.mapToDtos(teamGames);
   }

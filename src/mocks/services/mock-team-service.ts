@@ -4,6 +4,12 @@ import { ITeam } from "../../models/team";
 import { TeamDTO, PlayerDTO, LeagueTableRow } from "@pro-clubs-manager/shared-dtos";
 
 export class MockTeamService implements ITeamService {
+  getTeamEntityById(teamId: string): Promise<ITeam> {
+    throw new Error("Method not implemented.");
+  }
+  startNewLeagueSeason(leagueId: Types.ObjectId, seasonNumber: number, session: ClientSession): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
   renameTeam(teamId: string, name: any): Promise<void> {
     throw new Error("Method not implemented.");
   }
