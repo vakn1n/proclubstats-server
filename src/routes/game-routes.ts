@@ -7,7 +7,7 @@ const router = Router();
 const gameController = container.resolve(GameController);
 
 router.get("/:id", (req, res, next) => gameController.getGameById(req, res, next));
-router.get("/team/:teamId", (req, res, next) => gameController.getTeamGames(req, res, next));
+router.get("/team/:teamId", (req, res, next) => gameController.getLeagueSeasonTeamGames(req, res, next));
 
 router.put("/:id/updateResult", (req, res, next) => gameController.updateGameResult(req, res, next));
 router.put("/:id/teamPlayersPerformance", (req, res, next) => gameController.updateTeamPlayersPerformance(req, res, next));

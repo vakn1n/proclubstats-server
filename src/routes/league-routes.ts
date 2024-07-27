@@ -20,6 +20,7 @@ router.get("/:id", (req, res, next) => leagueController.getLeagueById(req, res, 
 router.get("/", (req, res, next) => leagueController.getAllLeagues(req, res, next));
 router.get("/:id/topScorers", (req, res, next) => leagueController.getTopScorers(req, res, next));
 router.get("/:id/topAssists", (req, res, next) => leagueController.getTopAssists(req, res, next));
+router.get("/:id/topAvgRating", (req, res, next) => leagueController.getTopAvgRating(req, res, next));
 router.get("/:id/table", (req, res, next) => leagueController.getLeagueTable(req, res, next));
 
 export default router;

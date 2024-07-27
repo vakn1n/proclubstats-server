@@ -62,14 +62,14 @@ describe("GameService", () => {
           round: 3,
         } as IGame,
       ];
-      mockGameRepository.getTeamGames = jest.fn().mockResolvedValue(mockGames);
+      mockGameRepository.getLeagueSeasonTeamGames = jest.fn().mockResolvedValue(mockGames);
     });
 
     it("should get team games sorted by round asc without limit", async () => {
       const gameMapperSpy = jest.spyOn(GameMapper, "mapToDtos");
       gameMapperSpy.mockResolvedValue([{} as unknown as GameDTO]);
 
-      await gameService.getTeamGames(teamId.toString());
+      await gameService.getLeagueSeasonTeamGames(teamId.toString());
 
       expect(gameMapperSpy).toHaveBeenCalledWith(mockGames);
     });
@@ -79,7 +79,7 @@ describe("GameService", () => {
       const gameMapperSpy = jest.spyOn(GameMapper, "mapToDtos");
       gameMapperSpy.mockResolvedValue([{} as unknown as GameDTO]);
 
-      await gameService.getTeamGames(teamId.toString(), limit);
+      await gameService.getLeagueSeasonTeamGames(teamId.toString(), limit);
 
       expect(gameMapperSpy).toHaveBeenCalledWith([...mockGames.sort((game1, game2) => game2.round - game1.round).slice(0, limit)]);
     });

@@ -25,7 +25,7 @@ describe("TeamStatsService", () => {
 
       const getTeamWithPlayersSpy = jest.spyOn(mockTeamRepository, "getTeamWithPlayers");
 
-      const result = await teamStatsService.getTeamPlayersStats(teamId);
+      const result = await teamStatsService.getCurrentSeasonTeamPlayersStats(teamId);
 
       expect(getTeamWithPlayersSpy).toHaveBeenCalledWith(teamId, undefined);
 
@@ -48,7 +48,7 @@ describe("TeamStatsService", () => {
     test("should get team players stats with limit", async () => {
       const teamId = new Types.ObjectId().toString();
       const limit = 2;
-      const result = await teamStatsService.getTeamPlayersStats(teamId, limit);
+      const result = await teamStatsService.getCurrentSeasonTeamPlayersStats(teamId, limit);
 
       expect(result.topScorers.length).toBe(limit);
       expect(result.topAssisters.length).toBe(limit);
@@ -87,11 +87,11 @@ describe("TeamStatsService", () => {
 
       await Game.insertMany(mockGames);
 
-      MockGameRepository.prototype.getPlayedTeamGames = jest.fn().mockResolvedValue(mockGames);
+      MockGameRepository.prototype.getPlayedLeagueSeasonTeamGames = jest.fn().mockResolvedValue(mockGames);
     });
 
     it("should return the correct advanced team stats", async () => {
-      const teamStats = await teamStatsService.getAdvancedTeamStats("60d5ec49c2f0a87bb4e0e3a4");
+      const teamStats = await teamStatsService.getCurrentSeasonTeamStats("60d5ec49c2f0a87bb4e0e3a4");
 
       expect(teamStats.longestWinStreak).toBe(1);
       expect(teamStats.longestLoseStreak).toBe(1);
@@ -130,7 +130,7 @@ describe("TeamStatsService", () => {
 
       await Game.insertMany(mockGames);
 
-      MockGameRepository.prototype.getPlayedTeamGames = jest.fn().mockResolvedValue(mockGames);
+      MockGameRepository.prototype.getPlayedLeagueSeasonTeamGames = jest.fn().mockResolvedValue(mockGames);
     });
 
     it("should return the correct longest winning streak", async () => {
@@ -171,7 +171,7 @@ describe("TeamStatsService", () => {
 
       await Game.insertMany(mockGames);
 
-      MockGameRepository.prototype.getPlayedTeamGames = jest.fn().mockResolvedValue(mockGames);
+      MockGameRepository.prototype.getPlayedLeagueSeasonTeamGames = jest.fn().mockResolvedValue(mockGames);
     });
 
     it("should return the correct longest unbeaten streak", async () => {
@@ -212,7 +212,7 @@ describe("TeamStatsService", () => {
 
       await Game.insertMany(mockGames);
 
-      MockGameRepository.prototype.getPlayedTeamGames = jest.fn().mockResolvedValue(mockGames);
+      MockGameRepository.prototype.getPlayedLeagueSeasonTeamGames = jest.fn().mockResolvedValue(mockGames);
     });
 
     it("should return the correct longest losing streak", async () => {

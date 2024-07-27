@@ -58,7 +58,7 @@ export class FixtureService implements IFixtureService {
 
     const fixture = await this.fixtureRepository.createFixture(leagueId, seasonNumber, startDate, endDate, round);
 
-    const games = await this.gameService.createFixtureGames(fixture._id, gamesData, session);
+    const games = await this.gameService.createFixtureGames(fixture._id, leagueId, seasonNumber, gamesData, session);
 
     fixture.games = games.map((game) => game._id);
     await fixture.save({ session });

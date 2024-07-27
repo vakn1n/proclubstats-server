@@ -1,8 +1,6 @@
 import { NextFunction, Request, Response } from "express";
-import { IGameController, IGameService } from "../interfaces/game";
 import { inject, injectable } from "tsyringe";
-import Fixture from "../models/fixture";
-import Game from "../models/game";
+import { IGameController, IGameService } from "../interfaces/game";
 
 @injectable()
 export default class GameController implements IGameController {
@@ -28,18 +26,18 @@ export default class GameController implements IGameController {
     }
   }
 
-  async getTeamGames(req: Request, res: Response, next: NextFunction): Promise<void> {
-    const { teamId } = req.params;
+  async getLeagueSeasonTeamGames(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { teamId, leagueId, seasonNumber } = req.params;
 
     const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
 
-    if (!teamId) {
-      res.status(400).send({ message: "No teamId provided" });
+    if (!teamId || !leagueId || !seasonNumber) {
+      res.status(400).send({ message: "missing data" });
       return;
     }
 
     try {
-      const games = await this.gameService.getTeamGames(teamId, limit);
+      const games = await this.gameService.getLeagueSeasonTeamGames(teamId, leagueId, +seasonNumber, limit);
       res.json(games);
     } catch (error: any) {
       next(error);

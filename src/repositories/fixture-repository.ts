@@ -142,6 +142,8 @@ export class FixtureRepository implements IFixtureRepository {
         seasonNumber: maxSeasonNumber,
       });
 
+      console.log(count);
+
       return count;
     } catch (e: any) {
       logger.error(e.message);

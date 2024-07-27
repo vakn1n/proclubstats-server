@@ -21,7 +21,7 @@ export default class LeagueController implements ILeagueController {
     this.imageService = imageService;
     this.teamLeagueService = teamLeagueService;
   }
-  async getTopPlayers(req: Request, res: Response, next: NextFunction) {
+  async getTopAvgRating(req: Request, res: Response, next: NextFunction) {
     // const { leagueId } = req.params;
     // try {
     //   const topPlayers = await this.leagueService.getTopPlayers(leagueId);

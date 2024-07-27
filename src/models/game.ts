@@ -22,6 +22,8 @@ export interface IGame extends Document {
   id: string;
   fixture: mongoose.Types.ObjectId;
   round: number;
+  league: mongoose.Types.ObjectId;
+  seasonNumber: number;
   homeTeam: mongoose.Types.ObjectId;
   awayTeam: mongoose.Types.ObjectId;
   date?: Date;
@@ -51,6 +53,8 @@ const gameSchema = new Schema<IGame>(
   {
     fixture: { type: mongoose.Schema.Types.ObjectId, ref: "Fixture", required: true },
     round: { type: Number, required: true },
+    league: { type: mongoose.Schema.Types.ObjectId, ref: "League", required: true },
+    seasonNumber: { type: Number, required: true },
     homeTeam: { type: mongoose.Schema.Types.ObjectId, ref: "Team", required: true },
     awayTeam: { type: mongoose.Schema.Types.ObjectId, ref: "Team", required: true },
     date: { type: Date },

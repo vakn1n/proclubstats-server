@@ -2,10 +2,6 @@ import { AdvancedTeamStats, AdvancedPlayersStats } from "@pro-clubs-manager/shar
 import { ClientSession, Types } from "mongoose";
 
 export interface ITeamStatsService {
-  getTeamLongestWinningStreak(teamId: string | Types.ObjectId, session?: ClientSession): Promise<number>;
-  getTeamLongestUnbeatenStreak(teamId: string | Types.ObjectId, session?: ClientSession): Promise<number>;
-  getTeamLongestLosingStreak(teamId: string | Types.ObjectId, session?: ClientSession): Promise<number>;
-
-  getAdvancedTeamStats(teamId: string | Types.ObjectId, session?: ClientSession): Promise<AdvancedTeamStats>;
-  getTeamPlayersStats(teamId: string | Types.ObjectId, limit?: number, session?: ClientSession): Promise<AdvancedPlayersStats>;
+  getCurrentSeasonTeamStats(teamId: string, session?: ClientSession): Promise<AdvancedTeamStats>;
+  getCurrentSeasonTeamPlayersStats(teamId: string, limit?: number, session?: ClientSession): Promise<AdvancedPlayersStats>;
 }

@@ -129,16 +129,17 @@ export default class TeamController implements ITeamController {
 
   async getTeamPlayersStats(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id: teamId } = req.params;
-    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
 
     if (!teamId) {
-      res.status(400).send({ message: "No teamId provided" });
+      res.status(400).send({ message: "Required parameters: teamId, leagueId, seasonNumber" });
       return;
     }
 
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+
     try {
-      const team = await this.teamStatsService.getTeamPlayersStats(teamId, limit);
-      res.json(team);
+      const teamStats = await this.teamStatsService.getCurrentSeasonTeamPlayersStats(teamId, limit);
+      res.json(teamStats);
     } catch (error: any) {
       next(error);
     }
@@ -167,7 +168,7 @@ export default class TeamController implements ITeamController {
     }
 
     try {
-      const teamStats = await this.teamStatsService.getAdvancedTeamStats(teamId);
+      const teamStats = await this.teamStatsService.getCurrentSeasonTeamStats(teamId);
       res.json(teamStats);
     } catch (error: any) {
       next(error);

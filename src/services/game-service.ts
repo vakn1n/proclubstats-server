@@ -41,32 +41,32 @@ export class GameService implements IGameService {
     return await GameMapper.mapToDto(game);
   }
 
-  async getTeamGames(teamId: string, limit?: number): Promise<GameDTO[]> {
+  async getLeagueSeasonTeamGames(teamId: string, leagueId: string, seasonNumber: number, limit?: number): Promise<GameDTO[]> {
     logger.info(`GameService: getting games for team ${teamId}`);
 
-    let teamGames = await this.gameRepository.getTeamGames(teamId);
-
-    if (limit) {
-      // if we pass limit, it means we want to fetch the last games, so sort the rounds the opposite way
-      teamGames.sort((game1, game2) => game2.round - game1.round);
-      teamGames = teamGames.slice(0, limit);
-    }
+    const teamGames = await this.gameRepository.getLeagueSeasonTeamGames(teamId, leagueId, seasonNumber, limit);
 
     return await GameMapper.mapToDtos(teamGames);
   }
 
-  async createGame(gameData: AddGameData, fixtureId: Types.ObjectId, session: ClientSession): Promise<GameDTO> {
+  async createGame(fixtureId: Types.ObjectId, leagueId: Types.ObjectId, seasonNumber: number, gameData: AddGameData, session: ClientSession): Promise<GameDTO> {
     logger.info(`GameService: creating game, home team ${gameData.homeTeam} and away team ${gameData.awayTeam}`);
 
-    const game = await this.gameRepository.createGame(fixtureId, gameData, session);
+    const game = await this.gameRepository.createGame(fixtureId, leagueId, seasonNumber, gameData, session);
 
     return await GameMapper.mapToDto(game);
   }
 
-  async createFixtureGames(fixtureId: Types.ObjectId, gamesData: AddGameData[], session: ClientSession): Promise<IGame[]> {
+  async createFixtureGames(
+    fixtureId: Types.ObjectId,
+    leagueId: Types.ObjectId,
+    seasonNumber: number,
+    gamesData: AddGameData[],
+    session: ClientSession
+  ): Promise<IGame[]> {
     logger.info(`GameService: creating games for fixture with id ${fixtureId}`);
 
-    return await this.gameRepository.createGames(fixtureId, gamesData, session);
+    return await this.gameRepository.createGames(fixtureId, leagueId, seasonNumber, gamesData, session);
   }
 
   async updateGameResult(gameId: string, homeTeamGoals: number, awayTeamGoals: number): Promise<void> {

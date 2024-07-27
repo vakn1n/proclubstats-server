@@ -6,7 +6,13 @@ import logger from "../config/logger";
 import { GAME_STATUS } from "@pro-clubs-manager/shared-dtos";
 
 export class GameRepository implements IGameRepository {
-  async createGame(fixtureId: string | Types.ObjectId, addGameData: AddGameData, session?: ClientSession): Promise<IGame> {
+  async createGame(
+    fixtureId: string | Types.ObjectId,
+    leagueId: Types.ObjectId,
+    seasonNumber: number,
+    addGameData: AddGameData,
+    session?: ClientSession
+  ): Promise<IGame> {
     const { homeTeam, awayTeam, date } = addGameData;
     try {
       const game = new Game({
@@ -14,6 +20,8 @@ export class GameRepository implements IGameRepository {
         homeTeam,
         awayTeam,
         date,
+        league: leagueId,
+        seasonNumber,
       });
       await game.save({ session });
       return game;
@@ -23,10 +31,18 @@ export class GameRepository implements IGameRepository {
     }
   }
 
-  async createGames(fixtureId: string | Types.ObjectId, gamesData: AddGameData[], session?: ClientSession): Promise<IGame[]> {
+  async createGames(
+    fixtureId: string | Types.ObjectId,
+    leagueId: Types.ObjectId,
+    seasonNumber: number,
+    gamesData: AddGameData[],
+    session?: ClientSession
+  ): Promise<IGame[]> {
     const gamesWithFixtureId = gamesData.map((game) => ({
       ...game,
       fixture: fixtureId,
+      league: leagueId,
+      seasonNumber,
     }));
 
     try {
@@ -71,19 +87,28 @@ export class GameRepository implements IGameRepository {
     }
   }
 
-  async getTeamGames(teamId: string): Promise<IGame[]> {
+  async getLeagueSeasonTeamGames(teamId: string, leagueId: string, seasonNumber: number, limit: number = 10): Promise<IGame[]> {
     try {
-      const games = await Game.find({ $or: [{ homeTeam: teamId }, { awayTeam: teamId }] });
+      const games = await Game.find({ league: leagueId, seasonNumber: seasonNumber, $or: [{ homeTeam: teamId }, { awayTeam: teamId }] })
+        .sort({ round: 1 })
+        .limit(limit)
+        .exec();
       return games;
     } catch (e: any) {
       logger.error(e.message);
       throw new QueryFailedError(`Failed to get games for team ${teamId}`);
     }
   }
-  async getPlayedTeamGames(teamId: string): Promise<IGame[]> {
+  async getPlayedLeagueSeasonTeamGames(teamId: string, leagueId: string | Types.ObjectId, seasonNumber: number, limit: number = 10): Promise<IGame[]> {
     try {
-      const games = await Game.find({ $or: [{ homeTeam: teamId }, { awayTeam: teamId }], status: [GAME_STATUS.COMPLETED, GAME_STATUS.PLAYED] })
+      const games = await Game.find({
+        league: leagueId,
+        seasonNumber: seasonNumber,
+        $or: [{ homeTeam: teamId }, { awayTeam: teamId }],
+        status: [GAME_STATUS.COMPLETED, GAME_STATUS.PLAYED],
+      })
         .sort({ round: 1 })
+        .limit(limit)
         .exec();
       return games;
     } catch (e: any) {
