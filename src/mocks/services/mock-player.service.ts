@@ -1,10 +1,16 @@
 import { Types, ClientSession } from "mongoose";
-import { CreatePlayerDataRequest, PlayerDTO } from "../../types-changeToNPM/shared-DTOs";
 import { IPlayerService } from "../../interfaces/player";
 import { IPlayerGamePerformance } from "../../models/game";
 import { IPlayer } from "../../models/player";
+import { PlayerDTO, CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dtos";
 
 export class MockPlayerService implements IPlayerService {
+  getFreeAgents(session?: ClientSession): Promise<PlayerDTO[]> {
+    throw new Error("Method not implemented.");
+  }
+  startNewSeason(teamId: Types.ObjectId, leagueId: Types.ObjectId, seasonNumber: number, session: ClientSession): Promise<void> {
+    throw new Error("Method not implemented.");
+  }
   getPlayerById(id: string | Types.ObjectId, session?: ClientSession): Promise<PlayerDTO> {
     throw new Error("Not implemented");
   }

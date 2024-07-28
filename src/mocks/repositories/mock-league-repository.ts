@@ -1,8 +1,8 @@
 import { Types } from "mongoose";
-import { TopAssister, TopScorer } from "../../types-changeToNPM/shared-DTOs";
 import { NotFoundError } from "../../errors";
 import { ILeagueRepository } from "../../interfaces/league";
 import League, { ILeague } from "../../models/league";
+import { TopScorer, TopAssister } from "@pro-clubs-manager/shared-dtos";
 
 export class MockLeagueRepository implements ILeagueRepository {
   async getAllLeagues(): Promise<ILeague[]> {

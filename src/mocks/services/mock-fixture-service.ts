@@ -1,7 +1,7 @@
 import { ClientSession, Types } from "mongoose";
-import { FixtureDTO, PaginatedFixtureDTO, GameDTO } from "../../types-changeToNPM/shared-DTOs";
 import { IFixtureService } from "../../interfaces/fixture";
 import { AddFixtureData, IFixture } from "../../models/fixture";
+import { FixtureDTO, GameDTO, PaginatedFixtureDTO } from "@pro-clubs-manager/shared-dtos";
 
 export class MockFixtureService implements IFixtureService {
   getFixtureById(id: string): Promise<FixtureDTO> {

@@ -74,9 +74,11 @@ export class TeamStatsService implements ITeamStatsService {
     return { topAssisters, topScorers, topAvgRating };
   }
 
-  async getCurrentSeasonTeamStats(teamId: string): Promise<AdvancedTeamStats> {
+  async getCurrentSeasonAdvancedTeamStats(teamId: string): Promise<AdvancedTeamStats> {
     logger.info(`TeamStatsService: getting team ${teamId} advanced stats`);
     const team = await this.teamRepository.getTeamById(teamId);
+    console.log(team);
+
     if (!team.currentSeason) {
       throw new BadRequestError(`team with id ${teamId} is not currently in an active season`);
     }

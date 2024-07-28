@@ -2,6 +2,6 @@ import { AdvancedTeamStats, AdvancedPlayersStats } from "@pro-clubs-manager/shar
 import { ClientSession, Types } from "mongoose";
 
 export interface ITeamStatsService {
-  getCurrentSeasonTeamStats(teamId: string, session?: ClientSession): Promise<AdvancedTeamStats>;
+  getCurrentSeasonAdvancedTeamStats(teamId: string, session?: ClientSession): Promise<AdvancedTeamStats>;
   getCurrentSeasonTeamPlayersStats(teamId: string, limit?: number, session?: ClientSession): Promise<AdvancedPlayersStats>;
 }
