@@ -29,6 +29,11 @@ export class TeamStatsService implements ITeamStatsService {
   async getCurrentSeasonTeamPlayersStats(teamId: string | Types.ObjectId, limit?: number, session?: ClientSession): Promise<AdvancedPlayersStats> {
     logger.info(`TeamStatsService: getting team ${teamId} advanced players stats`);
     const team = await this.teamRepository.getTeamWithPlayers(teamId, session);
+
+    if (!team.currentSeason) {
+      throw new BadRequestError(`Team with id ${teamId} is not in an active season`);
+    }
+
     let { topScorers, topAssisters, topAvgRating } = this.getTopPlayersStats(team);
     if (limit) {
       topScorers = topScorers.slice(0, limit);
@@ -77,10 +82,9 @@ export class TeamStatsService implements ITeamStatsService {
   async getCurrentSeasonAdvancedTeamStats(teamId: string): Promise<AdvancedTeamStats> {
     logger.info(`TeamStatsService: getting team ${teamId} advanced stats`);
     const team = await this.teamRepository.getTeamById(teamId);
-    console.log(team);
 
     if (!team.currentSeason) {
-      throw new BadRequestError(`team with id ${teamId} is not currently in an active season`);
+      throw new BadRequestError(`Team with id ${teamId} is not currently in an active season`);
     }
     const { longestWinStreak, longestLoseStreak, longestUnbeatenStreak, longestWithoutScoringStreak } = await this.getAllTeamStreaks(
       teamId,

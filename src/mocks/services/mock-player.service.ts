@@ -5,38 +5,14 @@ import { IPlayer } from "../../models/player";
 import { PlayerDTO, CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dtos";
 
 export class MockPlayerService implements IPlayerService {
-  getFreeAgents(session?: ClientSession): Promise<PlayerDTO[]> {
-    throw new Error("Method not implemented.");
-  }
-  startNewSeason(teamId: Types.ObjectId, leagueId: Types.ObjectId, seasonNumber: number, session: ClientSession): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  getPlayerById(id: string | Types.ObjectId, session?: ClientSession): Promise<PlayerDTO> {
-    throw new Error("Not implemented");
-  }
-
-  createPlayer(playerData: CreatePlayerDataRequest): Promise<PlayerDTO> {
-    throw new Error("Not implemented");
-  }
-  deletePlayer(player: IPlayer, session: ClientSession): Promise<void> {
-    throw new Error("Not implemented");
-  }
-
-  renamePlayer(id: string, newName: string): Promise<void> {
-    throw new Error("Not implemented");
-  }
-  setPlayerImage(playerId: string, file: Express.Multer.File): Promise<string> {
-    throw new Error("Not implemented");
-  }
-
-  removePlayersFromTeam(playersIds: Types.ObjectId[], session: ClientSession): Promise<void> {
-    throw new Error("Not implemented");
-  }
-
-  updatePlayersGamePerformance(playersStats: IPlayerGamePerformance[], session: ClientSession): Promise<void> {
-    throw new Error("Not implemented");
-  }
-  revertPlayersGamePerformance(playersStats: IPlayerGamePerformance[], session: ClientSession): Promise<void> {
-    throw new Error("Not implemented");
-  }
+  getFreeAgents = jest.fn<Promise<PlayerDTO[]>, [ClientSession?]>();
+  startNewSeason = jest.fn<Promise<void>, [Types.ObjectId, Types.ObjectId, number, ClientSession]>();
+  getPlayerById = jest.fn<Promise<PlayerDTO>, [string | Types.ObjectId, ClientSession?]>();
+  createPlayer = jest.fn<Promise<PlayerDTO>, [CreatePlayerDataRequest]>();
+  deletePlayer = jest.fn<Promise<void>, [IPlayer, ClientSession]>();
+  renamePlayer = jest.fn<Promise<void>, [string, string]>();
+  setPlayerImage = jest.fn<Promise<string>, [string, Express.Multer.File]>();
+  removePlayersFromTeam = jest.fn<Promise<void>, [Types.ObjectId[], ClientSession]>();
+  updatePlayersGamePerformance = jest.fn<Promise<void>, [IPlayerGamePerformance[], ClientSession]>();
+  revertPlayersGamePerformance = jest.fn<Promise<void>, [IPlayerGamePerformance[], ClientSession]>();
 }

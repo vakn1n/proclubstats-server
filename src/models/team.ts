@@ -8,6 +8,8 @@ export type TeamWithPlayers = {
   imgUrl?: string;
   players: IPlayer[];
   captain?: mongoose.Types.ObjectId;
+  seasonsHistory: ITeamSeason[];
+  currentSeason?: ITeamSeason;
 };
 
 export interface ITeamStats {

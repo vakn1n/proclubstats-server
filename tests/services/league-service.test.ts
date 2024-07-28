@@ -1,36 +1,162 @@
-import "reflect-metadata";
-import { ILeagueRepository } from "../../src/interfaces/league";
+'import "reflect-metadata"';
+import { ClientSession, Types } from "mongoose";
+import { container } from "tsyringe";
+import { BadRequestError, NotFoundError } from "../../src/errors";
 import { MockLeagueRepository } from "../../src/mocks/repositories/mock-league-repository";
 import { MockCacheService, MockFixtureService, MockTeamService } from "../../src/mocks/services";
 import { LeagueService } from "../../src/services";
 
 describe("LeagueService", () => {
   let leagueService: LeagueService;
-  let mockLeagueRepository: ILeagueRepository;
+  let leagueRepository: MockLeagueRepository;
+  let cacheService: MockCacheService;
+  let fixtureService: MockFixtureService;
+  let teamService: MockTeamService;
 
-  beforeAll(() => {
-    mockLeagueRepository = new MockLeagueRepository();
-    leagueService = new LeagueService(mockLeagueRepository, new MockTeamService(), new MockCacheService(), new MockFixtureService());
+  beforeEach(() => {
+    leagueRepository = new MockLeagueRepository();
+    cacheService = new MockCacheService();
+    fixtureService = new MockFixtureService();
+    teamService = new MockTeamService();
+
+    container.registerInstance("ILeagueRepository", leagueRepository);
+    container.registerInstance("CacheService", cacheService);
+    container.registerInstance("IFixtureService", fixtureService);
+    container.registerInstance("ITeamService", teamService);
+
+    leagueService = container.resolve(LeagueService);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
   });
 
   describe("addLeague", () => {
-    beforeAll(async () => {
-      await mockLeagueRepository.createLeague("test-no-image");
-      await mockLeagueRepository.createLeague("test-image", "imgUrl");
+    it("should add a new league", async () => {
+      const name = "Test League";
+      const imgUrl = "http://example.com/image.jpg";
+
+      leagueRepository.isLeagueNameExists.mockResolvedValue(false);
+      leagueRepository.createLeague.mockResolvedValue({ name, imgUrl } as any);
+
+      const league = await leagueService.addLeague(name, imgUrl);
+
+      expect(leagueRepository.isLeagueNameExists).toHaveBeenCalledWith(name);
+      expect(leagueRepository.createLeague).toHaveBeenCalledWith(name, imgUrl);
+      expect(league).toEqual({ name, imgUrl });
     });
 
-    it("should add a new league without image", async () => {
-      const league = await leagueService.addLeague("test");
-      expect(league.name).toBe("test");
+    it("should throw BadRequestError if league name already exists", async () => {
+      const name = "Existing League";
+
+      leagueRepository.isLeagueNameExists.mockResolvedValue(true);
+
+      await expect(leagueService.addLeague(name)).rejects.toThrow(BadRequestError);
     });
-    it("should add a new league with image", async () => {
-      const league = await leagueService.addLeague("test with image", "imgUrl");
-      expect(league.name).toBe("test with image");
-      expect(league.imgUrl).toBe("imgUrl");
+  });
+
+  describe("startNewSeason", () => {
+    it("should start a new season for the league", async () => {
+      const leagueId = "60d5ec49b4dcd204d8e8bc17";
+      const startDateString = "2024-01-01";
+      const endDateString = "2024-12-31";
+
+      leagueRepository.getLeagueById.mockResolvedValue({
+        _id: new Types.ObjectId(leagueId),
+        currentSeason: { seasonNumber: 1 },
+        seasonsHistory: [],
+      } as any);
+
+      await leagueService.startNewSeason(leagueId, startDateString, endDateString);
+
+      expect(leagueRepository.getLeagueById).toHaveBeenCalledWith(leagueId);
+      expect(teamService.startNewLeagueSeason).toHaveBeenCalled();
     });
-    it("should throw an error if league already exists", async () => {
-      await expect(leagueService.addLeague("test-no-image")).rejects.toThrow("League test-no-image already exists");
-      await expect(leagueService.addLeague("test-image", "imgUrl")).rejects.toThrow("League test-image already exists");
+
+    it("should throw NotFoundError if league not found", async () => {
+      const leagueId = "60d5ec49b4dcd204d8e8bc17";
+      const startDateString = "2024-01-01";
+
+      leagueRepository.getLeagueById.mockRejectedValue(new NotFoundError(`League with id ${leagueId} not found`));
+
+      await expect(leagueService.startNewSeason(leagueId, startDateString)).rejects.toThrow(NotFoundError);
+    });
+  });
+
+  describe("removeTeamFromLeague", () => {
+    it("should remove a team from the league", async () => {
+      const leagueId = new Types.ObjectId("60d5ec49b4dcd204d8e8bc17");
+      const teamId = new Types.ObjectId("60d5ec49b4dcd204d8e8bc18");
+      const session = {} as ClientSession;
+
+      const mockLeague = {
+        _id: leagueId,
+        teams: [teamId],
+        save: jest.fn(),
+      };
+
+      leagueRepository.getLeagueById.mockResolvedValue(mockLeague as any);
+
+      await leagueService.removeTeamFromLeague(leagueId, teamId, session);
+
+      expect(leagueRepository.getLeagueById).toHaveBeenCalledWith(leagueId);
+      expect(mockLeague.teams).not.toContain(teamId);
+      expect(mockLeague.save).toHaveBeenCalledWith({ session });
+      expect(cacheService.delete).toHaveBeenCalledWith(`leagueTable:${leagueId}`);
+    });
+
+    it("should throw NotFoundError if team not found in the league", async () => {
+      const leagueId = new Types.ObjectId("60d5ec49b4dcd204d8e8bc17");
+      const teamId = new Types.ObjectId("60d5ec49b4dcd204d8e8bc18");
+      const session = {} as ClientSession;
+
+      leagueRepository.getLeagueById.mockResolvedValue({
+        _id: leagueId,
+        teams: [],
+      } as any);
+
+      await expect(leagueService.removeTeamFromLeague(leagueId, teamId, session)).rejects.toThrow(NotFoundError);
+    });
+  });
+
+  describe("createFixture", () => {
+    it("should create a fixture for the league", async () => {
+      const leagueId = "60d5ec49b4dcd204d8e8bc17";
+      const addFixtureData = {
+        round: 1,
+        games: [{ homeTeamId: "60d5ec49b4dcd204d8e8bc19", awayTeamId: "60d5ec49b4dcd204d8e8bc1a" }],
+        startDate: "2024-01-01",
+        endDate: "2024-01-02",
+      };
+
+      leagueRepository.getLeagueById.mockResolvedValue({
+        _id: new Types.ObjectId(leagueId),
+        currentSeason: { seasonNumber: 1, fixtures: [] },
+      } as any);
+
+      fixtureService.generateFixture.mockResolvedValue({
+        _id: new Types.ObjectId("60d5ec49b4dcd204d8e8bc1b"),
+      } as any);
+
+      const result = await leagueService.createFixture(leagueId, addFixtureData);
+
+      expect(leagueRepository.getLeagueById).toHaveBeenCalledWith(leagueId);
+      expect(fixtureService.generateFixture).toHaveBeenCalled();
+      expect(result).toHaveProperty("_id");
+    });
+
+    it("should throw NotFoundError if league not found", async () => {
+      const leagueId = "60d5ec49b4dcd204d8e8bc17";
+      const addFixtureData = {
+        round: 1,
+        games: [{ homeTeamId: "60d5ec49b4dcd204d8e8bc19", awayTeamId: "60d5ec49b4dcd204d8e8bc1a" }],
+        startDate: "2024-01-01",
+        endDate: "2024-01-02",
+      };
+
+      leagueRepository.getLeagueById.mockRejectedValue(new NotFoundError(`League with id ${leagueId} not found`));
+
+      await expect(leagueService.createFixture(leagueId, addFixtureData)).rejects.toThrow(NotFoundError);
     });
   });
 });

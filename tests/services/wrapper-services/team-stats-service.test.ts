@@ -1,4 +1,4 @@
-import mongoose, { Types } from "mongoose";
+import { Types } from "mongoose";
 import "reflect-metadata";
 import { MockGameRepository } from "../../../src/mocks/repositories/mock-game-repository";
 import { MockTeamRepository } from "../../../src/mocks/repositories/mock-team-repository";
@@ -22,10 +22,11 @@ describe("TeamStatsService", () => {
     let teamId: Types.ObjectId;
     beforeAll(() => {
       teamId = new Types.ObjectId();
+      const leagueId: Types.ObjectId = new Types.ObjectId();
       const mockTeam = {
         id: teamId.toString(),
         name: "Team A",
-        league: new Types.ObjectId(),
+        league: leagueId,
         players: [
           {
             id: new Types.ObjectId().toString(),
@@ -42,6 +43,7 @@ describe("TeamStatsService", () => {
             currentSeason: { stats: { games: 10, goals: 5, assists: 15, avgRating: 7.5 } },
           },
         ],
+        currentSeason: { league: leagueId, seasonNumber: 1, stats: {} },
       } as TeamWithPlayers;
       jest.spyOn(mockTeamRepository, "getTeamWithPlayers").mockResolvedValue(mockTeam);
     });
@@ -55,9 +57,19 @@ describe("TeamStatsService", () => {
 
     it("should return limited top players stats", async () => {
       const result = await teamStatsService.getCurrentSeasonTeamPlayersStats(teamId.toString(), 1);
-      expect(result.topScorers.length).toBe(1);
-      expect(result.topAssisters.length).toBe(1);
-      expect(result.topAvgRating.length).toBe(1);
+      const { topScorers, topAssisters, topAvgRating } = result;
+      expect(topScorers[0].playerName).toBe("Player 1");
+      expect(topAssisters[0].playerName).toBe("Player 2");
+      expect(topScorers.length).toBe(1);
+      expect(topAssisters.length).toBe(1);
+      expect(topAvgRating.length).toBe(1);
+    });
+    it("should throw an error if the team is not in an active season", async () => {
+      const mockTeam = {
+        currentSeason: undefined,
+      } as TeamWithPlayers;
+      jest.spyOn(mockTeamRepository, "getTeamWithPlayers").mockResolvedValue(mockTeam);
+      await expect(teamStatsService.getCurrentSeasonTeamPlayersStats(teamId.toString())).rejects.toThrow(`Team with id ${teamId} is not in an active season`);
     });
   });
 
@@ -70,7 +82,7 @@ describe("TeamStatsService", () => {
       jest.spyOn(mockTeamRepository, "getTeamById").mockResolvedValue(team);
 
       await expect(teamStatsService.getCurrentSeasonAdvancedTeamStats(teamId.toString())).rejects.toThrow(
-        `team with id ${teamId} is not currently in an active season`
+        `Team with id ${teamId} is not currently in an active season`
       );
     });
 
