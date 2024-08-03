@@ -4,46 +4,18 @@ import { ITeam } from "../../models/team";
 import { TeamDTO, PlayerDTO, LeagueTableRow } from "@pro-clubs-manager/shared-dtos";
 
 export class MockTeamService implements ITeamService {
-  getTeamEntityById(teamId: string): Promise<ITeam> {
-    throw new Error("Method not implemented.");
-  }
-  startNewLeagueSeason(leagueId: Types.ObjectId, seasonNumber: number, session: ClientSession): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  renameTeam(teamId: string, name: any): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  getTeamById(teamId: string): Promise<TeamDTO> {
-    throw new Error("Method not implemented.");
-  }
-  getAllTeams(): Promise<TeamDTO[]> {
-    throw new Error("Method not implemented.");
-  }
-  getTeamPlayers(teamId: string): Promise<PlayerDTO[]> {
-    throw new Error("Method not implemented.");
-  }
-  getTeamsStatsByLeague(leagueId: string | Types.ObjectId, session?: ClientSession | undefined): Promise<LeagueTableRow[]> {
-    throw new Error("Method not implemented.");
-  }
-  createTeam(name: string): Promise<TeamDTO> {
-    throw new Error("Method not implemented.");
-  }
-  deleteTeam(team: ITeam, session?: ClientSession | undefined): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  removePlayerFromTeam(teamId: Types.ObjectId, playerId: Types.ObjectId, session: ClientSession): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  setTeamImage(teamId: string, imageFile: Express.Multer.File): Promise<string> {
-    throw new Error("Method not implemented.");
-  }
-  setTeamCaptain(teamId: string, captainId: string): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  revertTeamGameStats(teamId: Types.ObjectId, goalsScored: number, goalsConceded: number, session: ClientSession): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
-  updateTeamGameStats(teamId: Types.ObjectId, goalsScored: number, goalsConceded: number, session: ClientSession): Promise<void> {
-    throw new Error("Method not implemented.");
-  }
+  getTeamEntityById = jest.fn<Promise<ITeam>, [string]>();
+  startNewLeagueSeason = jest.fn<Promise<void>, [Types.ObjectId, number, ClientSession]>();
+  renameTeam = jest.fn<Promise<void>, [string, any]>();
+  getTeamById = jest.fn<Promise<TeamDTO>, [string]>();
+  getAllTeams = jest.fn<Promise<TeamDTO[]>, []>();
+  getTeamPlayers = jest.fn<Promise<PlayerDTO[]>, [string]>();
+  getTeamsStatsByLeague = jest.fn<Promise<LeagueTableRow[]>, [string | Types.ObjectId, ClientSession?]>();
+  createTeam = jest.fn<Promise<TeamDTO>, [string]>();
+  deleteTeam = jest.fn<Promise<void>, [ITeam, ClientSession?]>();
+  removePlayerFromTeam = jest.fn<Promise<void>, [Types.ObjectId, Types.ObjectId, ClientSession]>();
+  setTeamImage = jest.fn<Promise<string>, [string, Express.Multer.File]>();
+  setTeamCaptain = jest.fn<Promise<void>, [string, string]>();
+  revertTeamGameStats = jest.fn<Promise<void>, [Types.ObjectId, number, number, ClientSession]>();
+  updateTeamGameStats = jest.fn<Promise<void>, [Types.ObjectId, number, number, ClientSession]>();
 }

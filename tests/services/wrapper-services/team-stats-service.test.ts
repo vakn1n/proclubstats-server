@@ -1,16 +1,15 @@
-import mongoose, { Types } from "mongoose";
+import { Types } from "mongoose";
 import "reflect-metadata";
 import { MockGameRepository } from "../../../src/mocks/repositories/mock-game-repository";
 import { MockTeamRepository } from "../../../src/mocks/repositories/mock-team-repository";
-import Game, { IGame } from "../../../src/models/game";
+import { IGame } from "../../../src/models/game";
+import { ITeam, TeamWithPlayers } from "../../../src/models/team";
 import { TeamStatsService } from "../../../src/services/wrapper-services/team-stats-service";
 
 describe("TeamStatsService", () => {
   let teamStatsService: TeamStatsService;
   let mockGameRepository: MockGameRepository;
   let mockTeamRepository: MockTeamRepository;
-  let homeTeam = new mongoose.Types.ObjectId("60d5ec49c2f0a87bb4e0e3a4");
-  let awayTeam = new mongoose.Types.ObjectId("60d5ec49c2f0a87bb4e0e3a5");
 
   beforeAll(async () => {
     mockGameRepository = new MockGameRepository();
@@ -19,208 +18,101 @@ describe("TeamStatsService", () => {
     teamStatsService = new TeamStatsService(mockGameRepository, mockTeamRepository);
   });
 
-  describe("getTeamPlayersStats", () => {
-    test("should get team players sorted stats without limit", async () => {
-      const teamId = new Types.ObjectId().toString();
-
-      const getTeamWithPlayersSpy = jest.spyOn(mockTeamRepository, "getTeamWithPlayers");
-
-      const result = await teamStatsService.getCurrentSeasonTeamPlayersStats(teamId);
-
-      expect(getTeamWithPlayersSpy).toHaveBeenCalledWith(teamId, undefined);
-
-      expect(result).toEqual({
-        topScorers: expect.any(Array),
-        topAssisters: expect.any(Array),
-        topAvgRating: expect.any(Array),
-      });
-
-      expect(result.topScorers.length).toBe(3);
-      expect(result.topAssisters.length).toBe(3);
-      expect(result.topAvgRating.length).toBe(3);
-
-      // Check sorting within the limited results
-      expect(result.topScorers).toEqual([...result.topScorers].sort((a, b) => b.goals - a.goals));
-      expect(result.topAssisters).toEqual([...result.topAssisters].sort((a, b) => b.assists - a.assists));
-      expect(result.topAvgRating).toEqual([...result.topAvgRating].sort((a, b) => b.avgRating - a.avgRating));
+  describe("getCurrentSeasonTeamPlayersStats", () => {
+    let teamId: Types.ObjectId;
+    beforeAll(() => {
+      teamId = new Types.ObjectId();
+      const leagueId: Types.ObjectId = new Types.ObjectId();
+      const mockTeam = {
+        id: teamId.toString(),
+        name: "Team A",
+        league: leagueId,
+        players: [
+          {
+            id: new Types.ObjectId().toString(),
+            name: "Player 1",
+            position: "Forward",
+            imgUrl: "img1.jpg",
+            currentSeason: { stats: { games: 10, goals: 15, assists: 5, avgRating: 8.5 } },
+          },
+          {
+            id: new Types.ObjectId().toString(),
+            name: "Player 2",
+            position: "Midfielder",
+            imgUrl: "img2.jpg",
+            currentSeason: { stats: { games: 10, goals: 5, assists: 15, avgRating: 7.5 } },
+          },
+        ],
+        currentSeason: { league: leagueId, seasonNumber: 1, stats: {} },
+      } as TeamWithPlayers;
+      jest.spyOn(mockTeamRepository, "getTeamWithPlayers").mockResolvedValue(mockTeam);
     });
 
-    test("should get team players stats with limit", async () => {
-      const teamId = new Types.ObjectId().toString();
-      const limit = 2;
-      const result = await teamStatsService.getCurrentSeasonTeamPlayersStats(teamId, limit);
-
-      expect(result.topScorers.length).toBe(limit);
-      expect(result.topAssisters.length).toBe(limit);
-      expect(result.topAvgRating.length).toBe(limit);
-    });
-  });
-
-  describe("getAdvancedTeamStats", () => {
-    beforeAll(async () => {
-      const mockGames: IGame[] = [
-        {
-          _id: new mongoose.Types.ObjectId(),
-          fixture: new mongoose.Types.ObjectId(),
-          homeTeam,
-          awayTeam,
-          result: { homeTeamGoals: 2, awayTeamGoals: 1 },
-          round: 1,
-        } as IGame,
-        {
-          _id: new mongoose.Types.ObjectId(),
-          fixture: new mongoose.Types.ObjectId(),
-          homeTeam,
-          awayTeam,
-          result: { homeTeamGoals: 1, awayTeamGoals: 1 },
-          round: 2,
-        } as IGame,
-        {
-          _id: new mongoose.Types.ObjectId(),
-          fixture: new mongoose.Types.ObjectId(),
-          homeTeam,
-          awayTeam,
-          result: { homeTeamGoals: 0, awayTeamGoals: 1 },
-          round: 3,
-        } as IGame,
-      ];
-
-      await Game.insertMany(mockGames);
-
-      MockGameRepository.prototype.getPlayedLeagueSeasonTeamGames = jest.fn().mockResolvedValue(mockGames);
+    it("should return top players stats", async () => {
+      const result = await teamStatsService.getCurrentSeasonTeamPlayersStats(teamId.toString());
+      expect(result.topScorers.length).toBe(2);
+      expect(result.topAssisters.length).toBe(2);
+      expect(result.topAvgRating.length).toBe(2);
     });
 
-    it("should return the correct advanced team stats", async () => {
-      const teamStats = await teamStatsService.getCurrentSeasonTeamStats("60d5ec49c2f0a87bb4e0e3a4");
-
-      expect(teamStats.longestWinStreak).toBe(1);
-      expect(teamStats.longestLoseStreak).toBe(1);
-      expect(teamStats.longestUnbeatenStreak).toBe(2);
+    it("should return limited top players stats", async () => {
+      const result = await teamStatsService.getCurrentSeasonTeamPlayersStats(teamId.toString(), 1);
+      const { topScorers, topAssisters, topAvgRating } = result;
+      expect(topScorers[0].playerName).toBe("Player 1");
+      expect(topAssisters[0].playerName).toBe("Player 2");
+      expect(topScorers.length).toBe(1);
+      expect(topAssisters.length).toBe(1);
+      expect(topAvgRating.length).toBe(1);
+    });
+    it("should throw an error if the team is not in an active season", async () => {
+      const mockTeam = {
+        currentSeason: undefined,
+      } as TeamWithPlayers;
+      jest.spyOn(mockTeamRepository, "getTeamWithPlayers").mockResolvedValue(mockTeam);
+      await expect(teamStatsService.getCurrentSeasonTeamPlayersStats(teamId.toString())).rejects.toThrow(`Team with id ${teamId} is not in an active season`);
     });
   });
 
-  describe("getTeamLongestWinningStreak", () => {
-    beforeAll(async () => {
-      const mockGames: IGame[] = [
-        {
-          _id: new mongoose.Types.ObjectId(),
-          fixture: new mongoose.Types.ObjectId(),
-          homeTeam,
-          awayTeam,
-          result: { homeTeamGoals: 2, awayTeamGoals: 1 },
-          round: 1,
-        } as IGame,
-        {
-          _id: new mongoose.Types.ObjectId(),
-          fixture: new mongoose.Types.ObjectId(),
-          homeTeam,
-          awayTeam,
-          result: { homeTeamGoals: 1, awayTeamGoals: 0 },
-          round: 2,
-        } as IGame,
-        {
-          _id: new mongoose.Types.ObjectId(),
-          fixture: new mongoose.Types.ObjectId(),
-          homeTeam,
-          awayTeam,
-          result: { homeTeamGoals: 3, awayTeamGoals: 1 },
-          round: 3,
-        } as IGame,
-      ];
+  describe("getCurrentSeasonAdvancedTeamStats", () => {
+    it("should throw error if team is not in an active season", async () => {
+      const teamId = new Types.ObjectId();
+      const team = {
+        currentSeason: undefined,
+      } as ITeam;
+      jest.spyOn(mockTeamRepository, "getTeamById").mockResolvedValue(team);
 
-      await Game.insertMany(mockGames);
-
-      MockGameRepository.prototype.getPlayedLeagueSeasonTeamGames = jest.fn().mockResolvedValue(mockGames);
+      await expect(teamStatsService.getCurrentSeasonAdvancedTeamStats(teamId.toString())).rejects.toThrow(
+        `Team with id ${teamId} is not currently in an active season`
+      );
     });
 
-    it("should return the correct longest winning streak", async () => {
-      const longestWinStreak = await teamStatsService.getTeamLongestWinningStreak("60d5ec49c2f0a87bb4e0e3a4");
+    it("should return all streaks", async () => {
+      const teamId = new Types.ObjectId();
+      const leagueId = new Types.ObjectId();
+      const seasonNumber = 1;
+      const team = {
+        id: teamId.toString(),
+        name: "Team A",
+        currentSeason: {
+          league: leagueId,
+          seasonNumber,
+        },
+      } as ITeam;
+      const games: IGame[] = [
+        { homeTeam: teamId, awayTeam: new Types.ObjectId(), result: { homeTeamGoals: 3, awayTeamGoals: 0 } },
+        { homeTeam: teamId, awayTeam: new Types.ObjectId(), result: { homeTeamGoals: 1, awayTeamGoals: 0 } },
+        { homeTeam: teamId, awayTeam: new Types.ObjectId(), result: { homeTeamGoals: 0, awayTeamGoals: 0 } },
+        { homeTeam: teamId, awayTeam: new Types.ObjectId(), result: { homeTeamGoals: 0, awayTeamGoals: 1 } },
+      ] as IGame[];
+      jest.spyOn(mockTeamRepository, "getTeamById").mockResolvedValue(team);
+      jest.spyOn(mockGameRepository, "getPlayedLeagueSeasonTeamGames").mockResolvedValue(games);
 
-      expect(longestWinStreak).toBe(3);
-    });
-  });
+      const result = await teamStatsService.getCurrentSeasonAdvancedTeamStats(teamId.toString());
 
-  describe("getTeamLongestUnbeatenStreak", () => {
-    beforeAll(async () => {
-      const mockGames: IGame[] = [
-        {
-          _id: new mongoose.Types.ObjectId(),
-          fixture: new mongoose.Types.ObjectId(),
-          homeTeam,
-          awayTeam,
-          result: { homeTeamGoals: 2, awayTeamGoals: 1 },
-          round: 1,
-        } as IGame,
-        {
-          _id: new mongoose.Types.ObjectId(),
-          fixture: new mongoose.Types.ObjectId(),
-          homeTeam,
-          awayTeam,
-          result: { homeTeamGoals: 1, awayTeamGoals: 1 },
-          round: 2,
-        } as IGame,
-        {
-          _id: new mongoose.Types.ObjectId(),
-          fixture: new mongoose.Types.ObjectId(),
-          homeTeam,
-          awayTeam,
-          result: { homeTeamGoals: 0, awayTeamGoals: 1 },
-          round: 3,
-        } as IGame,
-      ];
-
-      await Game.insertMany(mockGames);
-
-      MockGameRepository.prototype.getPlayedLeagueSeasonTeamGames = jest.fn().mockResolvedValue(mockGames);
-    });
-
-    it("should return the correct longest unbeaten streak", async () => {
-      const longestUnbeatenStreak = await teamStatsService.getTeamLongestUnbeatenStreak("60d5ec49c2f0a87bb4e0e3a4");
-
-      expect(longestUnbeatenStreak).toBe(2);
+      expect(result.longestWinStreak).toBe(2);
+      expect(result.longestLoseStreak).toBe(1);
+      expect(result.longestUnbeatenStreak).toBe(3);
+      expect(result.longestWithoutScoringStreak).toBe(2);
     });
   });
-
-  describe("getTeamLongestLosingStreak", () => {
-    beforeAll(async () => {
-      const mockGames: IGame[] = [
-        {
-          _id: new mongoose.Types.ObjectId(),
-          fixture: new mongoose.Types.ObjectId(),
-          homeTeam,
-          awayTeam,
-          result: { homeTeamGoals: 0, awayTeamGoals: 2 },
-          round: 1,
-        } as IGame,
-        {
-          _id: new mongoose.Types.ObjectId(),
-          fixture: new mongoose.Types.ObjectId(),
-          homeTeam,
-          awayTeam,
-          result: { homeTeamGoals: 1, awayTeamGoals: 2 },
-          round: 2,
-        } as IGame,
-        {
-          _id: new mongoose.Types.ObjectId(),
-          fixture: new mongoose.Types.ObjectId(),
-          homeTeam,
-          awayTeam,
-          result: { homeTeamGoals: 0, awayTeamGoals: 1 },
-          round: 3,
-        } as IGame,
-      ];
-
-      await Game.insertMany(mockGames);
-
-      MockGameRepository.prototype.getPlayedLeagueSeasonTeamGames = jest.fn().mockResolvedValue(mockGames);
-    });
-
-    it("should return the correct longest losing streak", async () => {
-      const longestLosingStreak = await teamStatsService.getTeamLongestLosingStreak("60d5ec49c2f0a87bb4e0e3a4");
-
-      expect(longestLosingStreak).toBe(3);
-    });
-  });
-
-  describe("getTeamPlayersStats", () => {});
 });

@@ -167,7 +167,7 @@ export default class TeamController implements ITeamController {
     }
 
     try {
-      const teamStats = await this.teamStatsService.getCurrentSeasonTeamStats(teamId);
+      const teamStats = await this.teamStatsService.getCurrentSeasonAdvancedTeamStats(teamId);
       res.json(teamStats);
     } catch (error: any) {
       next(error);
