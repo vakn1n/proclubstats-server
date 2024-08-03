@@ -3,33 +3,27 @@ import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
 import { ILeagueController, ILeagueService } from "../interfaces/league";
 import { ImageService } from "../interfaces/util-services/image-service.interface";
-import { ITeamLeagueService } from "../interfaces/wrapper-services/team-league-service.interface";
-import League from "../models/league";
+import { ILeagueStatsService, ITeamLeagueService } from "../interfaces/wrapper-services";
 
 @injectable()
 export default class LeagueController implements ILeagueController {
   private leagueService: ILeagueService;
   private teamLeagueService: ITeamLeagueService;
+  private leagueStatsService: ILeagueStatsService;
   private imageService: ImageService;
 
   constructor(
     @inject("ILeagueService") leagueService: ILeagueService,
     @inject("ITeamLeagueService") teamLeagueService: ITeamLeagueService,
+    @inject("ILeagueStatsService") leagueStatsService: ILeagueStatsService,
     @inject("ImageService") imageService: ImageService
   ) {
     this.leagueService = leagueService;
     this.imageService = imageService;
     this.teamLeagueService = teamLeagueService;
+    this.leagueStatsService = leagueStatsService;
   }
-  async getTopAvgRating(req: Request, res: Response, next: NextFunction) {
-    // const { leagueId } = req.params;
-    // try {
-    //   const topPlayers = await this.leagueService.getTopPlayers(leagueId);
-    //   res.json(topPlayers);
-    // } catch (error: any) {
-    //   next(error);
-    // }
-  }
+
   async createLeague(req: Request, res: Response, next: NextFunction) {
     const { name } = req.body;
     if (!name) {
@@ -146,6 +140,34 @@ export default class LeagueController implements ILeagueController {
       const topAssists = await this.leagueService.getTopAssists(leagueId);
       res.json(topAssists);
     } catch (error) {
+      next(error);
+    }
+  }
+
+  async getAdvancedPlayersStats(req: Request, res: Response, next: NextFunction) {
+    const { leagueId } = req.params;
+    try {
+      const advancedStats = await this.leagueStatsService.getAdvancedLeaguePlayersStats(leagueId);
+      res.json(advancedStats);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+  async getAdvancedTeamsStats(req: Request, res: Response, next: NextFunction) {
+    const { leagueId } = req.params;
+    try {
+      const advancedStats = await this.leagueStatsService.getAdvancedLeagueTeamStats(leagueId);
+      res.json(advancedStats);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+  async getTopAvgRating(req: Request, res: Response, next: NextFunction) {
+    const { leagueId } = req.params;
+    try {
+      const topPlayers = await this.leagueStatsService.getLeagueTopAvgRatingPlayers(leagueId);
+      res.json(topPlayers);
+    } catch (error: any) {
       next(error);
     }
   }

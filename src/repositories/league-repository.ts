@@ -1,9 +1,9 @@
+import { TopAssister, TopScorer } from "@pro-clubs-manager/shared-dtos";
 import { ClientSession, Types } from "mongoose";
-import { BadRequestError, NotFoundError, QueryFailedError } from "../errors";
-import { ILeagueRepository } from "../interfaces/league/league-repository.interface";
 import logger from "../config/logger";
-import League, { ILeague, ILeagueSeason } from "../models/league";
-import { TopScorer, TopAssister } from "@pro-clubs-manager/shared-dtos";
+import { NotFoundError, QueryFailedError } from "../errors";
+import { ILeagueRepository } from "../interfaces/league/league-repository.interface";
+import League, { ILeague } from "../models/league";
 
 export class LeagueRepository implements ILeagueRepository {
   async getAllLeagues(): Promise<ILeague[]> {

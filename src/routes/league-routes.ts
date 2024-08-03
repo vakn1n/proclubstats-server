@@ -18,6 +18,8 @@ router.delete("/:id", (req, res, next) => leagueController.deleteLeague(req, res
 
 router.get("/:id", (req, res, next) => leagueController.getLeagueById(req, res, next));
 router.get("/", (req, res, next) => leagueController.getAllLeagues(req, res, next));
+router.get("/:id/advancedPlayersStats", (req, res, next) => leagueController.getAdvancedPlayersStats(req, res, next));
+router.get("/:id/advancedTeamsStats", (req, res, next) => leagueController.getAdvancedTeamsStats(req, res, next));
 router.get("/:id/topScorers", (req, res, next) => leagueController.getTopScorers(req, res, next));
 router.get("/:id/topAssists", (req, res, next) => leagueController.getTopAssists(req, res, next));
 router.get("/:id/topAvgRating", (req, res, next) => leagueController.getTopAvgRating(req, res, next));
