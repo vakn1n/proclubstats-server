@@ -116,13 +116,15 @@ export default class LeagueController implements ILeagueController {
   async getTopScorers(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id: leagueId } = req.params;
 
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+
     if (!leagueId) {
       res.status(404).send({ message: "No league id provided" });
       return;
     }
 
     try {
-      const topScorers = await this.leagueService.getTopScorers(leagueId);
+      const topScorers = await this.leagueStatsService.getLeagueTopScorers(leagueId, limit);
       res.json(topScorers);
     } catch (error) {
       next(error);
@@ -137,9 +139,19 @@ export default class LeagueController implements ILeagueController {
     }
 
     try {
-      const topAssists = await this.leagueService.getTopAssists(leagueId);
+      const topAssists = await this.leagueStatsService.getLeagueTopAssisters(leagueId);
       res.json(topAssists);
     } catch (error) {
+      next(error);
+    }
+  }
+
+  async getTopAvgRating(req: Request, res: Response, next: NextFunction) {
+    const { leagueId } = req.params;
+    try {
+      const topPlayers = await this.leagueStatsService.getLeagueTopAvgRatingPlayers(leagueId);
+      res.json(topPlayers);
+    } catch (error: any) {
       next(error);
     }
   }
@@ -158,15 +170,6 @@ export default class LeagueController implements ILeagueController {
     try {
       const advancedStats = await this.leagueStatsService.getAdvancedLeagueTeamStats(leagueId);
       res.json(advancedStats);
-    } catch (error: any) {
-      next(error);
-    }
-  }
-  async getTopAvgRating(req: Request, res: Response, next: NextFunction) {
-    const { leagueId } = req.params;
-    try {
-      const topPlayers = await this.leagueStatsService.getLeagueTopAvgRatingPlayers(leagueId);
-      res.json(topPlayers);
     } catch (error: any) {
       next(error);
     }

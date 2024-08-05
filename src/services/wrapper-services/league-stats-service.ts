@@ -22,115 +22,258 @@ export class LeagueStatsService implements ILeagueStatsService {
     this.teamRepository = teamRepository;
     this.leagueRepository = teamRepository;
   }
-  async getAdvancedLeaguePlayersStats(leagueId: string | Types.ObjectId, limit?: number): Promise<AdvancedPlayersStats> {
-    throw new Error("Method not implemented.");
-  }
 
   async getLeagueTopScorers(leagueId: string | Types.ObjectId, limit: number = 10): Promise<TopScorer[]> {
     logger.info(`LeagueStatsService: getting top scorers for league ${leagueId}`);
-    // const players = await this.playerRepository.getPlayersByLeague(leagueId);
-    let topScorers: TopScorer[] = [];
+    const players = await this.playerRepository.getPlayersByLeague(leagueId);
 
-    // players.forEach((player) => {
-    //   if (player.currentSeason && player.currentSeason.stats) {
-    //     topScorers.push({
-    //       playerId: player.id,
-    //       playerName: player.name,
-    //       position: player.position,
-    //       teamId: player.team.id,
-    //       teamName: player.team.name,
-    //       playerImgUrl: player.imgUrl,
-    //       games: player.currentSeason.stats.games,
-    //       goals: player.currentSeason.stats.goals,
-    //       goalsPerGame: player.currentSeason.stats.games ? player.currentSeason.stats.goals / player.currentSeason.stats.games : 0,
-    //     });
-    //   }
-    // });
+    const topScorers: TopScorer[] = [];
+    const seasonNumber = players[0]?.currentSeason!.seasonNumber;
 
-    topScorers.sort((a, b) => b.goals - a.goals);
-    return topScorers.slice(0, limit);
+    players.forEach((player) => {
+      let totalGoals = 0;
+      let totalGames = 0;
+
+      // Check current season
+      if (player.currentSeason?.league.equals(leagueId) && player.currentSeason.seasonNumber === seasonNumber) {
+        totalGoals += player.currentSeason.stats.goals;
+        totalGames += player.currentSeason.stats.games;
+      }
+
+      // Check season history
+      player.seasonsHistory
+        .filter((season) => season.league.equals(leagueId) && season.seasonNumber === seasonNumber)
+        .forEach((season) => {
+          totalGoals += season.stats.goals;
+          totalGames += season.stats.games;
+        });
+
+      if (totalGames > 0) {
+        topScorers.push({
+          playerId: player.id,
+          playerName: player.name,
+          position: player.position,
+          teamId: player.currentSeason!.team.toString(),
+          teamName: "",
+          playerImgUrl: player.imgUrl,
+          goals: totalGoals,
+          goalsPerGame: totalGoals / totalGames,
+          games: totalGames,
+        });
+      }
+    });
+    topScorers.sort((playerA, playerB) => playerB.goals - playerA.goals);
+
+    if (limit) {
+      topScorers.length = limit;
+    }
+
+    await this.populateTeamNamesForTopPlayers(topScorers);
+
+    return topScorers;
   }
 
   async getLeagueTopAssisters(leagueId: string | Types.ObjectId, limit: number = 10): Promise<TopAssister[]> {
     logger.info(`LeagueStatsService: getting top assisters for league ${leagueId}`);
-    // const players = await this.playerRepository.getPlayersByLeague(leagueId);
-    let topAssisters: TopAssister[] = [];
+    const players = await this.playerRepository.getPlayersByLeague(leagueId);
 
-    // players.forEach((player) => {
-    //   if (player.currentSeason && player.currentSeason.stats) {
-    //     topAssisters.push({
-    //       playerId: player.id,
-    //       playerName: player.name,
-    //       position: player.position,
-    //       teamId: player.team.id,
-    //       teamName: player.team.name,
-    //       playerImgUrl: player.imgUrl,
-    //       games: player.currentSeason.stats.games,
-    //       assists: player.currentSeason.stats.assists,
-    //       assistsPerGame: player.currentSeason.stats.games ? player.currentSeason.stats.assists / player.currentSeason.stats.games : 0,
-    //     });
-    //   }
-    // });
+    const topAssisters: TopAssister[] = [];
+    const seasonNumber = players[0]?.currentSeason!.seasonNumber;
 
-    topAssisters.sort((a, b) => b.assists - a.assists);
-    return topAssisters.slice(0, limit);
+    players.forEach((player) => {
+      let totalAssists = 0;
+      let totalGames = 0;
+
+      // Check current season
+      if (player.currentSeason?.league.equals(leagueId) && player.currentSeason.seasonNumber === seasonNumber) {
+        totalAssists += player.currentSeason.stats.assists;
+        totalGames += player.currentSeason.stats.games;
+      }
+
+      // Check season history
+      player.seasonsHistory
+        .filter((season) => season.league.equals(leagueId) && season.seasonNumber === seasonNumber)
+        .forEach((season) => {
+          totalAssists += season.stats.assists;
+          totalGames += season.stats.games;
+        });
+
+      if (totalGames > 0) {
+        topAssisters.push({
+          playerId: player.id,
+          playerName: player.name,
+          position: player.position,
+          teamId: player.currentSeason!.team.toString(),
+          teamName: "",
+          playerImgUrl: player.imgUrl,
+          assists: totalAssists,
+          assistsPerGame: totalAssists / totalGames,
+          games: totalGames,
+        });
+      }
+    });
+    topAssisters.sort((playerA, playerB) => playerB.assists - playerA.assists);
+
+    if (limit) {
+      topAssisters.length = limit;
+    }
+
+    await this.populateTeamNamesForTopPlayers(topAssisters);
+
+    return topAssisters;
   }
 
   async getLeagueTopAvgRatingPlayers(leagueId: string | Types.ObjectId, limit: number = 10): Promise<TopAvgRating[]> {
-    logger.info(`LeagueStatsService: getting top average rating players for league ${leagueId}`);
-    // const players = await this.playerRepository.getPlayersByLeague(leagueId);
-    let topAvgRating: TopAvgRating[] = [];
+    logger.info(`LeagueStatsService: getting top average rating for league ${leagueId}`);
+    const players = await this.playerRepository.getPlayersByLeague(leagueId);
 
-    // players.forEach((player) => {
-    //   if (player.currentSeason && player.currentSeason.stats) {
-    //     topAvgRating.push({
-    //       playerId: player.id,
-    //       playerName: player.name,
-    //       position: player.position,
-    //       teamId: player.team.id,
-    //       teamName: player.team.name,
-    //       playerImgUrl: player.imgUrl,
-    //       games: player.currentSeason.stats.games,
-    //       avgRating: player.currentSeason.stats.avgRating,
-    //     });
-    //   }
-    // });
+    const topAvgRating: TopAvgRating[] = [];
+    const seasonNumber = players[0]?.currentSeason!.seasonNumber;
 
-    topAvgRating.sort((a, b) => b.avgRating - a.avgRating);
-    return topAvgRating.slice(0, limit);
+    players.forEach((player) => {
+      let totalRating = 0;
+      let totalGames = 0;
+
+      // Check current season
+      if (player.currentSeason?.league.equals(leagueId) && player.currentSeason.seasonNumber === seasonNumber) {
+        totalRating += player.currentSeason.stats.avgRating * player.currentSeason.stats.games;
+        totalGames += player.currentSeason.stats.games;
+      }
+
+      // Check season history
+      player.seasonsHistory
+        .filter((season) => season.league.equals(leagueId) && season.seasonNumber === seasonNumber)
+        .forEach((season) => {
+          totalRating += season.stats.avgRating * season.stats.games;
+          totalGames += season.stats.games;
+        });
+
+      if (totalGames > 0) {
+        topAvgRating.push({
+          playerId: player.id,
+          playerName: player.name,
+          position: player.position,
+          teamId: player.currentSeason!.team.toString(),
+          teamName: "",
+          playerImgUrl: player.imgUrl,
+          avgRating: totalGames > 0 ? totalRating / totalGames : 0,
+          games: totalGames,
+        });
+      }
+    });
+    topAvgRating.sort((playerA, playerB) => playerB.avgRating - playerA.avgRating);
+
+    if (limit) {
+      topAvgRating.length = limit;
+    }
+
+    await this.populateTeamNamesForTopPlayers(topAvgRating);
+
+    return topAvgRating;
+  }
+
+  async getAdvancedLeaguePlayersStats(leagueId: string | Types.ObjectId, limit: number = 10): Promise<AdvancedPlayersStats> {
+    logger.info(`LeagueStatsService: getting advanced stats for league ${leagueId}`);
+    const players = await this.playerRepository.getPlayersByLeague(leagueId);
+
+    const topScorers: TopScorer[] = [];
+    const topAssisters: TopAssister[] = [];
+    const topAvgRating: TopAvgRating[] = [];
+    const seasonNumber = players[0]?.currentSeason!.seasonNumber;
+
+    players.forEach((player) => {
+      let totalGoals = 0;
+      let totalAssists = 0;
+      let totalRating = 0;
+      let totalGames = 0;
+
+      // Check current season
+      if (player.currentSeason?.league.equals(leagueId) && player.currentSeason.seasonNumber === seasonNumber) {
+        totalGoals += player.currentSeason.stats.goals;
+        totalAssists += player.currentSeason.stats.assists;
+        totalRating += player.currentSeason.stats.avgRating * player.currentSeason.stats.games;
+        totalGames += player.currentSeason.stats.games;
+      }
+
+      // Check season history
+      player.seasonsHistory
+        .filter((season) => season.league.equals(leagueId) && season.seasonNumber === seasonNumber)
+        .forEach((season) => {
+          totalGoals += season.stats.goals;
+          totalAssists += season.stats.assists;
+          totalRating += season.stats.avgRating * season.stats.games;
+          totalGames += season.stats.games;
+        });
+
+      if (totalGames > 0) {
+        topScorers.push({
+          playerId: player.id,
+          playerName: player.name,
+          position: player.position,
+          teamId: player.currentSeason!.team.toString(),
+          teamName: "",
+          playerImgUrl: player.imgUrl,
+          goals: totalGoals,
+          goalsPerGame: totalGoals / totalGames,
+          games: totalGames,
+        });
+
+        topAssisters.push({
+          playerId: player.id,
+          playerName: player.name,
+          position: player.position,
+          teamId: player.currentSeason!.team.toString(),
+          teamName: "",
+          playerImgUrl: player.imgUrl,
+          assists: totalAssists,
+          assistsPerGame: totalAssists / totalGames,
+          games: totalGames,
+        });
+
+        topAvgRating.push({
+          playerId: player.id,
+          playerName: player.name,
+          position: player.position,
+          teamId: player.currentSeason!.team.toString(),
+          teamName: "",
+          playerImgUrl: player.imgUrl,
+          avgRating: totalGames > 0 ? totalRating / totalGames : 0,
+          games: totalGames,
+        });
+      }
+    });
+
+    topScorers.sort((playerA, playerB) => playerB.goals - playerA.goals);
+    topAssisters.sort((playerA, playerB) => playerB.assists - playerA.assists);
+    topAvgRating.sort((playerA, playerB) => playerB.avgRating - playerA.avgRating);
+
+    if (limit) {
+      topScorers.length = limit;
+      topAssisters.length = limit;
+      topAvgRating.length = limit;
+    }
+
+    await this.populateTeamNamesForTopPlayers(topScorers);
+    await this.populateTeamNamesForTopPlayers(topAssisters);
+    await this.populateTeamNamesForTopPlayers(topAvgRating);
+
+    return { topScorers, topAssisters, topAvgRating };
   }
 
   async getAdvancedLeagueTeamStats(leagueId: string | Types.ObjectId): Promise<any> {
-    logger.info(`LeagueStatsService: getting advanced team stats for league ${leagueId}`);
-    // // const teams = await this.teamRepository.getTeamsByLeague(leagueId);
-    // let mostGoals = 0;
-    // let mostCleanSheets = 0;
-    // let teamWithMostGoals: any = null;
-    // let teamWithMostCleanSheets: any = null;
+    throw new Error("Method not implemented.");
+  }
 
-    // // for (const team of teams) {
-    // //   const teamStats = await this.teamRepository.getTeamSeasonStats(team.id, seasonNumber);
-    // //   if (teamStats.goals > mostGoals) {
-    // //     mostGoals = teamStats.goals;
-    // //     teamWithMostGoals = team;
-    // //   }
-    // //   if (teamStats.cleanSheets > mostCleanSheets) {
-    // //     mostCleanSheets = teamStats.cleanSheets;
-    // //     teamWithMostCleanSheets = team;
-    // //   }
-    // // }
+  private async populateTeamNamesForTopPlayers(topPlayers: { teamId: string; teamName: string }[]): Promise<void> {
+    const teamsIds = topPlayers.map((player) => player.teamId).filter((id) => id);
+    const teams = await this.teamRepository.getTeamsByIds(teamsIds);
 
-    // return {
-    //   teamWithMostGoals: {
-    //     teamId: teamWithMostGoals.id,
-    //     teamName: teamWithMostGoals.name,
-    //     goals: mostGoals,
-    //   },
-    //   teamWithMostCleanSheets: {
-    //     teamId: teamWithMostCleanSheets.id,
-    //     teamName: teamWithMostCleanSheets.name,
-    //     cleanSheets: mostCleanSheets,
-    //   },
-    // };
+    const teamMap = new Map(teams.map((team) => [team.id, team.name]));
+
+    topPlayers.forEach((topPlayer) => {
+      if (topPlayer.teamId) {
+        topPlayer.teamName = teamMap.get(topPlayer.teamId) || "";
+      }
+    });
   }
 }

@@ -10,6 +10,14 @@ import { CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dtos";
 
 @injectable()
 export class PlayerRepository implements IPlayerRepository {
+  async getPlayersByLeague(leagueId: Types.ObjectId | string, session?: ClientSession): Promise<IPlayer[]> {
+    try {
+      return await Player.find({ "currentSeason.league": leagueId }, {}, { session });
+    } catch (err: any) {
+      logger.error(err.message);
+      throw new QueryFailedError(`Failed to get players by league ${leagueId}`);
+    }
+  }
   async getPlayerById(id: string | Types.ObjectId, session?: ClientSession): Promise<IPlayer> {
     const player = await Player.findById(id, {}, { session });
     if (!player) {

@@ -17,12 +17,10 @@ import { FixtureRepository, GameRepository, LeagueRepository, PlayerRepository, 
 import { IGameController, IGameService, IGameRepository } from "../interfaces/game";
 import { ILeagueController, ILeagueService, ILeagueRepository } from "../interfaces/league";
 import { ITeamController, ITeamRepository, ITeamService } from "../interfaces/team";
-import { IPlayerTeamService } from "../interfaces/wrapper-services/player-team-service.interface";
-import { ITeamLeagueService } from "../interfaces/wrapper-services/team-league-service.interface";
 import { ImageService } from "../interfaces/util-services/image-service.interface";
 import { CacheService } from "../interfaces/util-services/cache-service.interface";
-import { ITeamStatsService } from "../interfaces/wrapper-services/team-stats-service.interface";
-import { TeamStatsService } from "../services/wrapper-services/team-stats-service";
+import { ILeagueStatsService, IPlayerTeamService, ITeamLeagueService, ITeamStatsService } from "../interfaces/wrapper-services";
+import { TeamStatsService, LeagueStatsService } from "../services/wrapper-services";
 
 // Register repositories
 container.registerSingleton<IPlayerRepository>("IPlayerRepository", PlayerRepository);
@@ -40,6 +38,7 @@ container.registerSingleton<ILeagueService>("ILeagueService", LeagueService);
 container.registerSingleton<IPlayerTeamService>("IPlayerTeamService", PlayerTeamService);
 container.registerSingleton<ITeamLeagueService>("ITeamLeagueService", TeamLeagueService);
 container.registerSingleton<ITeamStatsService>("ITeamStatsService", TeamStatsService);
+container.registerSingleton<ILeagueStatsService>("ILeagueStatsService", LeagueStatsService);
 
 container.registerSingleton<ImageService>("ImageService", CloudinaryImageService);
 container.registerSingleton<CacheService>("CacheService", RedisCacheService);
