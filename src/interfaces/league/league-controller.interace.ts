@@ -3,6 +3,8 @@ import { NextFunction, Request, Response } from "express";
 export interface ILeagueController {
   getLeagueById: (req: Request, res: Response, next: NextFunction) => void;
   getAllLeagues: (req: Request, res: Response, next: NextFunction) => void;
+  getAdvancedPlayersStats: (req: Request, res: Response, next: NextFunction) => void;
+  getAdvancedTeamsStats: (req: Request, res: Response, next: NextFunction) => void;
   getTopScorers: (req: Request, res: Response, next: NextFunction) => void;
   getTopAssists: (req: Request, res: Response, next: NextFunction) => void;
   getLeagueTable: (req: Request, res: Response, next: NextFunction) => void;

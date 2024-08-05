@@ -6,8 +6,22 @@ import logger from "../config/logger";
 import { IPlayer } from "../models/player";
 
 export class TeamRepository implements ITeamRepository {
-  getTeams(): Promise<ITeam[]> {
-    return Team.find();
+  async getTeamsByIds(teamIds: (string | Types.ObjectId)[]): Promise<ITeam[]> {
+    try {
+      return await Team.find({ _id: { $in: teamIds } });
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`Failed to find teams by ids: ${teamIds}`);
+    }
+  }
+
+  async getTeams(): Promise<ITeam[]> {
+    try {
+      return Team.find();
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`Failed to find teams`);
+    }
   }
 
   async getTeamById(id: string | Types.ObjectId, session?: ClientSession): Promise<ITeam> {

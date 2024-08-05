@@ -2,6 +2,7 @@ import { ClientSession, Types } from "mongoose";
 import { ITeam, TeamWithPlayers } from "../../models/team";
 
 export interface ITeamRepository {
+  getTeamsByIds(teamIds: (string | Types.ObjectId)[]): Promise<ITeam[]>;
   isTeamNameExists(newName: string): Promise<boolean>;
   getTeamById(id: string | Types.ObjectId, session?: ClientSession): Promise<ITeam>;
 
