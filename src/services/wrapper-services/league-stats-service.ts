@@ -1,26 +1,19 @@
-import { AdvancedPlayersStats, AdvancedTeamStats, TopAssister, TopAvgRating, TopScorer } from "@pro-clubs-manager/shared-dtos";
+import { AdvancedPlayersStats, TopAssister, TopAvgRating, TopScorer } from "@pro-clubs-manager/shared-dtos";
 import { Types } from "mongoose";
 import { inject, injectable } from "tsyringe";
 import logger from "../../config/logger";
 import { IPlayerRepository } from "../../interfaces/player";
 import { ITeamRepository } from "../../interfaces/team";
 import { ILeagueStatsService } from "../../interfaces/wrapper-services/league-stats-service.interface";
-import { ILeagueRepository } from "../../interfaces/league";
 
 @injectable()
 export class LeagueStatsService implements ILeagueStatsService {
   private playerRepository: IPlayerRepository;
   private teamRepository: ITeamRepository;
-  private leagueRepository: ITeamRepository;
 
-  constructor(
-    @inject("IPlayerRepository") playerRepository: IPlayerRepository,
-    @inject("ITeamRepository") teamRepository: ITeamRepository,
-    @inject("ILeagueRepository") leagueRepository: ILeagueRepository
-  ) {
+  constructor(@inject("IPlayerRepository") playerRepository: IPlayerRepository, @inject("ITeamRepository") teamRepository: ITeamRepository) {
     this.playerRepository = playerRepository;
     this.teamRepository = teamRepository;
-    this.leagueRepository = teamRepository;
   }
 
   async getLeagueTopScorers(leagueId: string | Types.ObjectId, limit: number = 10): Promise<TopScorer[]> {
@@ -253,15 +246,17 @@ export class LeagueStatsService implements ILeagueStatsService {
       topAvgRating.length = limit;
     }
 
-    await this.populateTeamNamesForTopPlayers(topScorers);
-    await this.populateTeamNamesForTopPlayers(topAssisters);
-    await this.populateTeamNamesForTopPlayers(topAvgRating);
+    await Promise.all([
+      this.populateTeamNamesForTopPlayers(topScorers),
+      this.populateTeamNamesForTopPlayers(topAssisters),
+      this.populateTeamNamesForTopPlayers(topAvgRating),
+    ]);
 
     return { topScorers, topAssisters, topAvgRating };
   }
 
   async getAdvancedLeagueTeamStats(leagueId: string | Types.ObjectId): Promise<any> {
-    throw new Error("Method not implemented.");
+    logger.info(`LeagueStatsService: getting advanced team stats for league with id ${leagueId}`);
   }
 
   private async populateTeamNamesForTopPlayers(topPlayers: { teamId: string; teamName: string }[]): Promise<void> {
