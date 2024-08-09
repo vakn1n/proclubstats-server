@@ -7,6 +7,9 @@ export interface IPlayerController {
   setPlayerImage(req: Request, res: Response, next: NextFunction): Promise<void>;
 
   getPlayerById(req: Request, res: Response, next: NextFunction): Promise<void>;
+
+  getPlayerStatsByPosition(req: Request, res: Response, next: NextFunction): Promise<void>;
+
   getFreeAgents(req: Request, res: Response, next: NextFunction): Promise<void>;
 
   deletePlayer(req: Request, res: Response, next: NextFunction): Promise<void>;

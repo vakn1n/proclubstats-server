@@ -35,4 +35,6 @@ export interface IGameRepository {
     limit?: number,
     session?: ClientSession
   ): Promise<IGame[]>;
+
+  getPlayerPlayedGames(playerId: string | Types.ObjectId, league: string | Types.ObjectId, seasonNumber: number, session?: ClientSession): Promise<IGame[]>;
 }

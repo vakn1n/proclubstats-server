@@ -13,6 +13,7 @@ router.patch("/:id/setImage", upload.single("file"), (req, res, next) => playerC
 router.put("/:id/rename", upload.single("file"), (req, res, next) => playerController.renamePlayer(req, res, next));
 
 router.get("/freeAgents", (req, res, next) => playerController.getFreeAgents(req, res, next));
+router.get("/:id/statsByPosition", (req, res, next) => playerController.getPlayerStatsByPosition(req, res, next));
 router.get("/:id", (req, res, next) => playerController.getPlayerById(req, res, next));
 router.delete("/:id", (req, res, next) => playerController.deletePlayer(req, res, next));
 

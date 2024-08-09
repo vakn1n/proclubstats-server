@@ -117,6 +117,24 @@ export class GameRepository implements IGameRepository {
     }
   }
 
+  async getPlayerPlayedGames(
+    playerId: string | Types.ObjectId,
+    league: string | Types.ObjectId,
+    seasonNumber: number,
+    session?: ClientSession
+  ): Promise<IGame[]> {
+    try {
+      return await Game.find({
+        league,
+        seasonNumber,
+        $or: [{ "homeTeamPlayersPerformance.playerId": playerId }, { "awayTeamPlayersPerformance.playerId": playerId }, {}, { session }],
+      });
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`Failed to get played games for player ${playerId}`);
+    }
+  }
+
   async deleteGameById(id: string | Types.ObjectId, session?: ClientSession | undefined): Promise<void> {
     try {
       await Game.findByIdAndDelete(id, { session });

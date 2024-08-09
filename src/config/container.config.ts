@@ -19,8 +19,8 @@ import { ILeagueController, ILeagueService, ILeagueRepository } from "../interfa
 import { ITeamController, ITeamRepository, ITeamService } from "../interfaces/team";
 import { ImageService } from "../interfaces/util-services/image-service.interface";
 import { CacheService } from "../interfaces/util-services/cache-service.interface";
-import { ILeagueStatsService, IPlayerTeamService, ITeamLeagueService, ITeamStatsService } from "../interfaces/wrapper-services";
-import { TeamStatsService, LeagueStatsService } from "../services/wrapper-services";
+import { ILeagueStatsService, IPlayerStatsService, IPlayerTeamService, ITeamLeagueService, ITeamStatsService } from "../interfaces/wrapper-services";
+import { TeamStatsService, LeagueStatsService, PlayerStatsService } from "../services/wrapper-services";
 
 // Register repositories
 container.registerSingleton<IPlayerRepository>("IPlayerRepository", PlayerRepository);
@@ -38,6 +38,7 @@ container.registerSingleton<ILeagueService>("ILeagueService", LeagueService);
 container.registerSingleton<IPlayerTeamService>("IPlayerTeamService", PlayerTeamService);
 container.registerSingleton<ITeamLeagueService>("ITeamLeagueService", TeamLeagueService);
 container.registerSingleton<ITeamStatsService>("ITeamStatsService", TeamStatsService);
+container.registerSingleton<IPlayerStatsService>("IPlayerStatsService", PlayerStatsService);
 container.registerSingleton<ILeagueStatsService>("ILeagueStatsService", LeagueStatsService);
 
 container.registerSingleton<ImageService>("ImageService", CloudinaryImageService);

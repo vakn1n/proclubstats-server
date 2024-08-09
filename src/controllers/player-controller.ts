@@ -4,14 +4,14 @@ import { inject, injectable } from "tsyringe";
 import { IPlayerController } from "../interfaces/player";
 import { IPlayerService } from "../interfaces/player/player-service.interface";
 import logger from "../config/logger";
+import { IPlayerStatsService } from "../interfaces/wrapper-services";
 
 @injectable()
 export default class PlayerController implements IPlayerController {
-  private playerService: IPlayerService;
-
-  constructor(@inject("IPlayerService") playerService: IPlayerService) {
-    this.playerService = playerService;
-  }
+  constructor(
+    @inject("IPlayerService") private playerService: IPlayerService,
+    @inject("IPlayerStatsService") private playerStatsService: IPlayerStatsService
+  ) {}
 
   async getPlayerById(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
@@ -56,6 +56,22 @@ export default class PlayerController implements IPlayerController {
       }
 
       res.status(201).json(player);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+
+  async getPlayerStatsByPosition(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id } = req.params;
+
+    if (!id) {
+      res.status(400).send({ message: "No playerId provided" });
+      return;
+    }
+
+    try {
+      const playerStats = await this.playerStatsService.getPlayerStatsByPosition(id);
+      res.json(playerStats);
     } catch (error: any) {
       next(error);
     }
