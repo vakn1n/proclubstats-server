@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { AddGameData } from "./game";
+import { AddGameData } from "./game/game";
 
 export interface AddFixtureData {
   leagueId: mongoose.Types.ObjectId;

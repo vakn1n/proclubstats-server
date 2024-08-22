@@ -1,5 +1,5 @@
 import { ClientSession, Types } from "mongoose";
-import { AddGameData, IGame } from "../../models/game";
+import { AddGameData, IGame } from "../../models/game/game";
 import { GameDTO, UpdatePlayerPerformanceDataRequest } from "@pro-clubs-manager/shared-dtos";
 
 export interface IGameService {

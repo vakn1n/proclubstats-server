@@ -1,5 +1,5 @@
 import { GameDTO, PlayerPerformanceDTO } from "@pro-clubs-manager/shared-dtos";
-import { IGame } from "../models/game";
+import { IGame } from "../models/game/game";
 
 type PopulatedTeam = {
   id: string;

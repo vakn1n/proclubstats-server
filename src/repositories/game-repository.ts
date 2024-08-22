@@ -1,9 +1,9 @@
 import { ClientSession, Types } from "mongoose";
 import { IGameRepository } from "../interfaces/game/game-repository.interface";
-import Game, { AddGameData, IGame } from "../models/game";
 import { BadRequestError, NotFoundError, QueryFailedError } from "../errors";
 import logger from "../config/logger";
 import { GAME_STATUS } from "@pro-clubs-manager/shared-dtos";
+import Game, { IGame, AddGameData, PopulatedPlayerGameData } from "../models/game/game";
 
 export class GameRepository implements IGameRepository {
   async createGame(
@@ -117,25 +117,49 @@ export class GameRepository implements IGameRepository {
     }
   }
 
-  async getPlayerPlayedGames(
-    playerId: string | Types.ObjectId,
-    league: string | Types.ObjectId,
-    seasonNumber: number,
-    session?: ClientSession
-  ): Promise<IGame[]> {
+  async getPlayerPlayedSeasonGames(playerId: string, league: string | Types.ObjectId, seasonNumber: number, session?: ClientSession): Promise<IGame[]> {
     try {
-      return await Game.find({
-        league,
-        seasonNumber,
-        $or: [{ "homeTeamPlayersPerformance.playerId": playerId }, { "awayTeamPlayersPerformance.playerId": playerId }, {}, { session }],
-      });
+      return await Game.find(
+        {
+          league,
+          seasonNumber,
+          $or: [{ "homeTeamPlayersPerformance.playerId": playerId }, { "awayTeamPlayersPerformance.playerId": playerId }],
+        },
+        null,
+        { session }
+      );
     } catch (e: any) {
       logger.error(e.message);
       throw new QueryFailedError(`Failed to get played games for player ${playerId}`);
     }
   }
 
-  async deleteGameById(id: string | Types.ObjectId, session?: ClientSession | undefined): Promise<void> {
+  async getPlayerLastGames(
+    playerId: string | Types.ObjectId,
+    league: string | Types.ObjectId,
+    seasonNumber: number,
+    numberOfGames: number
+  ): Promise<PopulatedPlayerGameData[]> {
+    try {
+      // Fetch the last 5 games for the player with populated teams data of each game
+      const games = (await Game.find({
+        league,
+        seasonNumber,
+        $or: [{ "homeTeamPlayersPerformance.playerId": playerId }, { "awayTeamPlayersPerformance.playerId": playerId }],
+      })
+        .sort({ date: -1, seasonNumber: -1, round: -1, _id: -1 })
+        .limit(numberOfGames)
+        .populate("homeTeam awayTeam", "name id imgUrl")
+        .populate("league", "id name imgUrl")) as PopulatedPlayerGameData[];
+
+      return games;
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`Failed to get last ${numberOfGames} games for player with id ${playerId}`);
+    }
+  }
+
+  async deleteGameById(id: string | Types.ObjectId, session?: ClientSession): Promise<void> {
     try {
       await Game.findByIdAndDelete(id, { session });
     } catch (e: any) {

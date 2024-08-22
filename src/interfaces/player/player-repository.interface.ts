@@ -1,7 +1,7 @@
 // player-repository.interface.ts
 import { ClientSession, Types } from "mongoose";
 import { IPlayer } from "../../models/player";
-import { IPlayerGamePerformance } from "../../models/game";
+import { PlayerGamePerformance } from "../../models/game/game";
 import { CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dtos";
 
 export interface IPlayerRepository {
@@ -19,6 +19,6 @@ export interface IPlayerRepository {
 
   removePlayersFromTeam(playersIds: Types.ObjectId[], session?: ClientSession): Promise<void>;
 
-  updatePlayersGamePerformance(playersStats: IPlayerGamePerformance[], session: ClientSession): Promise<void>;
-  revertPlayersGamePerformance(playersStats: IPlayerGamePerformance[], session: ClientSession): Promise<void>;
+  updatePlayersGamePerformance(playersStats: PlayerGamePerformance[], session: ClientSession): Promise<void>;
+  revertPlayersGamePerformance(playersStats: PlayerGamePerformance[], session: ClientSession): Promise<void>;
 }

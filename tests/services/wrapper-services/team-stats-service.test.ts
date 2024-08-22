@@ -2,7 +2,7 @@ import { Types } from "mongoose";
 import "reflect-metadata";
 import { MockGameRepository } from "../../../src/mocks/repositories/mock-game-repository";
 import { MockTeamRepository } from "../../../src/mocks/repositories/mock-team-repository";
-import { IGame } from "../../../src/models/game";
+import { IGame } from "../../../src/models/game/game";
 import { ITeam, TeamWithPlayers } from "../../../src/models/team";
 import { TeamStatsService } from "../../../src/services/wrapper-services/team-stats-service";
 

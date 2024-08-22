@@ -1,5 +1,6 @@
 import { Types, ClientSession } from "mongoose";
-import { AddGameData, IGame } from "../../models/game";
+import { AddGameData, IGame } from "../../models/game/game";
+import { PopulatedPlayerGameData } from "../../models/game/game-types";
 
 export interface IGameRepository {
   createGame(
@@ -36,5 +37,12 @@ export interface IGameRepository {
     session?: ClientSession
   ): Promise<IGame[]>;
 
-  getPlayerPlayedGames(playerId: string | Types.ObjectId, league: string | Types.ObjectId, seasonNumber: number, session?: ClientSession): Promise<IGame[]>;
+  getPlayerPlayedSeasonGames(playerId: string, league: string | Types.ObjectId, seasonNumber: number, session?: ClientSession): Promise<IGame[]>;
+
+  getPlayerLastGames(
+    playerId: string | Types.ObjectId,
+    league: string | Types.ObjectId,
+    seasonNumber: number,
+    numberOfGames: number
+  ): Promise<PopulatedPlayerGameData[]>;
 }

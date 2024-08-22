@@ -1,6 +1,6 @@
 import { Types, ClientSession } from "mongoose";
 import { IGameRepository } from "../../interfaces/game";
-import { AddGameData, IGame } from "../../models/game";
+import { AddGameData, IGame } from "../../models/game/game";
 
 export class MockGameRepository implements IGameRepository {
   getLeagueSeasonTeamGames = jest.fn<Promise<IGame[]>, [string | Types.ObjectId[], string | Types.ObjectId, number, number?, ClientSession?]>();

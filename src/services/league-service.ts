@@ -5,7 +5,7 @@ import logger from "../config/logger";
 import { FixtureMapper } from "../mappers/fixture-mapper";
 import LeagueMapper from "../mappers/league-mapper";
 import Fixture, { AddFixtureData } from "../models/fixture";
-import { AddGameData } from "../models/game";
+import { AddGameData } from "../models/game/game";
 import { ILeague } from "../models/league";
 import { IFixtureService } from "../interfaces/fixture";
 import { ILeagueService, ILeagueRepository } from "../interfaces/league";

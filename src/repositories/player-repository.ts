@@ -5,7 +5,7 @@ import { IPlayerRepository } from "../interfaces/player/player-repository.interf
 import Player, { IPlayer } from "../models/player";
 import logger from "../config/logger";
 import { injectable } from "tsyringe";
-import { IPlayerGamePerformance } from "../models/game";
+import { PlayerGamePerformance } from "../models/game/game";
 import { CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dtos";
 
 @injectable()
@@ -94,7 +94,7 @@ export class PlayerRepository implements IPlayerRepository {
     }
   }
 
-  async updatePlayersGamePerformance(playersStats: IPlayerGamePerformance[], session: ClientSession): Promise<void> {
+  async updatePlayersGamePerformance(playersStats: PlayerGamePerformance[], session: ClientSession): Promise<void> {
     const updateOperations = playersStats.map((playerStats) => {
       const { playerId, goals, assists, rating, playerOfTheMatch, cleanSheet } = playerStats;
       return this.createUpdatePlayerPerformanceQuery(playerId, goals || 0, assists || 0, rating, playerOfTheMatch || false, cleanSheet);
@@ -112,7 +112,7 @@ export class PlayerRepository implements IPlayerRepository {
     }
   }
 
-  async revertPlayersGamePerformance(playersStats: IPlayerGamePerformance[], session: ClientSession) {
+  async revertPlayersGamePerformance(playersStats: PlayerGamePerformance[], session: ClientSession) {
     const revertOperations = playersStats.map((playerStats) => {
       const { playerId, goals, assists, rating, playerOfTheMatch, cleanSheet } = playerStats;
       return this.createRevertPlayerPerformanceQuery(playerId, goals || 0, assists || 0, rating, playerOfTheMatch || false, cleanSheet);
@@ -130,10 +130,17 @@ export class PlayerRepository implements IPlayerRepository {
     }
   }
 
-  private createUpdatePlayerPerformanceQuery(playerId: string, goals: number, assists: number, rating: number, playerOfTheMatch: boolean, cleanSheet: boolean) {
+  private createUpdatePlayerPerformanceQuery(
+    playerId: Types.ObjectId,
+    goals: number,
+    assists: number,
+    rating: number,
+    playerOfTheMatch: boolean,
+    cleanSheet: boolean
+  ) {
     return {
       updateOne: {
-        filter: { _id: new Types.ObjectId(playerId) },
+        filter: { _id: playerId },
         update: [
           {
             $set: {
@@ -161,10 +168,17 @@ export class PlayerRepository implements IPlayerRepository {
     };
   }
 
-  private createRevertPlayerPerformanceQuery(playerId: string, goals: number, assists: number, rating: number, playerOfTheMatch: boolean, cleanSheet: boolean) {
+  private createRevertPlayerPerformanceQuery(
+    playerId: Types.ObjectId,
+    goals: number,
+    assists: number,
+    rating: number,
+    playerOfTheMatch: boolean,
+    cleanSheet: boolean
+  ) {
     return {
       updateOne: {
-        filter: { _id: new Types.ObjectId(playerId) },
+        filter: { _id: playerId },
         update: [
           {
             $set: {

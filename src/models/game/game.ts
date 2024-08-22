@@ -1,22 +1,6 @@
 import { GAME_STATUS } from "@pro-clubs-manager/shared-dtos";
 import mongoose, { Document, Schema } from "mongoose";
-
-export type AddGameData = {
-  homeTeam: mongoose.Types.ObjectId;
-  awayTeam: mongoose.Types.ObjectId;
-  date?: Date;
-  round?: number;
-};
-
-export type IPlayerGamePerformance = {
-  playerId: string;
-  rating: number;
-  playerOfTheMatch?: boolean;
-  goals?: number;
-  assists?: number;
-  cleanSheet: boolean;
-  positionPlayed: string;
-};
+import { PlayerGamePerformance } from "./game-types";
 
 export interface IGame extends Document {
   id: string;
@@ -32,8 +16,8 @@ export interface IGame extends Document {
     homeTeamGoals: number;
     awayTeamGoals: number;
   };
-  homeTeamPlayersPerformance?: IPlayerGamePerformance[];
-  awayTeamPlayersPerformance?: IPlayerGamePerformance[];
+  homeTeamPlayersPerformance?: PlayerGamePerformance[];
+  awayTeamPlayersPerformance?: PlayerGamePerformance[];
 }
 
 const playerGameStatsSchema = new Schema(
@@ -78,3 +62,4 @@ const gameSchema = new Schema<IGame>(
 const Game = mongoose.model<IGame>("Game", gameSchema);
 
 export default Game;
+export { PlayerGamePerformance, AddGameData, PopulatedPlayerGameData } from "./game-types";

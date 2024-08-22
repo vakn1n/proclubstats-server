@@ -4,9 +4,9 @@ import logger from "../config/logger";
 import { IPlayerRepository, IPlayerService } from "../interfaces/player";
 import { ImageService } from "../interfaces/util-services/image-service.interface";
 import { PlayerMapper } from "../mappers/player-mapper";
-import { IPlayerGamePerformance } from "../models/game";
 import { IPlayer, IPlayerSeason } from "../models/player";
 import { PlayerDTO, CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dtos";
+import { PlayerGamePerformance } from "../models/game/game";
 
 @injectable()
 export class PlayerService implements IPlayerService {
@@ -72,12 +72,12 @@ export class PlayerService implements IPlayerService {
     return await this.playerRepository.removePlayersFromTeam(playersIds, session);
   }
 
-  async updatePlayersGamePerformance(playersStats: IPlayerGamePerformance[], session: ClientSession): Promise<void> {
+  async updatePlayersGamePerformance(playersStats: PlayerGamePerformance[], session: ClientSession): Promise<void> {
     logger.info(`PlayerService: updating players game performance..`);
     return await this.playerRepository.updatePlayersGamePerformance(playersStats, session);
   }
 
-  async revertPlayersGamePerformance(playersStats: IPlayerGamePerformance[], session: ClientSession): Promise<void> {
+  async revertPlayersGamePerformance(playersStats: PlayerGamePerformance[], session: ClientSession): Promise<void> {
     logger.info(`PlayerService: reverting players game performance..`);
     return await this.playerRepository.revertPlayersGamePerformance(playersStats, session);
   }

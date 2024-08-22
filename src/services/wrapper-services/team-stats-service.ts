@@ -2,7 +2,7 @@ import { inject, injectable } from "tsyringe";
 import { IGameRepository } from "../../interfaces/game";
 import { ITeamRepository } from "../../interfaces/team";
 import { ITeamStatsService } from "../../interfaces/wrapper-services/team-stats-service.interface";
-import { IGame } from "../../models/game";
+import { IGame } from "../../models/game/game";
 import logger from "../../config/logger";
 import { Types, ClientSession } from "mongoose";
 import { TeamWithPlayers } from "../../models/team";

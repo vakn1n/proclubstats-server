@@ -6,7 +6,7 @@ import { IGameRepository, IGameService } from "../interfaces/game";
 import { IPlayerService } from "../interfaces/player";
 import { ITeamService } from "../interfaces/team";
 import { GameMapper } from "../mappers/game-mapper";
-import { AddGameData, IGame, IPlayerGamePerformance } from "../models/game";
+import { AddGameData, IGame, PlayerGamePerformance } from "../models/game/game";
 import { transactionService } from "./util-services/transaction-service";
 import { GameDTO, GAME_STATUS, UpdatePlayerPerformanceDataRequest } from "@pro-clubs-manager/shared-dtos";
 @injectable()
@@ -110,8 +110,9 @@ export class GameService implements IGameService {
 
     return await transactionService.withTransaction(async (session) => {
       const isCleanSheet = isHomeTeam ? game.result!.awayTeamGoals === 0 : game.result!.homeTeamGoals === 0;
-      const playersStats: IPlayerGamePerformance[] = playersPerformance.map((playerPerformance) => ({
+      const playersStats: PlayerGamePerformance[] = playersPerformance.map((playerPerformance) => ({
         ...playerPerformance,
+        playerId: new Types.ObjectId(playerPerformance.playerId),
         cleanSheet: isCleanSheet,
       }));
 
@@ -127,7 +128,7 @@ export class GameService implements IGameService {
     });
   }
 
-  private async setGamePlayersPerformance(game: IGame, isHomeTeam: boolean, playersStats: IPlayerGamePerformance[], session: ClientSession) {
+  private async setGamePlayersPerformance(game: IGame, isHomeTeam: boolean, playersStats: PlayerGamePerformance[], session: ClientSession) {
     if (isHomeTeam) {
       if (game.homeTeamPlayersPerformance?.length) {
         await this.playerService.revertPlayersGamePerformance(game.homeTeamPlayersPerformance, session);

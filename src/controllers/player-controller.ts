@@ -77,6 +77,18 @@ export default class PlayerController implements IPlayerController {
     }
   }
 
+  async getPlayerForm(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: playerId } = req.params;
+    const numberOfGames = req.query.numGames ? Number(req.query.numGames) : 5;
+
+    try {
+      const playerForm = await this.playerStatsService.getLastFiveGamesPerformance(playerId, numberOfGames);
+      res.send(playerForm);
+    } catch (e) {
+      next(e);
+    }
+  }
+
   async setPlayerImage(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
     const file = req.file;

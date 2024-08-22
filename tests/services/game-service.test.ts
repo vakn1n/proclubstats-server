@@ -7,7 +7,7 @@ import { ITeamService } from "../../src/interfaces/team";
 import { MockGameRepository } from "../../src/mocks/repositories/mock-game-repository";
 import { MockTeamService, MockPlayerService } from "../../src/mocks/services";
 import { GameService } from "../../src/services";
-import { IGame } from "../../src/models/game";
+import { IGame } from "../../src/models/game/game";
 import { GameMapper } from "../../src/mappers/game-mapper";
 import { GameDTO } from "@pro-clubs-manager/shared-dtos";
 import { BadRequestError } from "../../src/errors";

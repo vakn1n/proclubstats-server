@@ -9,6 +9,7 @@ export interface IPlayerController {
   getPlayerById(req: Request, res: Response, next: NextFunction): Promise<void>;
 
   getPlayerStatsByPosition(req: Request, res: Response, next: NextFunction): Promise<void>;
+  getPlayerForm(req: Request, res: Response, next: NextFunction): Promise<void>;
 
   getFreeAgents(req: Request, res: Response, next: NextFunction): Promise<void>;
 

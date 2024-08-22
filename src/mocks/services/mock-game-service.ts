@@ -1,7 +1,7 @@
 import { GameDTO, UpdatePlayerPerformanceDataRequest } from "@pro-clubs-manager/shared-dtos";
 import { Types, ClientSession } from "mongoose";
 import { IGameService } from "../../interfaces/game";
-import { AddGameData, IGame } from "../../models/game";
+import { AddGameData, IGame } from "../../models/game/game";
 
 export class MockGameService implements IGameService {
   getGameById = jest.fn<Promise<GameDTO>, [string | Types.ObjectId, ClientSession?]>();
