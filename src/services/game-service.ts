@@ -76,7 +76,7 @@ export class GameService implements IGameService {
     return await this.gameRepository.createGames(fixtureId, leagueId, seasonNumber, gamesData, session);
   }
 
-  async updateGameResult(gameId: string, homeTeamGoals: number, awayTeamGoals: number): Promise<void> {
+  async updateGameResult(gameId: string, homeTeamGoals: number, awayTeamGoals: number, date: Date): Promise<void> {
     logger.info(`GameService: updating game ${gameId} result`);
 
     const game = await this.gameRepository.getGameById(gameId);
@@ -93,6 +93,7 @@ export class GameService implements IGameService {
       };
 
       game.status = GAME_STATUS.PLAYED;
+      game.date = date;
 
       await this.teamService.updateTeamGameStats(game.homeTeam, homeTeamGoals, awayTeamGoals, session);
       await this.teamService.updateTeamGameStats(game.awayTeam, awayTeamGoals, homeTeamGoals, session);

@@ -16,7 +16,7 @@ export interface IGameService {
     session: ClientSession
   ): Promise<IGame[]>;
 
-  updateGameResult(gameId: string, homeTeamGoals: number, awayTeamGoals: number): Promise<void>;
+  updateGameResult(gameId: string, homeTeamGoals: number, awayTeamGoals: number, date: Date): Promise<void>;
 
   updateTeamPlayersPerformance(gameId: string, isHomeTeam: boolean, playersPerformance: UpdatePlayerPerformanceDataRequest[]): Promise<void>;
 

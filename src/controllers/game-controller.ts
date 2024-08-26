@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
 import { IGameController, IGameService } from "../interfaces/game";
+import { UpdateGameResult } from "@pro-clubs-manager/shared-dtos";
 
 @injectable()
 export default class GameController implements IGameController {
@@ -46,15 +47,15 @@ export default class GameController implements IGameController {
 
   async updateGameResult(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id } = req.params;
-    const { homeTeamGoals, awayTeamGoals } = req.body;
+    const { homeTeamGoals, awayTeamGoals, date } = req.body as UpdateGameResult;
 
-    if (homeTeamGoals === undefined || homeTeamGoals === undefined) {
+    if (homeTeamGoals === undefined || homeTeamGoals === undefined || !date) {
       res.status(400).send({ message: "Invalid result provided" });
       return;
     }
 
     try {
-      await this.gameService.updateGameResult(id, homeTeamGoals, awayTeamGoals);
+      await this.gameService.updateGameResult(id, homeTeamGoals, awayTeamGoals, date);
       res.sendStatus(200);
     } catch (error: any) {
       next(error);

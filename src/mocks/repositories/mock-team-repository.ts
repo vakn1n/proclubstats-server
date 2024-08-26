@@ -3,6 +3,7 @@ import { ITeamRepository } from "../../interfaces/team";
 import { ITeam, TeamWithPlayers } from "../../models/team";
 
 export class MockTeamRepository implements ITeamRepository {
+  getTeamsByIds = jest.fn<Promise<ITeam[]>, [(string | Types.ObjectId)[]]>();
   isTeamNameExists = jest.fn<Promise<boolean>, [string]>();
   renameTeam = jest.fn<Promise<void>, [string, string, ClientSession?]>();
   getTeamById = jest.fn<Promise<ITeam>, [string | Types.ObjectId, ClientSession?]>();
