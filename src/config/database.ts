@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { config } from "dotenv";
 config();
 
-const dbName = process.env.NODE_ENV === "production" ? process.env.MONGODB_DB_PROD : process.env.MONGODB_DB_DEV;
+const dbName = process.env.RUN_MODE === "prod" ? process.env.MONGODB_DB_PROD : process.env.MONGODB_DB_DEV;
 const uri = `mongodb+srv://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@${process.env.MONGODB_CLUSTER}/${dbName}?retryWrites=true&w=majority`;
 
 async function connectToDatabase() {
