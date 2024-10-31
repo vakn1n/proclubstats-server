@@ -57,7 +57,10 @@ export class LeagueService implements ILeagueService {
         fixtures: [],
         startDate,
         endDate,
+        teams: league.teams,
       };
+
+      await league.save({ session });
 
       // start new season for all the teams in the league
       await this.teamService.startNewLeagueSeason(league._id, newSeasonNumber, session);
@@ -75,21 +78,6 @@ export class LeagueService implements ILeagueService {
     const league = await this.leagueRepository.createLeague(name, imgUrl);
 
     return league;
-  }
-
-  async removeTeamFromLeague(leagueId: Types.ObjectId, teamId: Types.ObjectId, session: ClientSession): Promise<void> {
-    logger.info(`Removing team with id ${teamId} from league with id ${leagueId}`);
-
-    const league = await this.leagueRepository.getLeagueById(leagueId);
-
-    const teamIndex = league.teams.indexOf(teamId);
-    if (teamIndex === -1) {
-      throw new NotFoundError(`Team with id ${teamId} not found in league with id ${leagueId}`);
-    }
-
-    league.teams.splice(teamIndex, 1);
-    await league.save({ session });
-    await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`);
   }
 
   async createFixture(leagueId: string, addFixtureData: AddSingleFixtureData): Promise<FixtureDTO> {

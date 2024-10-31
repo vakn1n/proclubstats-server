@@ -41,6 +41,7 @@ export class TeamService implements ITeamService {
 
   async startNewLeagueSeason(leagueId: Types.ObjectId, seasonNumber: number, session: ClientSession): Promise<void> {
     logger.info(`TeamService: Starting new league season for all teams in league ${leagueId}`);
+
     const teams = await this.teamRepository.getTeamsByLeagueId(leagueId, session);
 
     const newSeason: ITeamSeason = {

@@ -83,42 +83,6 @@ describe("LeagueService", () => {
     });
   });
 
-  describe("removeTeamFromLeague", () => {
-    it("should remove a team from the league", async () => {
-      const leagueId = new Types.ObjectId("60d5ec49b4dcd204d8e8bc17");
-      const teamId = new Types.ObjectId("60d5ec49b4dcd204d8e8bc18");
-      const session = {} as ClientSession;
-
-      const mockLeague = {
-        _id: leagueId,
-        teams: [teamId],
-        save: jest.fn(),
-      };
-
-      leagueRepository.getLeagueById.mockResolvedValue(mockLeague as any);
-
-      await leagueService.removeTeamFromLeague(leagueId, teamId, session);
-
-      expect(leagueRepository.getLeagueById).toHaveBeenCalledWith(leagueId);
-      expect(mockLeague.teams).not.toContain(teamId);
-      expect(mockLeague.save).toHaveBeenCalledWith({ session });
-      expect(cacheService.delete).toHaveBeenCalledWith(`leagueTable:${leagueId}`);
-    });
-
-    it("should throw NotFoundError if team not found in the league", async () => {
-      const leagueId = new Types.ObjectId("60d5ec49b4dcd204d8e8bc17");
-      const teamId = new Types.ObjectId("60d5ec49b4dcd204d8e8bc18");
-      const session = {} as ClientSession;
-
-      leagueRepository.getLeagueById.mockResolvedValue({
-        _id: leagueId,
-        teams: [],
-      } as any);
-
-      await expect(leagueService.removeTeamFromLeague(leagueId, teamId, session)).rejects.toThrow(NotFoundError);
-    });
-  });
-
   describe("createFixture", () => {
     it("should create a fixture for the league", async () => {
       const leagueId = "60d5ec49b4dcd204d8e8bc17";

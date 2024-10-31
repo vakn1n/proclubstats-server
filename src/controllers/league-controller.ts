@@ -4,6 +4,7 @@ import { inject, injectable } from "tsyringe";
 import { ILeagueController, ILeagueService } from "../interfaces/league";
 import { ImageService } from "../interfaces/util-services/image-service.interface";
 import { ILeagueStatsService, ITeamLeagueService } from "../interfaces/wrapper-services";
+import League from "../models/league";
 
 @injectable()
 export default class LeagueController implements ILeagueController {

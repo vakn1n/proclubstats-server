@@ -1,9 +1,17 @@
 import mongoose from "mongoose";
+import { config } from "dotenv";
+config();
+
+const dbName = process.env.NODE_ENV === "production" ? process.env.MONGODB_DB_PROD : process.env.MONGODB_DB_DEV;
+const uri = `mongodb+srv://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@${process.env.MONGODB_CLUSTER}/${dbName}?retryWrites=true&w=majority`;
 
 async function connectToDatabase() {
-  const connectionString = `mongodb+srv://${process.env.MONGO_DB_USERNAME}:${process.env.MONGO_DB_PASSWORD}@proclubsstatscluster.4f64qtf.mongodb.net/?retryWrites=true&w=majority`;
-  await mongoose.connect(connectionString, { connectTimeoutMS: 5 * 1000 });
-  console.log("Connected to MongoDB");
+  try {
+    await mongoose.connect(uri!, { connectTimeoutMS: 5 * 1000 });
+    console.log("Connected to MongoDB on db:", dbName);
+  } catch (e) {
+    console.log("MongoDB connection error:", e);
+  }
 }
 
 export { connectToDatabase };

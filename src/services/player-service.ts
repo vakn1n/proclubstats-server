@@ -116,6 +116,7 @@ export class PlayerService implements IPlayerService {
           player.seasonsHistory.push(player.currentSeason);
         }
         player.currentSeason = newSeason;
+        await player.save({ session });
       })
     );
   }

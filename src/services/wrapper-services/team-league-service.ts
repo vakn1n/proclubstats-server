@@ -48,6 +48,9 @@ export class TeamLeagueService implements ITeamLeagueService {
 
     await transactionService.withTransaction(async (session) => {
       league.teams = league.teams.filter((leagueTeam) => !leagueTeam._id.equals(team._id));
+      if (league.currentSeason) {
+        league.currentSeason.teams = league.currentSeason.teams!.filter((currentTeam) => !currentTeam._id.equals(team._id));
+      }
       team.league = null;
       if (team.currentSeason) {
         team.seasonsHistory.push(team.currentSeason);
