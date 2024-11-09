@@ -67,6 +67,12 @@ export class GameMapper {
         imgUrl: awayTeam.imgUrl,
         playersPerformance: this.mapPlayersPerformanceToDTO(awayTeamPlayersPerformance),
       },
+      technicalLoss: game.technicalLoss
+        ? {
+            teamId: game.technicalLoss!.teamId.toString(),
+            reason: game.technicalLoss!.reason,
+          }
+        : undefined,
     };
   }
 

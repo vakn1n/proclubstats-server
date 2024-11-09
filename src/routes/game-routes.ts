@@ -10,7 +10,7 @@ router.get("/:id", (req, res, next) => gameController.getGameById(req, res, next
 router.get("/team/:teamId", (req, res, next) => gameController.getCurrentSeasonTeamGames(req, res, next));
 
 router.put("/:id/updateResult", (req, res, next) => gameController.updateGameResult(req, res, next));
-router.put("/:id/technical-loss", (req, res, next) => gameController.setTechincalResult(req, res, next));
+router.put("/:id/technical-loss", (req, res, next) => gameController.setTechnicalResult(req, res, next));
 router.put("/:id/teamPlayersPerformance", (req, res, next) => gameController.updateTeamPlayersPerformance(req, res, next));
 
 router.delete("/:id", (req, res, next) => gameController.deleteGame(req, res, next));

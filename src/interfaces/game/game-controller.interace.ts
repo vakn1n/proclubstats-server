@@ -5,7 +5,7 @@ export interface IGameController {
 
   getCurrentSeasonTeamGames(req: Request, res: Response, next: NextFunction): Promise<void>;
 
-  setTechincalResult(req: Request, res: Response, next: NextFunction): Promise<void>;
+  setTechnicalResult(req: Request, res: Response, next: NextFunction): Promise<void>;
   updateGameResult(req: Request, res: Response, next: NextFunction): Promise<void>;
   updateTeamPlayersPerformance(req: Request, res: Response, next: NextFunction): Promise<void>;
 

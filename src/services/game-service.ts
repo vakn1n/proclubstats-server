@@ -76,7 +76,7 @@ export class GameService implements IGameService {
     return await this.gameRepository.createGames(fixtureId, leagueId, seasonNumber, gamesData, session);
   }
 
-  async setTechincalResult(gameId: string, losingTeamId: string, reason: string, date: Date): Promise<void> {
+  async setTechnicalResult(gameId: string, losingTeamId: string, reason: string, date: Date): Promise<void> {
     logger.info(`GameService: setting techincal result for game with id ${gameId}`);
 
     const game = await this.gameRepository.getGameById(gameId);

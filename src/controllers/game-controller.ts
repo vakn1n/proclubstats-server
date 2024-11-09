@@ -61,7 +61,7 @@ export default class GameController implements IGameController {
       next(error);
     }
   }
-  async setTechincalResult(req: Request, res: Response, next: NextFunction): Promise<void> {
+  async setTechnicalResult(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id: gameId } = req.params;
     const { losingTeamId, reason, date } = req.body;
 
@@ -71,7 +71,7 @@ export default class GameController implements IGameController {
     }
 
     try {
-      await this.gameService.setTechincalResult(gameId, losingTeamId, reason, new Date(date));
+      await this.gameService.setTechnicalResult(gameId, losingTeamId, reason, new Date(date));
       res.sendStatus(200);
     } catch (error: any) {
       next(error);
