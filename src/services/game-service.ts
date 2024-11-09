@@ -76,6 +76,34 @@ export class GameService implements IGameService {
     return await this.gameRepository.createGames(fixtureId, leagueId, seasonNumber, gamesData, session);
   }
 
+  async setTechincalResult(gameId: string, losingTeamId: string, reason: string, date: Date): Promise<void> {
+    const game = await this.gameRepository.getGameById(gameId);
+    const teamId = new Types.ObjectId(losingTeamId);
+
+    if (!game.homeTeam.equals(teamId) && !game.awayTeam.equals(teamId)) {
+      throw new BadRequestError("Losing team is not part of this game");
+    }
+
+    return await transactionService.withTransaction(async (session) => {
+      game.technicalLoss = {
+        teamId,
+        reason,
+      };
+      if (game.homeTeam.equals(teamId)) {
+        await this.teamService.updateTeamGameStats(game.homeTeam, 0, 3, session);
+        await this.teamService.updateTeamGameStats(game.awayTeam, 3, 0, session);
+        game.result = { homeTeamGoals: 0, awayTeamGoals: 3 };
+      } else {
+        await this.teamService.updateTeamGameStats(game.homeTeam, 3, 0, session);
+        await this.teamService.updateTeamGameStats(game.awayTeam, 0, 3, session);
+        game.result = { homeTeamGoals: 3, awayTeamGoals: 0 };
+      }
+      game.status = GAME_STATUS.COMPLETED;
+      game.date = date;
+      await game.save({ session });
+    });
+  }
+
   async updateGameResult(gameId: string, homeTeamGoals: number, awayTeamGoals: number, date: Date): Promise<void> {
     logger.info(`GameService: updating game ${gameId} result`);
 

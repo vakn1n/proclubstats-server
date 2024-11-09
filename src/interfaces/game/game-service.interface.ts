@@ -17,6 +17,7 @@ export interface IGameService {
   ): Promise<IGame[]>;
 
   updateGameResult(gameId: string, homeTeamGoals: number, awayTeamGoals: number, date: Date): Promise<void>;
+  setTechincalResult(gameId: string, losingTeamId: string, reason: string, date: Date): Promise<void>;
 
   updateTeamPlayersPerformance(gameId: string, isHomeTeam: boolean, playersPerformance: UpdatePlayerPerformanceDataRequest[]): Promise<void>;
 

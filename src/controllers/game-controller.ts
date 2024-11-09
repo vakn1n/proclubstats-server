@@ -61,6 +61,22 @@ export default class GameController implements IGameController {
       next(error);
     }
   }
+  async setTechincalResult(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const { id: gameId } = req.params;
+    const { losingTeamId, reason, date } = req.body;
+
+    if (!losingTeamId) {
+      res.status(400).send({ message: "no losing team id provided" });
+      return;
+    }
+
+    try {
+      await this.gameService.setTechincalResult(gameId, losingTeamId, reason, new Date(date));
+      res.sendStatus(200);
+    } catch (error: any) {
+      next(error);
+    }
+  }
 
   async updateTeamPlayersPerformance(req: Request, res: Response, next: NextFunction): Promise<void> {
     const { id: gameId } = req.params;

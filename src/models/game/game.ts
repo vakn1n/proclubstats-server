@@ -12,6 +12,10 @@ export interface IGame extends Document {
   awayTeam: mongoose.Types.ObjectId;
   date?: Date;
   status: GAME_STATUS;
+  technicalLoss?: {
+    teamId: mongoose.Types.ObjectId;
+    reason: string;
+  };
   result?: {
     homeTeamGoals: number;
     awayTeamGoals: number;
@@ -43,6 +47,14 @@ const gameSchema = new Schema<IGame>(
     awayTeam: { type: mongoose.Schema.Types.ObjectId, ref: "Team", required: true },
     date: { type: Date },
     status: { type: String, required: true, default: GAME_STATUS.SCHEDULED, enum: Object.values(GAME_STATUS) },
+    technicalLoss: {
+      type: {
+        reason: { type: String, required: true },
+        teamId: { type: mongoose.Schema.Types.ObjectId, ref: "Team", required: true },
+      },
+      id: false,
+      required: false,
+    },
     result: {
       type: {
         homeTeamGoals: { type: Number },
