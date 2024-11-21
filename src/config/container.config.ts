@@ -42,7 +42,7 @@ container.registerSingleton<IPlayerStatsService>("IPlayerStatsService", PlayerSt
 container.registerSingleton<ILeagueStatsService>("ILeagueStatsService", LeagueStatsService);
 
 container.registerSingleton<ImageService>("ImageService", CloudinaryImageService);
-container.registerSingleton<CacheService>("CacheService", RedisCacheService);
+// container.registerSingleton<CacheService>("CacheService", RedisCacheService);
 
 // Register controllers
 container.registerSingleton<IPlayerController>("IPlayerController", PlayerController);

@@ -1,16 +1,15 @@
-import { Types, ClientSession } from "mongoose";
+import { Types } from "mongoose";
 import { inject, injectable } from "tsyringe";
-import { BadRequestError, NotFoundError } from "../errors";
+import { BadRequestError } from "../errors";
 import logger from "../config/logger";
 import { FixtureMapper } from "../mappers/fixture-mapper";
 import LeagueMapper from "../mappers/league-mapper";
-import Fixture, { AddFixtureData } from "../models/fixture";
+import { AddFixtureData } from "../models/fixture";
 import { AddGameData } from "../models/game/game";
 import { ILeague } from "../models/league";
 import { IFixtureService } from "../interfaces/fixture";
 import { ILeagueService, ILeagueRepository } from "../interfaces/league";
 import { ITeamService } from "../interfaces/team";
-import { CacheService } from "../interfaces/util-services/cache-service.interface";
 import { transactionService } from "./util-services/transaction-service";
 import { AddSingleFixtureData, FixtureDTO, LeagueDTO, LeagueTableRow, TopAssister, TopScorer } from "@pro-clubs-manager/shared-dtos";
 
@@ -20,7 +19,6 @@ const TOP_ASSISTS_CACHE_KEY = "topAssists";
 
 @injectable()
 export class LeagueService implements ILeagueService {
-  private cacheService: CacheService;
   private fixtureService: IFixtureService;
   private teamService: ITeamService;
   private leagueRepository: ILeagueRepository;
@@ -28,11 +26,9 @@ export class LeagueService implements ILeagueService {
   constructor(
     @inject("ILeagueRepository") leagueRepository: ILeagueRepository,
     @inject("ITeamService") teamService: ITeamService,
-    @inject("CacheService") cacheService: CacheService,
     @inject("IFixtureService") fixtureService: IFixtureService
   ) {
     this.leagueRepository = leagueRepository;
-    this.cacheService = cacheService;
     this.teamService = teamService;
     this.fixtureService = fixtureService;
   }
@@ -201,8 +197,6 @@ export class LeagueService implements ILeagueService {
 
   async deleteLeague(id: string): Promise<void> {
     await this.leagueRepository.deleteLeague(id);
-
-    await this.cacheService.delete(`${LEAGUE_TABLE_CACHE_KEY}:${id}`);
   }
 
   async getLeagueById(id: string): Promise<LeagueDTO> {
@@ -229,15 +223,13 @@ export class LeagueService implements ILeagueService {
     return leagueTable;
   }
 
-  private async setLeagueTableInCache(leagueId: string, leagueTable: LeagueTableRow[]): Promise<void> {
-    await this.cacheService.set(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`, leagueTable, 10 * 60 * 60 * 1000);
-  }
+  private async setLeagueTableInCache(leagueId: string, leagueTable: LeagueTableRow[]): Promise<void> {}
 
   private async getLeagueTableFromCache(leagueId: string): Promise<LeagueTableRow[] | null> {
-    const leagueTable = await this.cacheService.get(`${LEAGUE_TABLE_CACHE_KEY}:${leagueId}`);
-    if (!leagueTable) return null;
+    return new Promise((resolve, reject) => resolve(null)); // temp until done with cache
+    // if (!leagueTable) return null;
 
-    return JSON.parse(leagueTable) as LeagueTableRow[];
+    // return JSON.parse(leagueTable) as LeagueTableRow[];
   }
 
   async updateLeagueTable(leagueId: string) {
@@ -301,25 +293,27 @@ export class LeagueService implements ILeagueService {
   }
 
   private async getTopScorersFromCache(leagueId: string): Promise<TopScorer[] | null> {
-    const cachedData = await this.cacheService.get(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`);
-    if (cachedData) {
-      return JSON.parse(cachedData);
-    }
-    return null;
+    // const cachedData = await this.cacheService.get(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`);
+    // if (cachedData) {
+    //   return JSON.parse(cachedData);
+    // }
+    // return null;
+    return new Promise((resolve, reject) => resolve(null)); // temp until done with cache
   }
   private async getTopAssistsFromCache(leagueId: string): Promise<TopAssister[] | null> {
-    const cachedData = await this.cacheService.get(`${TOP_ASSISTS_CACHE_KEY}:${leagueId}`);
-    if (cachedData) {
-      return JSON.parse(cachedData);
-    }
-    return null;
+    // const cachedData = await this.cacheService.get(`${TOP_ASSISTS_CACHE_KEY}:${leagueId}`);
+    // if (cachedData) {
+    //   return JSON.parse(cachedData);
+    // }
+    // return null;
+    return new Promise((resolve, reject) => resolve(null)); // temp until done with cache
   }
 
   async setTopAssistsInCache(leagueId: string, players: TopAssister[]) {
-    await this.cacheService.set(`${TOP_ASSISTS_CACHE_KEY}:${leagueId}`, players, 10 * 60 * 60 * 1000);
+    // await this.cacheService.set(`${TOP_ASSISTS_CACHE_KEY}:${leagueId}`, players, 10 * 60 * 60 * 1000);
   }
 
   private async setTopScorersInCache(leagueId: string, players: TopScorer[]): Promise<void> {
-    await this.cacheService.set(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`, players, 10 * 60 * 60 * 1000);
+    // await this.cacheService.set(`${TOP_SCORERS_CACHE_KEY}:${leagueId}`, players, 10 * 60 * 60 * 1000);
   }
 }
