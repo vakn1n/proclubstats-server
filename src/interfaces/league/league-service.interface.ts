@@ -5,6 +5,7 @@ export interface ILeagueService {
   getLeagueById(leagueId: string): Promise<LeagueDTO>;
 
   getLeagueTable(leagueId: string): Promise<LeagueTableRow[]>;
+  getLeagueTeamOfTheWeek(leagueId: string, startDate: Date, endDate: Date): Promise<{}>;
 
   getTopScorers(leagueId: string): Promise<TopScorer[]>;
   getTopAssists(leagueId: string): Promise<TopAssister[]>;

@@ -13,6 +13,8 @@ import { ITeamService } from "../interfaces/team";
 import { CacheService } from "../interfaces/util-services/cache-service.interface";
 import { transactionService } from "./util-services/transaction-service";
 import { AddSingleFixtureData, FixtureDTO, LeagueDTO, LeagueTableRow, TopAssister, TopScorer } from "@pro-clubs-manager/shared-dtos";
+import { IGameRepository } from "../interfaces/game";
+import { ITeamOfTheWeekService } from "../interfaces/wrapper-services/team-of-the-week-service.interface";
 
 const LEAGUE_TABLE_CACHE_KEY = "leagueTable";
 const TOP_SCORERS_CACHE_KEY = "topScorers";
@@ -20,22 +22,15 @@ const TOP_ASSISTS_CACHE_KEY = "topAssists";
 
 @injectable()
 export class LeagueService implements ILeagueService {
-  private cacheService: CacheService;
-  private fixtureService: IFixtureService;
-  private teamService: ITeamService;
-  private leagueRepository: ILeagueRepository;
-
   constructor(
-    @inject("ILeagueRepository") leagueRepository: ILeagueRepository,
-    @inject("ITeamService") teamService: ITeamService,
-    @inject("CacheService") cacheService: CacheService,
-    @inject("IFixtureService") fixtureService: IFixtureService
-  ) {
-    this.leagueRepository = leagueRepository;
-    this.cacheService = cacheService;
-    this.teamService = teamService;
-    this.fixtureService = fixtureService;
-  }
+    @inject("ILeagueRepository") private leagueRepository: ILeagueRepository,
+    @inject("IGameRepository") private gameRepository: IGameRepository,
+    @inject("ITeamService") private teamService: ITeamService,
+    @inject("CacheService") private cacheService: CacheService,
+    @inject("IFixtureService") private fixtureService: IFixtureService,
+    @inject("ITeamOfTheWeekService") private teamOfTheWeekService: ITeamOfTheWeekService
+  ) {}
+
   async startNewSeason(leagueId: string, startDateString: string, endDateString?: string): Promise<void> {
     logger.info(`LeagueService: Starting new season for league with id ${leagueId}`);
 
@@ -227,6 +222,23 @@ export class LeagueService implements ILeagueService {
       await this.setLeagueTableInCache(leagueId, leagueTable);
     }
     return leagueTable;
+  }
+
+  async getLeagueTeamOfTheWeek(leagueId: string, startDate: Date, endDate: Date): Promise<{}> {
+    logger.info(`LeagueService: getting team of the week for league with id ${leagueId}`);
+
+    const league = await this.leagueRepository.getLeagueById(leagueId);
+
+    console.log(startDate, endDate);
+
+    const leagueGames = await this.gameRepository.getLeaguePlayedGamesByDate(
+      { leagueId: league._id, seasonNumber: league.currentSeason.seasonNumber },
+      startDate,
+      endDate
+    );
+
+    const teamOfTheWeek = await this.teamOfTheWeekService.calculateTeamOfTheWeek(leagueGames);
+    return {};
   }
 
   private async setLeagueTableInCache(leagueId: string, leagueTable: LeagueTableRow[]): Promise<void> {

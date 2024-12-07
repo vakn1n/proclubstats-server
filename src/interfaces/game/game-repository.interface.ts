@@ -45,4 +45,6 @@ export interface IGameRepository {
     seasonNumber: number,
     numberOfGames: number
   ): Promise<PopulatedPlayerGameData[]>;
+
+  getLeaguePlayedGamesByDate(leagueData: { leagueId: Types.ObjectId; seasonNumber: number }, startDate: Date, endDate: Date): Promise<IGame[]>;
 }
