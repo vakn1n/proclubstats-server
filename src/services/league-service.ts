@@ -229,13 +229,15 @@ export class LeagueService implements ILeagueService {
 
     const league = await this.leagueRepository.getLeagueById(leagueId);
 
-    console.log(startDate, endDate);
-
     const leagueGames = await this.gameRepository.getLeaguePlayedGamesByDate(
       { leagueId: league._id, seasonNumber: league.currentSeason.seasonNumber },
       startDate,
       endDate
     );
+
+    if (!leagueGames.length) {
+      throw new BadRequestError(`No games played for the week between ${startDate} and ${endDate} in league ${league.name}`);
+    }
 
     const teamOfTheWeek = await this.teamOfTheWeekService.calculateTeamOfTheWeek(leagueGames);
     return {};

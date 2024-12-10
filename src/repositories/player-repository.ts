@@ -184,7 +184,13 @@ export class PlayerRepository implements IPlayerRepository {
             $set: {
               "currentSeason.stats.goals": { $subtract: [{ $ifNull: ["$currentSeason.stats.goals", 0] }, goals || 0] },
               "currentSeason.stats.assists": { $subtract: [{ $ifNull: ["$currentSeason.stats.assists", 0] }, assists || 0] },
-              "currentSeason.stats.games": { $subtract: [{ $ifNull: ["$currentSeason.stats.games", 0] }, 1] },
+              "currentSeason.stats.games": {
+                $cond: {
+                  if: { $gt: [{ $ifNull: ["$currentSeason.stats.games", 0] }, 0] },
+                  then: { $subtract: [{ $ifNull: ["$currentSeason.stats.games", 0] }, 1] },
+                  else: 0,
+                },
+              },
               "currentSeason.stats.playerOfTheMatch": { $subtract: [{ $ifNull: ["$currentSeason.stats.playerOfTheMatch", 0] }, playerOfTheMatch ? 1 : 0] },
               "currentSeason.stats.cleanSheets": { $subtract: [{ $ifNull: ["$currentSeason.stats.cleanSheets", 0] }, cleanSheet ? 1 : 0] },
               "currentSeason.stats.avgRating": {
