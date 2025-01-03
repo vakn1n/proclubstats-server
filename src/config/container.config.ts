@@ -21,6 +21,8 @@ import { ImageService } from "../interfaces/util-services/image-service.interfac
 import { CacheService } from "../interfaces/util-services/cache-service.interface";
 import { ILeagueStatsService, IPlayerStatsService, IPlayerTeamService, ITeamLeagueService, ITeamStatsService } from "../interfaces/wrapper-services";
 import { TeamStatsService, LeagueStatsService, PlayerStatsService } from "../services/wrapper-services";
+import { ITeamOfTheWeekService } from "../interfaces/wrapper-services/team-of-the-week-service.interface";
+import { TeamOfTheWeekService } from "../services/wrapper-services/team-of-the-week-service";
 
 // Register repositories
 container.registerSingleton<IPlayerRepository>("IPlayerRepository", PlayerRepository);
@@ -40,6 +42,7 @@ container.registerSingleton<ITeamLeagueService>("ITeamLeagueService", TeamLeague
 container.registerSingleton<ITeamStatsService>("ITeamStatsService", TeamStatsService);
 container.registerSingleton<IPlayerStatsService>("IPlayerStatsService", PlayerStatsService);
 container.registerSingleton<ILeagueStatsService>("ILeagueStatsService", LeagueStatsService);
+container.registerSingleton<ITeamOfTheWeekService>("ITeamOfTheWeekService", TeamOfTheWeekService);
 
 container.registerSingleton<ImageService>("ImageService", CloudinaryImageService);
 container.registerSingleton<CacheService>("CacheService", RedisCacheService);

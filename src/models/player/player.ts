@@ -1,4 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
+import { PopulatedPlayerWithTeam } from "./player-types";
 
 export interface IPlayerStats {
   games: number;
@@ -72,5 +73,7 @@ const playerSchema: Schema = new Schema(
 );
 
 const Player = mongoose.model<IPlayer>("Player", playerSchema);
+
+export { PopulatedPlayerWithTeam };
 
 export default Player;

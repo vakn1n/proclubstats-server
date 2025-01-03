@@ -4,7 +4,6 @@ import { inject, injectable } from "tsyringe";
 import { ILeagueController, ILeagueService } from "../interfaces/league";
 import { ImageService } from "../interfaces/util-services/image-service.interface";
 import { ILeagueStatsService, ITeamLeagueService } from "../interfaces/wrapper-services";
-import League from "../models/league";
 
 @injectable()
 export default class LeagueController implements ILeagueController {
@@ -167,10 +166,40 @@ export default class LeagueController implements ILeagueController {
     }
   }
   async getAdvancedTeamsStats(req: Request, res: Response, next: NextFunction) {
-    const { leagueId } = req.params;
+    const { id: leagueId } = req.params;
     try {
       const advancedStats = await this.leagueStatsService.getAdvancedLeagueTeamStats(leagueId);
       res.json(advancedStats);
+    } catch (error: any) {
+      next(error);
+    }
+  }
+  async getTeamOfTheWeek(req: Request, res: Response, next: NextFunction) {
+    const { id: leagueId } = req.params;
+
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate || !leagueId) {
+      res.status(400).send({ message: "Missing data" });
+      return;
+    }
+
+    const start = new Date(startDate as string);
+    const end = new Date(endDate as string);
+
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      res.status(400).send({ message: "Invalid date format" });
+      return;
+    }
+
+    if (end <= start) {
+      res.status(400).send({ message: "End date must be after start date" });
+      return;
+    }
+
+    try {
+      const teamOfWeek = await this.leagueService.getLeagueTeamOfTheWeek(leagueId, start, end);
+      res.json(teamOfWeek);
     } catch (error: any) {
       next(error);
     }

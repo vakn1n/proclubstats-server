@@ -8,7 +8,7 @@ import { ITeamRepository, ITeamService } from "../interfaces/team";
 import { ImageService } from "../interfaces/util-services/image-service.interface";
 import { PlayerMapper } from "../mappers/player-mapper";
 import { TeamMapper } from "../mappers/team-mapper";
-import Player from "../models/player";
+import Player from "../models/player/player";
 import { ITeam, ITeamSeason } from "../models/team";
 
 @injectable()

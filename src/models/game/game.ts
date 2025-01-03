@@ -71,6 +71,10 @@ const gameSchema = new Schema<IGame>(
   }
 );
 
+// Define the index
+gameSchema.index({ league: 1, seasonNumber: 1, date: 1 });
+gameSchema.index({ GAME_STATUS: 1 });
+
 const Game = mongoose.model<IGame>("Game", gameSchema);
 
 export default Game;

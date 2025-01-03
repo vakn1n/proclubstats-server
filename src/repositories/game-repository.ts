@@ -134,6 +134,22 @@ export class GameRepository implements IGameRepository {
     }
   }
 
+  async getLeaguePlayedGamesByDate(leagueData: { leagueId: Types.ObjectId; seasonNumber: number }, startDate: Date, endDate: Date): Promise<IGame[]> {
+    try {
+      return await Game.find({
+        league: leagueData.leagueId,
+        seasonNumber: leagueData.seasonNumber,
+        status: GAME_STATUS.COMPLETED,
+        date: { $gte: startDate, $lte: endDate },
+      })
+        .sort({ date: 1, seasonNumber: 1, round: 1 })
+        .exec();
+    } catch (e: any) {
+      logger.error(e.message);
+      throw new QueryFailedError(`Failed to get games between ${startDate} and ${endDate}`);
+    }
+  }
+
   async getPlayerLastGames(
     playerId: string | Types.ObjectId,
     league: string | Types.ObjectId,

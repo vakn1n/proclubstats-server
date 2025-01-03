@@ -3,7 +3,7 @@ import { NotFoundError, QueryFailedError } from "../errors";
 import { ITeamRepository } from "../interfaces/team/team-repository.interface";
 import Team, { ITeam, ITeamSeason, TeamWithPlayers } from "../models/team";
 import logger from "../config/logger";
-import { IPlayer } from "../models/player";
+import { IPlayer } from "../models/player/player";
 
 export class TeamRepository implements ITeamRepository {
   async getTeamsByIds(teamIds: (string | Types.ObjectId)[]): Promise<ITeam[]> {

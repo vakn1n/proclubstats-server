@@ -1,5 +1,5 @@
 import mongoose, { Schema, Document } from "mongoose";
-import { IPlayer } from "./player";
+import { IPlayer } from "./player/player";
 
 export type TeamWithPlayers = {
   id: string;

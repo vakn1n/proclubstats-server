@@ -1,11 +1,12 @@
 // player-repository.interface.ts
 import { ClientSession, Types } from "mongoose";
-import { IPlayer } from "../../models/player";
+import { IPlayer, PopulatedPlayerWithTeam } from "../../models/player/player";
 import { PlayerGamePerformance } from "../../models/game/game";
 import { CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dtos";
 
 export interface IPlayerRepository {
   getPlayerById(id: string | Types.ObjectId, session?: ClientSession): Promise<IPlayer>;
+  getPlayersWithTeamData(playersIds: (string | Types.ObjectId)[], session?: ClientSession): Promise<PopulatedPlayerWithTeam[]>;
   getPlayersByTeamId(teamId: Types.ObjectId, session?: ClientSession): Promise<IPlayer[]>;
   getPlayersByLeague(leagueId: Types.ObjectId | string, session?: ClientSession): Promise<IPlayer[]>;
   getFreeAgents(session?: ClientSession): Promise<IPlayer[]>;

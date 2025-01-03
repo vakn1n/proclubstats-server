@@ -3,7 +3,7 @@ import "reflect-metadata";
 import { MockGameRepository } from "../../../src/mocks/repositories/mock-game-repository";
 import { MockPlayerRepository } from "../../../src/mocks/repositories/mock-player-repository";
 import { IGame, PopulatedPlayerGameData } from "../../../src/models/game/game";
-import { IPlayer } from "../../../src/models/player";
+import { IPlayer } from "../../../src/models/player/player";
 import { PlayerStatsService } from "../../../src/services/wrapper-services";
 
 describe("PlayerStatsService", () => {
