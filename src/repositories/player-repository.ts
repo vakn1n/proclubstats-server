@@ -2,7 +2,7 @@
 import { ClientSession, Types } from "mongoose";
 import { NotFoundError, QueryFailedError } from "../errors";
 import { IPlayerRepository } from "../interfaces/player/player-repository.interface";
-import Player, { IPlayer } from "../models/player";
+import Player, { IPlayer, PopulatedPlayerWithTeam } from "../models/player/player";
 import logger from "../config/logger";
 import { injectable } from "tsyringe";
 import { PlayerGamePerformance } from "../models/game/game";
@@ -10,6 +10,22 @@ import { CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dtos";
 
 @injectable()
 export class PlayerRepository implements IPlayerRepository {
+  async getPlayersWithTeamData(playerIds: (string | Types.ObjectId)[]): Promise<PopulatedPlayerWithTeam[]> {
+    try {
+      const players = await Player.find({ _id: { $in: playerIds } })
+        .select("id name imgUrl")
+        .populate<{ team: { id: string; name: string; imgUrl?: string } }>({
+          path: "team",
+          select: "id name imgUrl",
+        })
+        .exec();
+
+      return players;
+    } catch (err: any) {
+      logger.error(err.message);
+      throw new QueryFailedError(`Failed to get players with team data`);
+    }
+  }
   async getPlayersByLeague(leagueId: Types.ObjectId | string, session?: ClientSession): Promise<IPlayer[]> {
     try {
       return await Player.find({ "currentSeason.league": leagueId }, {}, { session });

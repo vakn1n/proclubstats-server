@@ -1,6 +1,6 @@
 import { Types, ClientSession } from "mongoose";
 import { IPlayerRepository } from "../../interfaces/player";
-import { IPlayer } from "../../models/player";
+import { IPlayer } from "../../models/player/player";
 import { CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dtos";
 import { PlayerGamePerformance } from "../../models/game/game-types";
 

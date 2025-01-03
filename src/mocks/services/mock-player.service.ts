@@ -1,7 +1,7 @@
 import { Types, ClientSession } from "mongoose";
 import { IPlayerService } from "../../interfaces/player";
 import { IPlayerGamePerformance } from "../../models/game/game";
-import { IPlayer } from "../../models/player";
+import { IPlayer } from "../../models/player/player";
 import { PlayerDTO, CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dtos";
 
 export class MockPlayerService implements IPlayerService {

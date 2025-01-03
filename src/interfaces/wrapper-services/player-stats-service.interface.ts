@@ -1,6 +1,6 @@
 import { Types } from "mongoose";
 
-import { IPlayerStats } from "../../models/player";
+import { IPlayerStats } from "../../models/player/player";
 import { PlayerLastGamesForm } from "@pro-clubs-manager/shared-dtos";
 
 export interface IPlayerStatsService {

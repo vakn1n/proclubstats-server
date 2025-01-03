@@ -4,7 +4,7 @@ import logger from "../config/logger";
 import { IPlayerRepository, IPlayerService } from "../interfaces/player";
 import { ImageService } from "../interfaces/util-services/image-service.interface";
 import { PlayerMapper } from "../mappers/player-mapper";
-import { IPlayer, IPlayerSeason } from "../models/player";
+import { IPlayer, IPlayerSeason } from "../models/player/player";
 import { PlayerDTO, CreatePlayerDataRequest } from "@pro-clubs-manager/shared-dtos";
 import { PlayerGamePerformance } from "../models/game/game";
 

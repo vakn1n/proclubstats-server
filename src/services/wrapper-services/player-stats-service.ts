@@ -3,7 +3,7 @@ import { inject, injectable } from "tsyringe";
 import { IGameRepository } from "../../interfaces/game";
 import { IPlayerRepository } from "../../interfaces/player";
 import { IPlayerStatsService } from "../../interfaces/wrapper-services";
-import { IPlayerStats } from "../../models/player";
+import { IPlayerStats } from "../../models/player/player";
 import logger from "../../config/logger";
 import { PlayerLastGamesForm } from "@pro-clubs-manager/shared-dtos";
 

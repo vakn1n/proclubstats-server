@@ -1,5 +1,5 @@
 import { TeamDTO } from "@pro-clubs-manager/shared-dtos";
-import { IPlayer } from "../models/player";
+import { IPlayer } from "../models/player/player";
 import { ITeam } from "../models/team";
 
 export class TeamMapper {

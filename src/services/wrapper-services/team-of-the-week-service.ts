@@ -3,36 +3,79 @@ import { ITeamOfTheWeekService } from "../../interfaces/wrapper-services/team-of
 import { IPlayerRepository } from "../../interfaces/player";
 import { IGame, PlayerGamePerformance } from "../../models/game/game";
 import logger from "../../config/logger";
+import { PopulatedPlayerWithTeam } from "../../models/player/player";
+
+type PlayerPositionStats = {
+  goals: number;
+  games: number;
+  assists: number;
+  cleanSheets: number;
+  avgRating: number;
+  playerOfTheMatch: number;
+};
 
 type PlayersWeekStatsMap = {
   [playerId: string]: {
     totalGames: number;
-    positions: {
-      [position: string]: {
-        goals: number;
-        games: number;
-        assists: number;
-        cleanSheets: number;
-        totalRating: number;
-      };
+    totalScore: number;
+    positionsStats: {
+      [position: string]: PlayerPositionStats;
     };
   };
 };
 
+type TeamOfTheWeek = { playerId: string; position: string; score: number; stats: PlayerPositionStats }[];
+
+type HonorableMentions = {
+  playerId: string;
+  totalGames: number;
+  totalScore: number;
+  positionsStats: {
+    [position: string]: PlayerPositionStats;
+  };
+}[];
+
+type EnrichedPlayerInfo = {
+  playerId: string;
+  name: string;
+  imgUrl?: string;
+  team: {
+    id: string;
+    name: string;
+    imgUrl?: string;
+  };
+};
+
+type EnrichedTeamOfTheWeek = {
+  player: EnrichedPlayerInfo;
+  position: string;
+  score: number;
+  stats: PlayerPositionStats;
+}[];
+
+type EnrichedHonorableMentions = {
+  player: EnrichedPlayerInfo;
+  totalGames: number;
+  totalScore: number;
+  positionsStats: {
+    [position: string]: PlayerPositionStats;
+  };
+}[];
+
+type PlayersByPosition = {
+  [position: string]: Array<{ playerId: string; score: number; stats: PlayerPositionStats }>;
+};
+
 const positionMapping: { [key: string]: string } = {
   CF: "ST",
-  ST: "ST",
   CM: "CDM",
   CDM: "CDM",
   RB: "RM",
-  RM: "RM",
   RW: "RM",
   RWB: "RM",
   LB: "LM",
-  LM: "LM",
   LW: "LM",
   LWB: "LM",
-  CAM: "CAM",
 };
 
 // Function to normalize position
@@ -43,23 +86,105 @@ function normalizePosition(position: string): string {
 @injectable()
 export class TeamOfTheWeekService implements ITeamOfTheWeekService {
   constructor(@inject("IPlayerRepository") private playerRepository: IPlayerRepository) {}
-  calculateTeamOfTheWeek(games: IGame[]): Promise<{}> {
+
+  async getTeamOfTheWeek(games: IGame[]) {
     logger.info(`TeamOfTheWeekService: calculating team of the week`);
-    // Step 1: Aggregate player stats from games
-    const playerStats = this.aggregatePlayersWeeklyStats(games);
-    console.log(playerStats);
-    // 2. Calculate total scores for eligible players
-    // const scoredPlayers = this.calculateTotalScores(playersWeekStats, eligiblePlayers);
 
-    // // 3. Select Team of the Week
-    // const teamOfTheWeek = this.selectTeamOfTheWeek(scoredPlayers, playersWeekStats);
+    const playersWeekStats = this.aggregatePlayersWeeklyStats(games);
 
-    // // 4. Select Honorable Mentions
-    // const honorableMentions = this.selectHonorableMentions(scoredPlayers, playersWeekStats, teamOfTheWeek);
+    const playersScores = this.calculateTotalScores(playersWeekStats);
 
-    // // 5. Return Final Result
-    // return { teamOfTheWeek, honorableMentions };
-    throw new Error(`TeamOfTheWeekService`);
+    const teamOfTheWeek = this.generateTeamOfTheWeek(playersScores);
+
+    const honorableMentions = this.generateHonorableMentions(playersScores, teamOfTheWeek);
+
+    const { enrichedHonorableMentions, enrichedTeamOfTheWeek } = await this.populatePlayersData(teamOfTheWeek, honorableMentions);
+
+    return { teamOfTheWeek: enrichedTeamOfTheWeek, honorableMentions: enrichedHonorableMentions };
+  }
+
+  /**
+   * Enriches players in the Team of the Week and Honorable Mentions with player and team data.
+   */
+  async populatePlayersData(teamOfTheWeek: TeamOfTheWeek, honorableMentions: HonorableMentions) {
+    const playerIds = this.getUniquePlayerIds(teamOfTheWeek, honorableMentions);
+
+    // Fetch player and team data in one go
+    const playersWithTeamData = await this.playerRepository.getPlayersWithTeamData(playerIds);
+
+    const playerTeamMap = this.createPlayerTeamMap(playersWithTeamData);
+
+    return {
+      enrichedTeamOfTheWeek: this.enrichTeamOfTheWeek(teamOfTheWeek, playerTeamMap),
+      enrichedHonorableMentions: this.enrichHonorableMentions(honorableMentions, playerTeamMap),
+    };
+  }
+
+  /**
+   * Extracts unique player IDs from both Team of the Week and Honorable Mentions.
+   */
+  private getUniquePlayerIds(teamOfTheWeek: TeamOfTheWeek, honorableMentions: HonorableMentions): string[] {
+    return [...new Set([...teamOfTheWeek.map((entry) => entry.playerId), ...honorableMentions.map((entry) => entry.playerId)])];
+  }
+
+  /**
+   * Creates a map of player IDs to their enriched data.
+   */
+  private createPlayerTeamMap(playersWithTeamData: PopulatedPlayerWithTeam[]): Map<string, EnrichedPlayerInfo> {
+    return new Map(
+      playersWithTeamData.map(({ team, id: playerId, name, imgUrl }) => [
+        playerId,
+        {
+          playerId,
+          name,
+          imgUrl,
+          team: {
+            id: team.id,
+            name: team.name,
+            imgUrl: team.imgUrl,
+          },
+        },
+      ])
+    );
+  }
+
+  /**
+   * Enriches the Team of the Week with player and team data.
+   */
+  private enrichTeamOfTheWeek(teamOfTheWeek: TeamOfTheWeek, playerTeamMap: Map<string, EnrichedPlayerInfo>): EnrichedTeamOfTheWeek {
+    return teamOfTheWeek.map((entry) => {
+      const playerData = playerTeamMap.get(entry.playerId);
+
+      if (!playerData) {
+        throw new Error(`Missing player data for playerId: ${entry.playerId}`);
+      }
+
+      return {
+        player: playerData,
+        position: entry.position,
+        score: entry.score,
+        stats: entry.stats,
+      };
+    });
+  }
+
+  /**
+   * Enriches Honorable Mentions with player and team data.
+   */
+  private enrichHonorableMentions(honorableMentions: HonorableMentions, playerTeamMap: Map<string, EnrichedPlayerInfo>): EnrichedHonorableMentions {
+    return honorableMentions.map((entry) => {
+      const playerData = playerTeamMap.get(entry.playerId);
+      if (!playerData) {
+        throw new Error(`Missing player data for playerId: ${entry.playerId}`);
+      }
+
+      return {
+        player: playerData,
+        totalGames: entry.totalGames,
+        totalScore: entry.totalScore,
+        positionsStats: entry.positionsStats,
+      };
+    });
   }
 
   private aggregatePlayersWeeklyStats(weekGames: IGame[]): PlayersWeekStatsMap {
@@ -84,9 +209,9 @@ export class TeamOfTheWeekService implements ITeamOfTheWeekService {
     return playersWeekStats;
   }
 
-  private aggregatePlayerPerformance(playersWeekStats: PlayersWeekStatsMap, performance: PlayerGamePerformance) {
-    const playerId = performance.playerId.toString();
-    const position = normalizePosition(performance.positionPlayed);
+  private aggregatePlayerPerformance(playersWeekStats: PlayersWeekStatsMap, playerPerformance: PlayerGamePerformance) {
+    const playerId = playerPerformance.playerId.toString();
+    const position = normalizePosition(playerPerformance.positionPlayed);
 
     if (!position) {
       return; // Skip players without a position
@@ -96,120 +221,159 @@ export class TeamOfTheWeekService implements ITeamOfTheWeekService {
     if (!playersWeekStats[playerId]) {
       playersWeekStats[playerId] = {
         totalGames: 0,
-        positions: {},
+        positionsStats: {},
+        totalScore: 0,
       };
     }
 
     // Initialize position-specific stats if not already present
-    if (!playersWeekStats[playerId].positions[position]) {
-      playersWeekStats[playerId].positions[position] = {
+    if (!playersWeekStats[playerId].positionsStats[position]) {
+      playersWeekStats[playerId].positionsStats[position] = {
         games: 0,
         goals: 0,
         assists: 0,
         cleanSheets: 0,
-        totalRating: 0,
+        avgRating: 0.0,
+        playerOfTheMatch: 0,
       };
     }
 
-    const positionStats = playersWeekStats[playerId].positions[position];
+    const positionStats = playersWeekStats[playerId].positionsStats[position];
     positionStats.games++;
-    positionStats.goals += performance.goals || 0;
-    positionStats.assists += performance.assists || 0;
-    positionStats.cleanSheets += performance.cleanSheet ? 1 : 0;
-    positionStats.totalRating += performance.rating;
-
+    positionStats.goals += playerPerformance.goals || 0;
+    positionStats.assists += playerPerformance.assists || 0;
+    positionStats.cleanSheets += playerPerformance.cleanSheet ? 1 : 0;
+    positionStats.avgRating = (positionStats.avgRating * (positionStats.games - 1) + playerPerformance.rating) / positionStats.games;
+    positionStats.playerOfTheMatch += playerPerformance.playerOfTheMatch ? 1 : 0;
     playersWeekStats[playerId].totalGames++;
   }
 
-  // private selectBestPlayers(playerStats: PlayersWeekStatsMap) {
-  //   const formation = { gk: 1, def: 3, mid: 5, st: 2 }; // Example formation
-  //   const team = { gk: [], def: [], mid: [], st: [] };
-  //   // const honorableMentions: { playerId: string; stats: PlayerStatsByPosition }[] = [];
-  //   const honorableMentions: { playerId: string; stats: {} }[] = [];
+  private calculateTotalScores(playersStats: PlayersWeekStatsMap): PlayersWeekStatsMap {
+    const playerScores: PlayersWeekStatsMap = {};
 
-  //   const playerScoresByPosition: Record<string, { playerId: string; position: string; score: number }[]> = {};
-  //   const allPlayerScores: { playerId: string; score: number; position: string }[] = [];
+    for (const playerId in playersStats) {
+      const playerStats = playersStats[playerId];
+      let totalScore = 0;
 
-  //   // Step 1: Calculate player scores for each position
-  //   for (const playerId in playerStats) {
-  //     const positionStats = playerStats[playerId];
+      for (const position in playerStats.positionsStats) {
+        const stats = playerStats.positionsStats[position];
+        totalScore += this.calculatePositionScore(position, stats);
+      }
 
-  //     for (const position in positionStats) {
-  //       const stats = positionStats[position];
+      playerScores[playerId] = {
+        totalScore,
+        totalGames: playerStats.totalGames,
+        positionsStats: playerStats.positionsStats,
+      };
+    }
 
-  //       if (stats.games < 2) continue; // Filter out ineligible players
-  //       const avgRating = stats.totalRating / stats.games;
+    return playerScores;
+  }
 
-  //       const playerScore = this.calculateScore(stats, avgRating);
+  private generateTeamOfTheWeek(playersWeekStats: PlayersWeekStatsMap) {
+    const playersByPosition = this.groupPlayersByPosition(playersWeekStats);
 
-  //       // Add player to position-specific array for sorting
-  //       if (!playerScoresByPosition[position]) {
-  //         playerScoresByPosition[position] = [];
-  //       }
-  //       playerScoresByPosition[position].push({ playerId, position, score: playerScore });
+    // Sort players within each position by score
+    this.sortPlayersByScore(playersByPosition);
 
-  //       // Collect all player scores for future honorable mention check
-  //       allPlayerScores.push({ playerId, score: playerScore, position });
-  //     }
-  //   }
+    // Select the Team of the Week based on the formation
+    const formation = {
+      GK: 1,
+      CB: 3,
+      CDM: 2,
+      LM: 1,
+      RM: 1,
+      CAM: 1,
+      ST: 2,
+    };
+    return this.selectTeamOfTheWeek(playersByPosition, formation);
+  }
 
-  //   // Step 2: Select the best team based on formation
-  //   const teamOfTheWeekPlayerIds = new Set<string>();
-  //   for (const position in formation) {
-  //     if (!playerScoresByPosition[position]) continue;
+  private groupPlayersByPosition(playersWeekStats: PlayersWeekStatsMap): PlayersByPosition {
+    const playersByPosition: PlayersByPosition = {};
 
-  //     playerScoresByPosition[position].sort((a, b) => b.score - a.score);
-  //     const topPlayers = playerScoresByPosition[position].slice(0, formation[position]);
+    for (const [playerId, playerStats] of Object.entries(playersWeekStats)) {
+      for (const [position, stats] of Object.entries(playerStats.positionsStats)) {
+        if (stats.games < 2) continue;
 
-  //     team[position] = topPlayers.map((player) => ({
-  //       playerId: player.playerId,
-  //       stats: playerStats[player.playerId][player.position],
-  //     }));
+        if (!playersByPosition[position]) {
+          playersByPosition[position] = [];
+        }
+        playersByPosition[position].push({
+          playerId,
+          score: playerStats.totalScore,
+          stats,
+        });
+      }
+    }
 
-  //     // Add selected players to the team of the week set
-  //     topPlayers.forEach((player) => teamOfTheWeekPlayerIds.add(player.playerId));
-  //   }
+    return playersByPosition;
+  }
 
-  //   // Step 3: Filter and sort honorable mentions
-  //   for (const { playerId, score, position } of allPlayerScores) {
-  //     // Skip players already in the team of the week
-  //     if (teamOfTheWeekPlayerIds.has(playerId)) continue;
+  private sortPlayersByScore(playersByPosition: PlayersByPosition) {
+    for (const position in playersByPosition) {
+      playersByPosition[position].sort((a, b) => b.score - a.score);
+    }
+  }
 
-  //     // Check if the player has at least 2 games played in any position
-  //     const positionStats = playerStats[playerId];
-  //     const totalGamesPlayed = Object.values(positionStats).reduce((sum, stats) => sum + stats.games, 0);
+  private selectTeamOfTheWeek(bestPlayersByPosition: PlayersByPosition, formation: { [position: string]: number }): TeamOfTheWeek {
+    const teamOfTheWeek: TeamOfTheWeek = [];
 
-  //     if (totalGamesPlayed < 2) continue;
+    for (const [position, count] of Object.entries(formation)) {
+      const positionPlayers = bestPlayersByPosition[position] || [];
+      teamOfTheWeek.push(
+        ...positionPlayers.slice(0, count).map((playerStatsData) => ({
+          position,
+          ...playerStatsData,
+        }))
+      );
+    }
 
-  //     // Add to honorable mentions only if their score is lower than the best team players
-  //     if (score < Math.max(...playerScoresByPosition[position].map((player) => player.score))) {
-  //       honorableMentions.push({ playerId, stats: positionStats });
-  //     }
-  //   }
+    return teamOfTheWeek;
+  }
 
-  //   // Sort honorable mentions by their highest score in any position
-  //   honorableMentions.sort((a, b) => {
-  //     const aMaxScore = Math.max(...Object.values(a.stats).map((s) => s.totalRating / s.games));
-  //     const bMaxScore = Math.max(...Object.values(b.stats).map((s) => s.totalRating / s.games));
-  //     return bMaxScore - aMaxScore;
-  //   });
+  private generateHonorableMentions(playersScores: PlayersWeekStatsMap, teamOfTheWeek: TeamOfTheWeek, count: number = 5) {
+    const teamOfTheWeekIds = new Set(teamOfTheWeek.map((player) => player.playerId));
 
-  //   return { team, honorableMentions };
-  // }
+    const playersNotInTeamOfTheWeek = Object.entries(playersScores)
+      .filter(([playerId]) => !teamOfTheWeekIds.has(playerId)) // Exclude players already in Team of the Week
+      .map(([playerId, stats]) => ({
+        ...stats,
+        playerId,
+      }));
 
-  private calculateScore(stats: any, avgRating: number) {
-    const { position } = stats;
+    // Sort remaining players by total score and select the top 5
+    return playersNotInTeamOfTheWeek.sort((a, b) => b.totalScore - a.totalScore).slice(0, count);
+  }
+
+  private calculatePositionScore(position: string, stats: PlayerPositionStats): number {
+    let bonusPoints = 0.1 * stats.playerOfTheMatch; // start with bonus points for man of the match
+    const { avgRating } = stats;
     switch (position) {
-      case "gk":
-        return avgRating * 0.7 + stats.totalStats.cleanSheets * 0.3;
-      case "def":
-        return avgRating * 0.5 + stats.totalStats.cleanSheets * 0.5 + (stats.totalStats.goals + stats.totalStats.assists) * 0.1;
-      case "mid":
-        return avgRating * 0.7 + (stats.totalStats.assists / stats.gamesPlayed) * 0.2 + stats.totalStats.cleanSheets * 0.1;
-      case "st":
-        return avgRating * 0.3 + (stats.totalStats.goals / stats.gamesPlayed) * 0.6 + (stats.totalStats.assists / stats.gamesPlayed) * 0.1;
+      case "GK":
+        return avgRating * 0.7 + stats.cleanSheets * 0.3;
+
+      case "CB":
+        const baseScore = avgRating * 0.7 + stats.cleanSheets * 0.3;
+        bonusPoints = ((stats.goals + stats.assists) / stats.games) * 0.2; // Bonus points for attacking contributions
+        return baseScore + bonusPoints;
+
+      case "CDM": // CM, CDM
+        bonusPoints = (stats.goals / stats.games) * 0.2; // Bonus points for attacking contributions
+        return avgRating * 0.7 + (stats.assists / stats.games) * 0.2 + stats.cleanSheets * 0.1 + bonusPoints;
+
+      case "RM": // (RB, RM, RW, RWB)
+      case "LM": //  (LB, LM, LW, LWB)
+        return avgRating * 0.5 + (stats.goals / stats.games) * 0.25 + (stats.assists / stats.games) * 0.25;
+
+      case "CAM": // Central Attacking Midfield
+        return avgRating * 0.4 + (stats.goals / stats.games) * 0.2 + (stats.assists / stats.games) * 0.4;
+
+      case "ST": // ST, CF
+        return avgRating * 0.3 + (stats.goals / stats.games) * 0.6 + (stats.assists / stats.games) * 0.1;
+
       default:
-        return avgRating;
+        throw new Error(`Unknown poistion ${position}`);
     }
   }
 }

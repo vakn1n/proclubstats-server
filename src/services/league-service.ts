@@ -239,8 +239,7 @@ export class LeagueService implements ILeagueService {
       throw new BadRequestError(`No games played for the week between ${startDate} and ${endDate} in league ${league.name}`);
     }
 
-    const teamOfTheWeek = await this.teamOfTheWeekService.calculateTeamOfTheWeek(leagueGames);
-    return {};
+    return await this.teamOfTheWeekService.getTeamOfTheWeek(leagueGames);
   }
 
   private async setLeagueTableInCache(leagueId: string, leagueTable: LeagueTableRow[]): Promise<void> {
